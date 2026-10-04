@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import db from "../../../db/models/index.js";
+import { sendResetEmail } from "../../../lib/mailer.js";
 
 export async function POST(req) {
   try {
@@ -15,9 +16,15 @@ export async function POST(req) {
       user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       await user.save();
 
-      console.log(
-        `\nPASSWORD RESET LINK:\nhttp://localhost:3000/reset-password?token=${token}\n`,
-      );
+      const baseUrl = process.env.APP_URL || "http://localhost:3000";
+      const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+      try {
+        await sendResetEmail(user.email, user.fullName, resetUrl);
+      } catch (mailErr) {
+        // Hindi ipinapakita sa user para hindi mahulaan kung may account ang email
+        console.error("Failed to send reset email:", mailErr);
+      }
     }
 
     return NextResponse.json({

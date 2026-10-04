@@ -49,7 +49,7 @@ export default function ForgotPassword() {
       </SubmitButton>
       <Link
         href="/login"
-        className="text-sm text-center text-[#e5484d] hover:underline"
+        className="text-sm text-center text-[#ffffff] hover:underline"
       >
         Back to login
       </Link>
