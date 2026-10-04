@@ -1,0 +1,672 @@
+* {
+  box-sizing: border-box;
+}
+
+.activity-page {
+  min-height: 100vh;
+
+  padding: 18px;
+
+  color: #f2f2f5;
+
+  background:
+    radial-gradient(
+      circle at 15% 25%,
+      rgba(72, 57, 207, 0.2),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 88% 75%,
+      rgba(22, 153, 144, 0.16),
+      transparent 38%
+    ),
+    #090c15;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.activity-shell {
+  width: min(1120px, 100%);
+
+  min-height: calc(100vh - 36px);
+
+  margin: 0 auto;
+
+  padding: 16px 18px 18px;
+
+  border-radius: 20px;
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(52, 46, 154, 0.12),
+      transparent 36%
+    ),
+    radial-gradient(
+      circle at 95% 70%,
+      rgba(27, 130, 123, 0.11),
+      transparent 38%
+    ),
+    #080c18;
+}
+
+/* ==========================================================================
+   NAVIGATION
+============================================================================= */
+
+.activity-nav {
+  display: flex;
+
+  align-items: center;
+
+  height: 50px;
+
+  padding: 0 16px;
+
+  gap: 27px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.25);
+
+  border-radius: 27px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #42444f,
+      #292b36
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.08);
+}
+
+.activity-logo {
+  color: #f4f4f6;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.activity-nav-link {
+  padding: 0;
+
+  color: #babcc5;
+
+  border: 0;
+
+  background: transparent;
+
+  font: inherit;
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.activity-nav-link:hover {
+  color: #fff;
+}
+
+.activity-nav-link.explore {
+  display: flex;
+
+  gap: 4px;
+}
+
+.activity-profile {
+  width: 30px;
+  height: 30px;
+
+  margin-left: auto;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.3);
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #654ee8,
+      #5042dc
+    );
+}
+
+/* ==========================================================================
+   BACK
+============================================================================= */
+
+.activity-back {
+  margin-top: 13px;
+
+  padding: 5px 14px;
+
+  color: #eeeeF2;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.22);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #555862,
+      #3d3f49
+    );
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.activity-back:hover {
+  filter: brightness(1.08);
+}
+
+/* ==========================================================================
+   HEADER
+============================================================================= */
+
+.activity-header {
+  margin-top: 13px;
+}
+
+.activity-header h1 {
+  margin: 0;
+
+  color: #f2f2f5;
+
+  font-size: 22px;
+
+  line-height: 1.1;
+
+  letter-spacing: -0.035em;
+}
+
+/* ==========================================================================
+   TOOLBAR
+============================================================================= */
+
+.activity-toolbar {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 12px;
+}
+
+.activity-filters {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  flex-wrap: wrap;
+}
+
+.activity-filter,
+.date-range-button {
+  min-height: 27px;
+
+  padding: 5px 15px;
+
+  color: #dedee4;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.2);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #4f515c,
+      #363843
+    );
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.activity-filter:hover,
+.date-range-button:hover {
+  filter: brightness(1.1);
+}
+
+.activity-filter.active {
+  color: white;
+
+  border-color:
+    rgba(72, 213, 219, 0.75);
+
+  background:
+    linear-gradient(
+      180deg,
+      #269db0,
+      #287a8e
+    );
+}
+
+.date-range-wrapper {
+  position: relative;
+
+  flex-shrink: 0;
+}
+
+.date-range-button.selected {
+  border-color:
+    rgba(87, 215, 211, 0.6);
+}
+
+/* ==========================================================================
+   DATE RANGE POPOVER
+============================================================================= */
+
+.date-range-popover {
+  position: absolute;
+
+  z-index: 20;
+
+  top: calc(100% + 8px);
+
+  right: 0;
+
+  width: 240px;
+
+  padding: 14px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.2);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3d3f4b,
+      #252733
+    );
+
+  box-shadow:
+    0 15px 40px
+      rgba(0, 0, 0, 0.4);
+}
+
+.date-field {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+
+  margin-bottom: 9px;
+}
+
+.date-field label {
+  color: #aaaCB6;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.date-field input {
+  width: 100%;
+
+  padding: 7px 9px;
+
+  color: #eee;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.15);
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #292b37;
+
+  font-size: 11px;
+}
+
+.date-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 7px;
+
+  margin-top: 10px;
+}
+
+.date-actions button {
+  padding: 6px 11px;
+
+  color: #ddd;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.18);
+
+  border-radius: 9px;
+
+  background: #42444f;
+
+  font-size: 10px;
+
+  cursor: pointer;
+}
+
+.date-actions .apply-date {
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #35b9b7,
+      #247e93
+    );
+}
+
+/* ==========================================================================
+   TIMELINE
+============================================================================= */
+
+.activity-timeline {
+  margin-top: 11px;
+}
+
+.activity-section {
+  margin-bottom: 11px;
+}
+
+.activity-section h2 {
+  margin: 0 0 7px;
+
+  color: #a6a8b4;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   ACTIVITY ROW
+============================================================================= */
+
+.activity-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.activity-row {
+  display: flex;
+
+  align-items: center;
+
+  min-height: 57px;
+
+  padding: 9px 14px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.18);
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #41434e,
+      #2d2f3a
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.05);
+}
+
+.activity-row:hover {
+  border-color:
+    rgba(255, 255, 255, 0.28);
+
+  background:
+    linear-gradient(
+      145deg,
+      #464852,
+      #30323d
+    );
+}
+
+.activity-dot {
+  width: 11px;
+  height: 11px;
+
+  flex: 0 0 11px;
+
+  margin-right: 11px;
+
+  border-radius: 50%;
+}
+
+.activity-dot-plans {
+  background: #43cdbf;
+}
+
+.activity-dot-bucket {
+  background: #7778ed;
+}
+
+.activity-dot-budget {
+  background: #ffc22f;
+}
+
+.activity-dot-journal {
+  background: #ff7186;
+}
+
+.activity-row-content {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.activity-row-title {
+  overflow: hidden;
+
+  color: #f0f0f3;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.activity-row-meta {
+  margin-top: 2px;
+
+  color: #aaaCB6;
+
+  font-size: 11px;
+
+  line-height: 1.2;
+}
+
+.activity-view-button {
+  margin-left: 15px;
+
+  padding: 5px 0;
+
+  color: #bfc0c8;
+
+  border: 0;
+
+  background: transparent;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.activity-view-button:hover {
+  color: #fff;
+
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   LOAD MORE
+============================================================================= */
+
+.load-more-button {
+  display: block;
+
+  margin: 8px auto 0;
+
+  padding: 6px 15px;
+
+  color: #e6e6ea;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.22);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #565862,
+      #3c3e49
+    );
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.load-more-button:hover {
+  filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   EMPTY STATE
+============================================================================= */
+
+.activity-empty {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 52px;
+
+  margin-top: 10px;
+
+  padding: 12px;
+
+  border: 1px dashed
+    rgba(255, 255, 255, 0.28);
+
+  border-radius: 15px;
+
+  color: #a6a8b2;
+
+  background:
+    linear-gradient(
+      145deg,
+      #363844,
+      #282a35
+    );
+
+  font-size: 11px;
+}
+
+.activity-empty strong {
+  margin-left: 4px;
+
+  color: #f1f1f4;
+
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+============================================================================= */
+
+@media (max-width: 760px) {
+  .activity-nav {
+    gap: 15px;
+
+    overflow-x: auto;
+  }
+
+  .activity-toolbar {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .date-range-wrapper {
+    align-self: flex-start;
+  }
+
+  .date-range-popover {
+    left: 0;
+    right: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .activity-page {
+    padding: 10px;
+  }
+
+  .activity-shell {
+    padding: 12px;
+  }
+
+  .activity-row {
+    padding: 9px 11px;
+  }
+
+  .activity-row-title {
+    font-size: 12px;
+  }
+
+  .activity-row-meta {
+    font-size: 10px;
+  }
+
+  .activity-view-button {
+    margin-left: 8px;
+  }
+
+  .activity-filters {
+    gap: 6px;
+  }
+
+  .activity-filter {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+}
