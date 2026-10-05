@@ -1,0 +1,6 @@
+{
+  "/Main/HOME/page": "app/Main/HOME/page.js",
+  "/login/page": "app/login/page.js",
+  "/newplan/page": "app/newplan/page.js",
+  "/Bucket-list/page": "app/Bucket-list/page.js"
+}
