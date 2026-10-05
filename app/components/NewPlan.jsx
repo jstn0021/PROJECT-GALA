@@ -48,19 +48,21 @@ const TEMPLATES = {
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
-  { label: "My plans", href: "/my-plans", active: true },
-  { label: "Bucket list", href: "/Bucket-list" },
+  { label: "My plans", href: "/plans", active: true },
+  { label: "Bucket list", href: "/bucket-list" },
   { label: "Journal", href: "/journal" },
 ];
 
-
+// Mga reusable na class
 const primaryBtn =
   "rounded-xl border border-teal-200/60 bg-teal-500/40 px-6 py-3 font-medium text-teal-50 transition hover:bg-teal-500/60";
 const ghostBtn =
   "rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-white/90 transition hover:bg-white/20";
 const label = "mb-2 block text-sm font-medium text-white/80";
 
-
+/* ------------------------------------------------------------------ */
+/* Small components                                                   */
+/* ------------------------------------------------------------------ */
 function TopNav() {
   return (
     <header className="glass flex items-center justify-between rounded-2xl px-5 py-3">
@@ -71,7 +73,7 @@ function TopNav() {
             <Link
               key={l.label}
               href={l.href}
-              aria-current={l.active ? "newplan" : undefined}
+              aria-current={l.active ? "page" : undefined}
               className={`rounded-xl px-3 py-1.5 text-sm transition ${
                 l.active ? "bg-white/20 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
@@ -124,7 +126,7 @@ function TemplateCard({ name, template, selected, onSelect }) {
       aria-pressed={selected}
       onClick={() => onSelect(name)}
       className={`glass overflow-hidden rounded-3xl text-left transition hover:-translate-y-1 hover:bg-white/10 ${
-        selected ? "ring-2 ring-white/80" : ""
+        selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
       }`}
     >
       <div
@@ -174,6 +176,9 @@ function FieldError({ id, children }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Page                                                               */
+/* ------------------------------------------------------------------ */
 export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const router = useRouter();
 

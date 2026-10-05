@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Background, Logo } from "app/components/AuthCard";
+import { usePathname } from "next/navigation";
 
 /* ------------------------------------------------------------------ */
 /* Sample data. Papalitan ng galing sa API/database mamaya.           */
@@ -37,8 +38,8 @@ const TILE_GRADIENTS = {
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
-  { label: "My plans", href: "/newplan" },
-  { label: "Bucket list", href: "/bucket-list", active: true },
+  { label: "My plans", href: "/my-plans" },
+  { label: "Bucket list", href: "/Bucket-list", active: true },
   { label: "Journal", href: "/journal" },
 ];
 
@@ -50,32 +51,35 @@ const ghostBtn =
 /* ------------------------------------------------------------------ */
 /* Navbar                                                             */
 /* ------------------------------------------------------------------ */
-function TopNav() {
+export function Navbar() {
+  const pathname = usePathname();
+
   return (
-    <header className="glass flex items-center justify-between rounded-2xl px-5 py-3">
-      <div className="flex items-center gap-6">
-        <Logo />
-        <nav className="hidden items-center gap-1 md:flex">
-          {navLinks.map((l) => (
+    <header className="glass mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl px-6 py-3">
+      <Link href="/Main" className="text-xl font-bold tracking-tight text-white">
+        PROJECT-GALA
+      </Link>
+
+      <nav className="flex items-center gap-2 text-sm">
+        {navLinks.map((l) => {
+          const active = pathname.startsWith(l.href);
+          return (
             <Link
               key={l.label}
               href={l.href}
-              aria-current={l.active ? "page" : undefined}
-              className={`rounded-xl px-3 py-1.5 text-sm transition ${
-                l.active ? "bg-white/20 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+              aria-current={active ? "page" : undefined}
+              className={`rounded-xl px-4 py-2 transition ${
+                active
+                  ? "bg-white/15 font-medium text-white"
+                  : "text-white/75 hover:bg-white/10 hover:text-white"
               }`}
             >
               {l.label}
             </Link>
-          ))}
-          <button
-            type="button"
-            className="rounded-xl px-3 py-1.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
-          >
-            Explore ▾
-          </button>
-        </nav>
-      </div>
+          );
+        })}
+      </nav>
+
       <button
         type="button"
         aria-label="Profile"
@@ -210,7 +214,6 @@ export default function BucketList({
   places = initialPlaces,
   onBack,
   onAddPlace,
-  onUseTemplate,
   onViewDestination,
   onPlacesChange,
 }) {
@@ -244,14 +247,14 @@ export default function BucketList({
     updatePlaces(bucketPlaces.filter((p) => p.id !== deleteTarget.id));
     setDeleteTarget(null);
   }
-
+    
   return (
     <Background>
-      <div className="mx-auto max-w-5xl p-6 md:p-10">
-        <TopNav />
+      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+        <Navbar />
 
         {/* Header */}
-        <div className="mt-8">
+        <div className="mb-8">
           <button
             type="button"
             onClick={() => (onBack ? onBack() : router.back())}
@@ -263,9 +266,6 @@ export default function BucketList({
           <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Bucket list</h1>
             <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={onUseTemplate} className={ghostBtn}>
-                Use a template
-              </button>
               <button type="button" onClick={onAddPlace} className={primaryBtn}>
                 + Add place
               </button>
