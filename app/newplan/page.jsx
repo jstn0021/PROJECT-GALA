@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
+import LocationSearch from "@/app/components/LocationSearch";
 import {
   useStoredState,
   PLANS_KEY,
@@ -173,6 +174,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
   const [form, setForm] = useState({
     destination: initialDestination,
+    location: null,
     startDate: "",
     endDate: "",
     activities: [],
@@ -242,6 +244,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
     const newPlan = {
       id: Date.now(),
       title: form.destination.trim() || "New plan",
+      location: form.location,
       destination: form.destination.trim(),
       startDate: form.startDate,
       endDate: form.endDate,
@@ -363,16 +366,22 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 <label htmlFor="destination" className={label}>
                   Destination
                 </label>
-                <input
+                <LocationSearch
                   id="destination"
                   value={form.destination}
-                  onChange={(e) => updateForm("destination", e.target.value)}
-                  placeholder="e.g. Kyoto, Japan"
-                  aria-invalid={!!errors.destination}
-                  aria-describedby={
-                    errors.destination ? "destination-error" : undefined
-                  }
-                  className={`glass-input w-full rounded-xl px-4 py-3 ${errors.destination ? "is-error" : ""}`}
+                  invalid={!!errors.destination}
+                  onChange={(text) => {
+                    updateForm("destination", text);
+                    setForm((c) => ({ ...c, location: null }));
+                  }}
+                  onSelect={(loc) => {
+                    setForm((c) => ({
+                      ...c,
+                      destination: loc.label,
+                      location: loc,
+                    }));
+                    setErrors((e) => ({ ...e, destination: undefined }));
+                  }}
                 />
                 <FieldError id="destination-error">
                   {errors.destination}
