@@ -1,16 +1,28 @@
 export function Background({ children }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0b1f33] via-[#12476b] to-[#1b6f7a]">
-      {/* blurred world map */}
-      <div
-        className="pointer-events-none absolute inset-0 scale-110 opacity-60 blur-[3px]"
-        style={{
-          backgroundImage: "url(/world-map.svg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
+      {/* mapa + air traffic, sabay na gumagalaw */}
+      <div className="pointer-events-none fixed inset-0 animate-map-drift">
+        <div
+          className="absolute inset-0 opacity-60 blur-[3px]"
+          style={{
+            backgroundImage: "url(/world-map.svg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-90"
+          style={{
+            backgroundImage: "url(/world-routes.svg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+      </div>
+
       <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-orange-400/50 blur-3xl animate-float" />
       <div className="pointer-events-none absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-pink-500/40 blur-3xl animate-float-slow" />
       <div className="pointer-events-none absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-cyan-400/40 blur-3xl animate-float" />

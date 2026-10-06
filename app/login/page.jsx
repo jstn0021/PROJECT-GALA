@@ -41,7 +41,7 @@ export default function Login() {
       });
       const result = await res.json();
       if (res.ok) {
-        router.push("/Main/Home");
+        router.push("/dashboard");
       } else {
         setError(result?.error_message || "Something went wrong");
         setFieldError({ email: true, password: true });
