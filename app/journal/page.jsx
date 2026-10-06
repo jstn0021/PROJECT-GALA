@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { Background } from "app/components/AuthCard";
-import Navbar from "app/components/Navbar";
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
 import {
   useStoredState,
   PLANS_KEY,
   SEED_PLANS,
-} from "app/components/usePlanStore";
+} from "@/app/components/usePlanStore";
 
 function isPlanCompleted(plan) {
-  return plan.status === "Completed";
+  return plan?.status === "Completed";
 }
 
 function formatDate(date) {
@@ -59,7 +59,9 @@ function JournalCard({ entry, onOpen }) {
       <div
         aria-hidden="true"
         className={`h-44 shrink-0 bg-cover bg-center sm:h-auto sm:w-56 ${
-          entry.photo ? "" : "bg-linear-to from-cyan-300/40 to-indigo-400/40"
+          entry.photo
+            ? ""
+            : `bg-linear-to-br ${entry.color || "from-cyan-300/40 to-indigo-400/40"}`
         }`}
         style={
           entry.photo ? { backgroundImage: `url("${entry.photo}")` } : undefined
@@ -102,9 +104,12 @@ function JournalEmptyState() {
 }
 
 export default function Journal({ onBack, onOpenEntry }) {
-  const { plans } = useStoredState(PLANS_KEY, SEED_PLANS);
+  const [plans] = useStoredState(PLANS_KEY, SEED_PLANS);
+
   const journalEntries = useMemo(() => {
-    return plans.filter(isPlanCompleted).map((plan) => ({
+    const list = Array.isArray(plans) ? plans : [];
+
+    return list.filter(isPlanCompleted).map((plan) => ({
       id: plan.id,
       title: plan.title || plan.name || plan.destination || "Completed trip",
       destination: plan.destination || "",
@@ -113,16 +118,17 @@ export default function Journal({ onBack, onOpenEntry }) {
       dateLabel: formatDateRange(plan),
       noteExcerpt: getNoteExcerpt(plan.notes),
       photo: plan.destinationPhoto || plan.photoUrl || plan.imageUrl || null,
+      color: plan.color,
       plan,
     }));
   }, [plans]);
 
   return (
     <Background>
-      <div className="min-h-screen px-6 py-8 text-white">
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
         <Navbar />
 
-        <main className="mx-auto mt-10 w-full max-w-6xl">
+        <main className="flex flex-1 flex-col">
           {onBack ? (
             <button
               type="button"
@@ -133,7 +139,7 @@ export default function Journal({ onBack, onOpenEntry }) {
             </button>
           ) : (
             <Link
-              href="/Main"
+              href="/Main/HOME"
               className="mb-5 inline-block text-sm text-white/65 transition hover:text-white"
             >
               ← Back
@@ -151,7 +157,7 @@ export default function Journal({ onBack, onOpenEntry }) {
           {journalEntries.length > 0 ? (
             <section
               aria-label="Completed trips"
-              className="flex flex-col gap-5"
+              className="grid grid-cols-1 gap-5 xl:grid-cols-2"
             >
               {journalEntries.map((entry) => (
                 <JournalCard

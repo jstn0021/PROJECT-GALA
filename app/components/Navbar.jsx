@@ -14,7 +14,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <header className="glass mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl px-6 py-3">
+    <header className="glass-dark flex w-full items-center justify-between gap-4 rounded-full px-6 py-3">
       <Link
         href="/dashboard"
         className="text-xl font-bold tracking-tight text-white"
@@ -31,9 +31,9 @@ export default function Navbar() {
               key={l.href}
               href={l.href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-xl px-4 py-2 transition ${
+              className={`rounded-full px-4 py-2 transition ${
                 active
-                  ? "bg-white/15 font-medium text-white"
+                  ? "bg-indigo-500/40 font-semibold text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
                   : "text-white/75 hover:bg-white/10 hover:text-white"
               }`}
             >

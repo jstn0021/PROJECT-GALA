@@ -3,32 +3,83 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Background, Logo } from "app/components/AuthCard";
-import { usePathname } from "next/navigation";
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
+import {
+  useStoredState,
+  PLANS_KEY,
+  BUCKET_KEY,
+  SEED_PLANS,
+  todayString,
+} from "@/app/components/usePlanStore";
 
 /* ------------------------------------------------------------------ */
 /* Sample data. Papalitan ng galing sa API/database mamaya.           */
 /* ------------------------------------------------------------------ */
 const initialPlaces = [
-  { id: 1, name: "Kyoto", completed: false, color: "coral" },
-  { id: 2, name: "Lisbon", completed: false, color: "lime" },
-  { id: 3, name: "Banff", completed: true, color: "blue" },
-  { id: 4, name: "El Nido", completed: false, color: "green" },
-  { id: 5, name: "Seoul", completed: true, color: "green" },
-  { id: 6, name: "Bali", completed: false, color: "coral" },
-  { id: 7, name: "Santorini", completed: true, color: "lime" },
-  { id: 8, name: "Cusco", completed: false, color: "blue" },
+  {
+    id: 1,
+    name: "Kyoto",
+    priority: "must",
+    note: "Cherry blossom season",
+    color: "coral",
+  },
+  {
+    id: 2,
+    name: "Lisbon",
+    priority: "want",
+    note: "Pastel de nata and tram 28",
+    color: "lime",
+  },
+  {
+    id: 3,
+    name: "Banff",
+    priority: "want",
+    note: "Lake Louise at sunrise",
+    color: "blue",
+    visited: true,
+  },
+  {
+    id: 4,
+    name: "El Nido",
+    priority: "must",
+    note: "Island hopping",
+    color: "green",
+  },
+  {
+    id: 5,
+    name: "Seoul",
+    priority: "someday",
+    note: "Street food at Myeongdong",
+    color: "green",
+    visited: true,
+  },
+  {
+    id: 6,
+    name: "Bali",
+    priority: "want",
+    note: "Rice terraces and surf",
+    color: "coral",
+  },
+  {
+    id: 7,
+    name: "Santorini",
+    priority: "someday",
+    note: "Sunset in Oia",
+    color: "lime",
+    visited: true,
+  },
+  {
+    id: 8,
+    name: "Cusco",
+    priority: "must",
+    note: "Hike to Machu Picchu",
+    color: "blue",
+  },
 ];
 
-const FILTERS = { ALL: "all", TODO: "todo", COMPLETED: "completed" };
+const COLOR_KEYS = ["coral", "lime", "blue", "green"];
 
-const FILTER_LABELS = [
-  [FILTERS.ALL, "All"],
-  [FILTERS.TODO, "To do"],
-  [FILTERS.COMPLETED, "Completed"],
-];
-
-// Gradient ng bawat tile, ayon sa `color` ng place
 const TILE_GRADIENTS = {
   coral: "from-rose-400 to-orange-300",
   lime: "from-yellow-300 to-emerald-300",
@@ -36,75 +87,160 @@ const TILE_GRADIENTS = {
   green: "from-emerald-300 to-teal-500",
 };
 
-const navLinks = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "My plans", href: "/my-plans" },
-  { label: "Bucket list", href: "/Bucket-list", active: true },
-  { label: "Journal", href: "/journal" },
+const PRIORITIES = {
+  must: {
+    label: "Must go",
+    rank: 0,
+    style: "border-rose-200/60 bg-rose-400/35 text-rose-50",
+  },
+  want: {
+    label: "Want to go",
+    rank: 1,
+    style: "border-sky-200/60 bg-sky-400/35 text-sky-50",
+  },
+  someday: {
+    label: "Someday",
+    rank: 2,
+    style: "border-white/40 bg-white/20 text-white",
+  },
+};
+
+const FILTERS = [
+  ["all", "All"],
+  ["todo", "To do"],
+  ["planned", "Planned"],
+  ["visited", "Visited"],
 ];
+
+const STATUS_BY_FILTER = {
+  todo: "To do",
+  planned: "Planned",
+  visited: "Visited",
+};
 
 const primaryBtn =
   "rounded-xl border border-teal-200/60 bg-teal-500/40 px-5 py-2.5 font-medium text-teal-50 transition hover:bg-teal-500/60";
 const ghostBtn =
   "rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-white/90 transition hover:bg-white/20";
+const textareaCls = "glass-input w-full resize-none rounded-xl px-4 py-3";
 
 /* ------------------------------------------------------------------ */
-/* Navbar                                                             */
+/* Helpers                                                            */
 /* ------------------------------------------------------------------ */
-export function Navbar() {
-  const pathname = usePathname();
+function formatLongDate(value) {
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+// Visited = minarkahan mo mismo, O na-complete na ang plan na naka-link sa place.
+// Planned = may plan na naka-link na hindi pa tapos.
+function getPlaceInfo(place, plans) {
+  const linked = plans.filter((p) => p.bucketId === place.id);
+  const done = linked.find((p) => p.status === "Completed");
+  const active = linked.find((p) => p.status !== "Completed");
+
+  if (done || (place.visited ?? place.completed)) {
+    return {
+      status: "Visited",
+      viaPlan: Boolean(done),
+      plan: done,
+      visitedOn: done ? (done.completedAt ?? done.endDate) : place.visitedOn,
+    };
+  }
+
+  if (active) return { status: "Planned", plan: active };
+
+  return { status: "To do" };
+}
+
+function useEscape(onClose) {
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared pieces                                                      */
+/* ------------------------------------------------------------------ */
+function Modal({ onClose, labelledBy, className = "max-w-md", children }) {
+  useEscape(onClose);
 
   return (
-    <header className="glass mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl px-6 py-3">
-      <Link
-        href="/Main"
-        className="text-xl font-bold tracking-tight text-white"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        className={`glass max-h-[90vh] w-full overflow-y-auto rounded-3xl ${className}`}
       >
-        PROJECT-GALA
-      </Link>
+        {children}
+      </div>
+    </div>
+  );
+}
 
-      <nav className="flex items-center gap-2 text-sm">
-        {navLinks.map((l) => {
-          const active = pathname.startsWith(l.href);
-          return (
-            <Link
-              key={l.label}
-              href={l.href}
-              aria-current={active ? "page" : undefined}
-              className={`rounded-xl px-4 py-2 transition ${
-                active
-                  ? "bg-white/15 font-medium text-white"
-                  : "text-white/75 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {l.label}
-            </Link>
-          );
-        })}
-      </nav>
+function PriorityPicker({ value, onChange }) {
+  return (
+    <div className="flex flex-wrap gap-2" role="group" aria-label="Priority">
+      {Object.entries(PRIORITIES).map(([key, p]) => (
+        <button
+          key={key}
+          type="button"
+          aria-pressed={value === key}
+          onClick={() => onChange(key)}
+          className={`rounded-full border px-3 py-1.5 text-sm transition ${
+            value === key
+              ? p.style
+              : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
+          }`}
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-      <button
-        type="button"
-        aria-label="Profile"
-        className="h-9 w-9 rounded-full border border-white/40 bg-indigo-500"
-      />
-    </header>
+function EmptyState({ title, text, onAdd }) {
+  return (
+    <section className="glass flex flex-col items-center gap-3 rounded-3xl border-dashed px-6 py-12 text-center">
+      <h2 className="text-xl font-semibold">{title}</h2>
+      {text && <p className="text-white/70">{text}</p>}
+      {onAdd && (
+        <button type="button" onClick={onAdd} className={`${primaryBtn} mt-2`}>
+          + Add place
+        </button>
+      )}
+    </section>
   );
 }
 
 /* ------------------------------------------------------------------ */
 /* Tile                                                               */
 /* ------------------------------------------------------------------ */
-function BucketTile({ place, onToggleCompleted, onRemove, onOpen }) {
+function BucketTile({ place, info, onOpen, onToggleVisited, onPlan }) {
   const gradient = TILE_GRADIENTS[place.color] ?? TILE_GRADIENTS.green;
+  const visited = info.status === "Visited";
+  const priority = PRIORITIES[place.priority] ?? PRIORITIES.want;
 
   return (
     <article
-      className={`group relative aspect-[4/3] overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} shadow-lg transition hover:-translate-y-1 ${
-        place.completed ? "saturate-50" : ""
+      className={`relative aspect-[4/3] overflow-hidden rounded-3xl bg-gradient-to-br ${gradient} shadow-lg transition hover:-translate-y-1 ${
+        visited ? "saturate-50" : ""
       }`}
     >
-      {/* Buong tile ay clickable, nasa ilalim ng ibang buttons (walang nested button) */}
+      {/* Buong tile clickable, nasa ilalim ng ibang buttons */}
       <button
         type="button"
         onClick={onOpen}
@@ -114,15 +250,17 @@ function BucketTile({ place, onToggleCompleted, onRemove, onOpen }) {
 
       <button
         type="button"
-        aria-pressed={place.completed}
+        aria-pressed={visited}
+        disabled={info.viaPlan}
+        title={info.viaPlan ? "Visited na dahil completed ang trip" : undefined}
         aria-label={
-          place.completed
-            ? `Mark ${place.name} as incomplete`
-            : `Mark ${place.name} as completed`
+          visited
+            ? `Unmark ${place.name} as visited`
+            : `Mark ${place.name} as visited`
         }
-        onClick={onToggleCompleted}
+        onClick={onToggleVisited}
         className={`absolute left-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 text-lg font-bold transition ${
-          place.completed
+          visited
             ? "border-white bg-teal-500 text-white"
             : "border-white/80 bg-black/20 text-transparent hover:bg-black/40"
         }`}
@@ -130,39 +268,390 @@ function BucketTile({ place, onToggleCompleted, onRemove, onOpen }) {
         ✓
       </button>
 
+      <span
+        className={`pointer-events-none absolute right-3 top-3 z-10 rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-md ${priority.style}`}
+      >
+        {priority.label}
+      </span>
+
       <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex items-center justify-between gap-2 rounded-2xl bg-black/40 px-4 py-2.5 backdrop-blur-md">
-        <span className="truncate font-semibold">{place.name}</span>
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Remove ${place.name}`}
-          className="pointer-events-auto rounded-lg px-2 py-1 text-sm text-white/80 transition hover:bg-white/20 hover:text-white"
-        >
-          Remove
-        </button>
+        <div className="min-w-0">
+          <span className="block truncate font-semibold">{place.name}</span>
+          {place.note && (
+            <span className="block truncate text-xs text-white/65">
+              {place.note}
+            </span>
+          )}
+        </div>
+
+        {info.status === "To do" && (
+          <button
+            type="button"
+            onClick={onPlan}
+            className="pointer-events-auto shrink-0 rounded-lg border border-teal-200/50 bg-teal-500/40 px-3 py-1 text-xs font-medium text-teal-50 transition hover:bg-teal-500/70"
+          >
+            Plan trip
+          </button>
+        )}
+
+        {info.status === "Planned" && (
+          <span className="shrink-0 rounded-lg bg-sky-400/25 px-3 py-1 text-xs font-medium text-sky-50">
+            Planned
+          </span>
+        )}
+
+        {info.status === "Visited" && (
+          <span className="shrink-0 rounded-lg bg-emerald-400/25 px-3 py-1 text-xs font-medium text-emerald-50">
+            Visited
+          </span>
+        )}
       </div>
     </article>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Empty state                                                        */
+/* Place details (view + edit priority and note)                      */
 /* ------------------------------------------------------------------ */
-function EmptyState({ title, text, onAddPlace }) {
+function PlaceDetails({
+  place,
+  info,
+  onClose,
+  onUpdate,
+  onToggleVisited,
+  onPlan,
+  onRemove,
+}) {
+  const gradient = TILE_GRADIENTS[place.color] ?? TILE_GRADIENTS.green;
+
   return (
-    <section className="glass flex flex-col items-center gap-3 rounded-3xl border-dashed px-6 py-12 text-center">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {text && <p className="text-white/70">{text}</p>}
-      {onAddPlace && (
+    <Modal onClose={onClose} labelledBy="place-title" className="max-w-lg">
+      <div className={`relative h-32 bg-gradient-to-br ${gradient}`}>
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent" />
         <button
           type="button"
-          onClick={onAddPlace}
-          className={`${primaryBtn} mt-2`}
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-xl transition hover:bg-black/50"
         >
-          + Add place
+          ×
         </button>
-      )}
-    </section>
+        <h2
+          id="place-title"
+          className="absolute bottom-4 left-6 text-3xl font-bold"
+        >
+          {place.name}
+        </h2>
+      </div>
+
+      <div className="space-y-5 p-6">
+        <div>
+          <p className="mb-2 text-sm font-medium text-white/80">Priority</p>
+          <PriorityPicker
+            value={place.priority}
+            onChange={(priority) => onUpdate({ priority })}
+          />
+        </div>
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-white/80">
+            Why do you want to go?
+          </span>
+          <textarea
+            rows={3}
+            value={place.note ?? ""}
+            onChange={(e) => onUpdate({ note: e.target.value })}
+            placeholder="e.g. Cherry blossoms, ramen, temples"
+            className={textareaCls}
+          />
+        </label>
+
+        {info.status === "Planned" && (
+          <div className="rounded-2xl bg-sky-400/15 p-4">
+            <p className="text-xs uppercase tracking-wide text-sky-100/70">
+              Planned
+            </p>
+            <p className="mt-1 font-medium">{info.plan.title}</p>
+            <p className="text-sm text-white/65">
+              {formatLongDate(info.plan.startDate)} to{" "}
+              {formatLongDate(info.plan.endDate)}
+            </p>
+            <Link
+              href="/my-plans"
+              className="mt-2 inline-block text-sm text-white/80 transition hover:text-white"
+            >
+              View in My plans →
+            </Link>
+          </div>
+        )}
+
+        {info.status === "Visited" && (
+          <div className="rounded-2xl bg-emerald-400/15 p-4 text-sm">
+            <p className="font-medium text-emerald-50">
+              Visited
+              {info.visitedOn ? ` on ${formatLongDate(info.visitedOn)}` : ""}
+            </p>
+            {info.viaPlan && (
+              <p className="mt-1 text-white/65">
+                Automatic mula sa na-complete mong trip.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3">
+          {info.status === "To do" && (
+            <button
+              type="button"
+              onClick={onPlan}
+              className={`${primaryBtn} w-full`}
+            >
+              Plan this trip
+            </button>
+          )}
+
+          {!info.viaPlan && (
+            <button
+              type="button"
+              onClick={onToggleVisited}
+              className={`${ghostBtn} w-full`}
+            >
+              {info.status === "Visited"
+                ? "Unmark as visited"
+                : "I've been here already"}
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-white/70 transition hover:text-white"
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-sm text-red-200/70 transition hover:text-red-200"
+          >
+            Remove place
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Add place                                                          */
+/* ------------------------------------------------------------------ */
+function AddPlaceModal({ onClose, onAdd }) {
+  const [name, setName] = useState("");
+  const [priority, setPriority] = useState("want");
+  const [note, setNote] = useState("");
+  const [error, setError] = useState("");
+
+  function submit(e) {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("Where do you want to go?");
+      return;
+    }
+    onAdd({ name: name.trim(), priority, note: note.trim() });
+  }
+
+  return (
+    <Modal onClose={onClose} labelledBy="add-title">
+      <form onSubmit={submit} className="space-y-4 p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <span className="text-xs tracking-widest text-white/60">
+              BUCKET LIST
+            </span>
+            <h2 id="add-title" className="text-2xl font-semibold">
+              Add place
+            </h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="text-2xl text-white/70 hover:text-white"
+          >
+            ×
+          </button>
+        </div>
+
+        {error && (
+          <p className="rounded-xl border border-red-300/40 bg-red-500/20 px-4 py-2 text-sm text-red-100">
+            {error}
+          </p>
+        )}
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-white/80">
+            Destination
+          </span>
+          <input
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Hokkaido"
+            className="glass-input h-11 w-full rounded-xl px-4"
+          />
+        </label>
+
+        <div>
+          <p className="mb-2 text-sm font-medium text-white/80">Priority</p>
+          <PriorityPicker value={priority} onChange={setPriority} />
+        </div>
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-white/80">
+            Why do you want to go? (optional)
+          </span>
+          <textarea
+            rows={3}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Anything that makes you want to go"
+            className={textareaCls}
+          />
+        </label>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <button type="button" onClick={onClose} className={ghostBtn}>
+            Cancel
+          </button>
+          <button type="submit" className={primaryBtn}>
+            Add place
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Plan this trip                                                     */
+/* ------------------------------------------------------------------ */
+function PlanTripModal({ place, onClose, onCreate }) {
+  const today = todayString();
+  const [title, setTitle] = useState(`${place.name} trip`);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [budget, setBudget] = useState("");
+  const [error, setError] = useState("");
+
+  function submit(e) {
+    e.preventDefault();
+
+    if (!title.trim()) return setError("Add a trip name.");
+    if (!startDate || !endDate)
+      return setError("Pick your start and end dates.");
+    if (endDate < startDate)
+      return setError("End date can't be before the start date.");
+
+    onCreate({
+      title: title.trim(),
+      startDate,
+      endDate,
+      budget: Number(budget) || 0,
+    });
+  }
+
+  return (
+    <Modal onClose={onClose} labelledBy="plan-title">
+      <form onSubmit={submit} className="space-y-4 p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <span className="text-xs tracking-widest text-white/60">
+              NEW PLAN
+            </span>
+            <h2 id="plan-title" className="text-2xl font-semibold">
+              Plan {place.name}
+            </h2>
+          </div>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="text-2xl text-white/70 hover:text-white"
+          >
+            ×
+          </button>
+        </div>
+
+        {error && (
+          <p className="rounded-xl border border-red-300/40 bg-red-500/20 px-4 py-2 text-sm text-red-100">
+            {error}
+          </p>
+        )}
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-white/80">
+            Trip name
+          </span>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="glass-input h-11 w-full rounded-xl px-4"
+          />
+        </label>
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-white/80">
+              Start date
+            </span>
+            <input
+              type="date"
+              min={today}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="glass-input h-11 w-full rounded-xl px-3 [color-scheme:dark]"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-sm font-medium text-white/80">
+              End date
+            </span>
+            <input
+              type="date"
+              min={startDate || today}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="glass-input h-11 w-full rounded-xl px-3 [color-scheme:dark]"
+            />
+          </label>
+        </div>
+
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-white/80">
+            Budget (₱)
+          </span>
+          <input
+            type="number"
+            min="0"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            placeholder="0"
+            className="glass-input h-11 w-full rounded-xl px-4"
+          />
+        </label>
+
+        <div className="flex justify-end gap-3 pt-2">
+          <button type="button" onClick={onClose} className={ghostBtn}>
+            Cancel
+          </button>
+          <button type="submit" className={primaryBtn}>
+            Create plan
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -170,27 +659,9 @@ function EmptyState({ title, text, onAddPlace }) {
 /* Delete modal                                                       */
 /* ------------------------------------------------------------------ */
 function DeleteConfirmation({ place, onCancel, onConfirm }) {
-  // Escape key para isara
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onCancel();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-      role="presentation"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onCancel();
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delete-title"
-        className="glass w-full max-w-md rounded-3xl p-6"
-      >
+    <Modal onClose={onCancel} labelledBy="delete-title">
+      <div className="p-6">
         <h2 id="delete-title" className="text-xl font-semibold">
           Remove this place?
         </h2>
@@ -215,7 +686,7 @@ function DeleteConfirmation({ place, onCancel, onConfirm }) {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -223,59 +694,148 @@ function DeleteConfirmation({ place, onCancel, onConfirm }) {
 /* Page                                                               */
 /* ------------------------------------------------------------------ */
 export default function BucketList({
-  places = initialPlaces,
-  onBack,
-  onAddPlace,
-  onViewDestination,
-  onPlacesChange,
-}) {
+  places: seedPlaces, // optional: panimulang listahan (hal. galing DB) kung wala pang naka-save
+  onToggleCompleted, // optional: (id, visited) para i-save sa DB ang pag-tick
+  onRemovePlace, // optional: (id) para i-save sa DB ang pagtanggal
+  onPlaceAdded, // optional: (place) para i-save sa DB ang bagong place
+} = {}) {
   const router = useRouter();
 
-  const [bucketPlaces, setBucketPlaces] = useState(places);
-  const [activeFilter, setActiveFilter] = useState(FILTERS.ALL);
+  const [places, setPlaces, placesReady] = useStoredState(
+    BUCKET_KEY,
+    seedPlaces ?? initialPlaces,
+  );
+  const [plans, setPlans, plansReady] = useStoredState(PLANS_KEY, SEED_PLANS);
+  const ready = placesReady && plansReady;
+
+  const [filter, setFilter] = useState("all");
+  const [prioritySort, setPrioritySort] = useState(true);
+  const [selectedId, setSelectedId] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [planTarget, setPlanTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [toast, setToast] = useState("");
 
-  const completedCount = bucketPlaces.filter((p) => p.completed).length;
-  const totalCount = bucketPlaces.length;
-  const progress = totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
-  const filteredPlaces = useMemo(() => {
-    if (activeFilter === FILTERS.TODO)
-      return bucketPlaces.filter((p) => !p.completed);
-    if (activeFilter === FILTERS.COMPLETED)
-      return bucketPlaces.filter((p) => p.completed);
-    return bucketPlaces;
-  }, [bucketPlaces, activeFilter]);
+  const items = useMemo(
+    () => places.map((place) => ({ place, info: getPlaceInfo(place, plans) })),
+    [places, plans],
+  );
 
-  function updatePlaces(next) {
-    setBucketPlaces(next);
-    onPlacesChange?.(next);
+  const visibleItems = useMemo(() => {
+    let list = items;
+
+    if (filter !== "all") {
+      list = list.filter(
+        (item) => item.info.status === STATUS_BY_FILTER[filter],
+      );
+    }
+
+    if (prioritySort) {
+      list = [...list].sort(
+        (a, b) =>
+          (PRIORITIES[a.place.priority]?.rank ?? 1) -
+          (PRIORITIES[b.place.priority]?.rank ?? 1),
+      );
+    }
+
+    return list;
+  }, [items, filter, prioritySort]);
+
+  const totalCount = items.length;
+  const visitedCount = items.filter((i) => i.info.status === "Visited").length;
+  const plannedCount = items.filter((i) => i.info.status === "Planned").length;
+  const progress = totalCount === 0 ? 0 : (visitedCount / totalCount) * 100;
+
+  const selectedItem = items.find((i) => i.place.id === selectedId) ?? null;
+
+  function updatePlace(id, patch) {
+    setPlaces((cur) => cur.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   }
 
-  function toggleCompleted(id) {
-    updatePlaces(
-      bucketPlaces.map((p) =>
-        p.id === id ? { ...p, completed: !p.completed } : p,
-      ),
-    );
+  function toggleVisited(place) {
+    const next = !(place.visited ?? place.completed);
+    updatePlace(place.id, {
+      visited: next,
+      visitedOn: next ? todayString() : null,
+    });
+    onToggleCompleted?.(place.id, next);
   }
 
-  function confirmDelete() {
+  function addPlace(data) {
+    const newPlace = {
+      id: Date.now(),
+      ...data,
+      color: COLOR_KEYS[places.length % COLOR_KEYS.length],
+      visited: false,
+    };
+
+    setPlaces((cur) => [newPlace, ...cur]);
+    onPlaceAdded?.(newPlace);
+    setShowAdd(false);
+  }
+
+  function removePlace() {
     if (!deleteTarget) return;
-    updatePlaces(bucketPlaces.filter((p) => p.id !== deleteTarget.id));
+    setPlaces((cur) => cur.filter((p) => p.id !== deleteTarget.id));
+    onRemovePlace?.(deleteTarget.id);
     setDeleteTarget(null);
+    setSelectedId(null);
   }
+
+  function createPlan(place, data) {
+    setPlans((cur) => [
+      {
+        id: Date.now(),
+        title: data.title,
+        destination: place.name,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        spent: 0,
+        budget: data.budget,
+        color: TILE_GRADIENTS[place.color] ?? TILE_GRADIENTS.green,
+        bucketId: place.id,
+      },
+      ...cur,
+    ]);
+    setPlanTarget(null);
+    setToast(`${place.name} is now in My plans`);
+  }
+
+  function openPlan(place) {
+    setSelectedId(null);
+    setPlanTarget(place);
+  }
+
+  const emptyText = {
+    todo: [
+      "Nothing left to do",
+      "Every place on your list is planned or visited.",
+    ],
+    planned: ["No planned trips yet", "Hit “Plan trip” on any place to start."],
+    visited: [
+      "Nothing visited yet",
+      "Complete a trip and it shows up here automatically.",
+    ],
+  };
 
   return (
     <Background>
-      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+      <div
+        className={`flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12 ${ready ? "" : "invisible"}`}
+      >
         <Navbar />
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-2">
           <button
             type="button"
-            onClick={() => (onBack ? onBack() : router.back())}
+            onClick={() => router.back()}
             className="text-white/70 transition hover:text-white"
           >
             ← Back
@@ -285,28 +845,35 @@ export default function BucketList({
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
               Bucket list
             </h1>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={onAddPlace} className={primaryBtn}>
-                + Add place
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              className={primaryBtn}
+            >
+              + Add place
+            </button>
           </div>
         </div>
 
         {/* Progress */}
         <section
-          className="glass mt-8 rounded-3xl p-6"
+          className="glass rounded-3xl p-6"
           aria-label="Bucket list progress"
         >
-          <div className="font-semibold">
-            {completedCount} of {totalCount} completed
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-semibold">
+              {visitedCount} of {totalCount} visited
+            </span>
+            <span className="text-sm text-white/65">
+              {plannedCount} planned
+            </span>
           </div>
           <div
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={totalCount}
-            aria-valuenow={completedCount}
-            aria-label={`${completedCount} of ${totalCount} destinations completed`}
+            aria-valuenow={visitedCount}
+            aria-label={`${visitedCount} of ${totalCount} destinations visited`}
             className="mt-3 h-3 overflow-hidden rounded-full bg-white/15"
           >
             <div
@@ -316,67 +883,116 @@ export default function BucketList({
           </div>
         </section>
 
-        {/* Filters */}
-        <div
-          className="mt-6 flex gap-2"
-          role="group"
-          aria-label="Filter places"
-        >
-          {FILTER_LABELS.map(([value, text]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={activeFilter === value}
-              onClick={() => setActiveFilter(value)}
-              className={`rounded-full border px-4 py-1.5 text-sm transition ${
-                activeFilter === value
-                  ? "border-white/60 bg-white/25 text-white"
-                  : "border-white/20 bg-white/5 text-white/70 hover:bg-white/10"
-              }`}
-            >
-              {text}
-            </button>
-          ))}
+        {/* Filters + sort */}
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-label="Filter places"
+          >
+            {FILTERS.map(([value, text]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={filter === value}
+                onClick={() => setFilter(value)}
+                className={`rounded-full border px-4 py-1.5 text-sm transition ${
+                  filter === value
+                    ? "border-white/60 bg-white/25 text-white"
+                    : "border-white/20 bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            aria-pressed={prioritySort}
+            onClick={() => setPrioritySort(!prioritySort)}
+            className={`rounded-full border px-4 py-1.5 text-sm transition ${
+              prioritySort
+                ? "border-white/60 bg-white/25 text-white"
+                : "border-white/20 bg-white/5 text-white/70 hover:bg-white/10"
+            }`}
+          >
+            ↕ Priority first
+          </button>
         </div>
 
         {/* Grid / empty states */}
-        <div className="mt-6">
-          {bucketPlaces.length === 0 ? (
-            <EmptyState title="Add your first place" onAddPlace={onAddPlace} />
-          ) : filteredPlaces.length === 0 ? (
+        <div className="mt-1 flex-1">
+          {" "}
+          {totalCount === 0 ? (
             <EmptyState
-              title={
-                activeFilter === FILTERS.TODO
-                  ? "Nothing left to do"
-                  : "Nothing completed yet"
-              }
-              text={
-                activeFilter === FILTERS.TODO
-                  ? "Every place on your list is checked off."
-                  : "Tick off a place once you've been there."
-              }
+              title="Add your first place"
+              onAdd={() => setShowAdd(true)}
+            />
+          ) : visibleItems.length === 0 ? (
+            <EmptyState
+              title={emptyText[filter][0]}
+              text={emptyText[filter][1]}
             />
           ) : (
-            <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {filteredPlaces.map((place) => (
+            <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
+              {visibleItems.map(({ place, info }) => (
                 <BucketTile
                   key={place.id}
                   place={place}
-                  onToggleCompleted={() => toggleCompleted(place.id)}
-                  onRemove={() => setDeleteTarget(place)}
-                  onOpen={() => onViewDestination?.(place)}
+                  info={info}
+                  onOpen={() => setSelectedId(place.id)}
+                  onToggleVisited={() => toggleVisited(place)}
+                  onPlan={() => openPlan(place)}
                 />
               ))}
             </section>
           )}
         </div>
 
+        {selectedItem && (
+          <PlaceDetails
+            place={selectedItem.place}
+            info={selectedItem.info}
+            onClose={() => setSelectedId(null)}
+            onUpdate={(patch) => updatePlace(selectedItem.place.id, patch)}
+            onToggleVisited={() => toggleVisited(selectedItem.place)}
+            onPlan={() => openPlan(selectedItem.place)}
+            onRemove={() => setDeleteTarget(selectedItem.place)}
+          />
+        )}
+
+        {showAdd && (
+          <AddPlaceModal onClose={() => setShowAdd(false)} onAdd={addPlace} />
+        )}
+
+        {planTarget && (
+          <PlanTripModal
+            place={planTarget}
+            onClose={() => setPlanTarget(null)}
+            onCreate={(data) => createPlan(planTarget, data)}
+          />
+        )}
+
         {deleteTarget && (
           <DeleteConfirmation
             place={deleteTarget}
             onCancel={() => setDeleteTarget(null)}
-            onConfirm={confirmDelete}
+            onConfirm={removePlace}
           />
+        )}
+
+        {toast && (
+          <div className="glass fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full px-5 py-3 text-sm">
+            <span className="mr-2">✓</span>
+            {toast}
+            <Link
+              href="/my-plans"
+              className="ml-3 underline transition hover:text-white/80"
+            >
+              View
+            </Link>
+          </div>
         )}
       </div>
     </Background>

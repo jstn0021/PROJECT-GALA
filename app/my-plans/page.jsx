@@ -2,26 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Background } from "app/components/AuthCard";
-import Navbar from "app/components/Navbar";
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
 import {
   useStoredState,
   PLANS_KEY,
   SEED_PLANS,
-} from "app/components/usePlanStore";
-
-/* ------------------------------------------------------------------ */
-/* Sample data. Papalitan ng galing sa API/database mamaya.           */
-/* `status: "Completed"` lang ang naka-save. Upcoming/Ongoing ay      */
-/* kinukuwenta base sa petsa.                                         */
-/* ------------------------------------------------------------------ */
+} from "@/app/components/usePlanStore";
 
 const FILTERS = ["All", "Upcoming", "Ongoing", "Completed"];
 const STEPS = ["Upcoming", "Ongoing", "Completed"];
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                            */
-/* ------------------------------------------------------------------ */
 function todayString() {
   const d = new Date();
   const y = d.getFullYear();
@@ -38,14 +29,12 @@ function daysBetween(from, to) {
   return Math.round((toDate(to) - toDate(from)) / 86400000);
 }
 
-// Completed lang kapag pinindot ang button. Pag nagsimula na ang date, Ongoing na.
 function getStatus(plan) {
   if (plan.status === "Completed") return "Completed";
   if (todayString() < plan.startDate) return "Upcoming";
   return "Ongoing";
 }
 
-// Pwede lang i-complete kapag lumagpas na ang end date
 function canComplete(plan) {
   return plan.status !== "Completed" && todayString() > plan.endDate;
 }
@@ -102,9 +91,6 @@ function formatMoney(value) {
   }).format(value);
 }
 
-/* ------------------------------------------------------------------ */
-/* Small pieces                                                       */
-/* ------------------------------------------------------------------ */
 function BudgetBar({ spent, budget }) {
   const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
   const over = spent > budget;
@@ -189,9 +175,6 @@ function StatusStepper({ status }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Card                                                               */
-/* ------------------------------------------------------------------ */
 function PlanCard({ plan, onView, onComplete, onDelete }) {
   const status = getStatus(plan);
   const ready = canComplete(plan);
@@ -203,7 +186,7 @@ function PlanCard({ plan, onView, onComplete, onDelete }) {
       }`}
     >
       <div
-        className={`h-36 bg-linear-to-br ${plan.color} ${status === "Completed" ? "saturate-50" : ""}`}
+        className={`h-48 bg-linear-to-br ${plan.color} ${status === "Completed" ? "saturate-50" : ""}`}
       />
 
       <div className="p-5">
@@ -255,9 +238,6 @@ function PlanCard({ plan, onView, onComplete, onDelete }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* View plan modal                                                    */
-/* ------------------------------------------------------------------ */
 function PlanDetails({ plan, onClose, onComplete, onDelete }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -413,20 +393,18 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                               */
-/* ------------------------------------------------------------------ */
 export default function MyPlansPage() {
   const [plans, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
   const [filter, setFilter] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
 
-  const selectedPlan = plans.find((plan) => plan.id === selectedId) ?? null;
+  const safePlans = Array.isArray(plans) ? plans : [];
+  const selectedPlan = safePlans.find((plan) => plan.id === selectedId) ?? null;
 
   const filteredPlans = useMemo(() => {
-    if (filter === "All") return plans;
-    return plans.filter((plan) => getStatus(plan) === filter);
-  }, [plans, filter]);
+    if (filter === "All") return safePlans;
+    return safePlans.filter((plan) => getStatus(plan) === filter);
+  }, [safePlans, filter]);
 
   function deletePlan(id) {
     setPlans((current) => current.filter((plan) => plan.id !== id));
@@ -445,12 +423,12 @@ export default function MyPlansPage() {
 
   return (
     <Background>
-      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
         <Navbar />
 
-        <main className="mt-10">
+        <main className="flex flex-1 flex-col">
           <Link
-            href="/Main"
+            href="/Main/HOME"
             className="mb-5 inline-block text-sm text-white/65 transition hover:text-white"
           >
             ← Back
@@ -488,7 +466,7 @@ export default function MyPlansPage() {
           </div>
 
           {filteredPlans.length > 0 ? (
-            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {filteredPlans.map((plan) => (
                 <PlanCard
                   key={plan.id}
