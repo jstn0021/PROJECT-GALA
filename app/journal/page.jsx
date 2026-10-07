@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { Background } from "app/components/AuthCard";
-import { useStoredState, PLANS_KEY, SEED_PLANS } from "app/components/usePlanStore";
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
+import {
+  useStoredState,
+  PLANS_KEY,
+  SEED_PLANS,
+} from "@/app/components/usePlanStore";
 
 function isPlanCompleted(plan) {
-  return plan.status === "Completed";
+  return plan?.status === "Completed";
 }
 
 function formatDate(date) {
@@ -36,49 +41,6 @@ function getNoteExcerpt(notes, maxLength = 105) {
   return clean.length <= maxLength ? clean : `${clean.slice(0, maxLength)}…`;
 }
 
-function Navbar() {
-  return (
-    <header className="glass mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl px-6 py-3">
-      <Link href="/Main" className="text-xl font-bold tracking-tight text-white">
-        PROJECT-GALA
-      </Link>
-
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          href="/Main"
-          className="rounded-xl px-4 py-2 text-white/75 transition hover:bg-white/10 hover:text-white"
-        >
-          Dashboard
-        </Link>
-        <Link
-          href="/my-plans"
-          className="rounded-xl px-4 py-2 text-white/75 transition hover:bg-white/10 hover:text-white"
-        >
-          My plans
-        </Link>
-        <Link
-          href="/Bucket-list"
-          className="rounded-xl px-4 py-2 text-white/75 transition hover:bg-white/10 hover:text-white"
-        >
-          Bucket list
-        </Link>
-        <Link
-          href="/journal"
-          className="rounded-xl bg-white/15 px-4 py-2 font-medium text-white"
-        >
-          Journal
-        </Link>
-      </nav>
-
-      <button
-        type="button"
-        aria-label="Profile"
-        className="h-9 w-9 rounded-full border border-white/40 bg-indigo-500"
-      />
-    </header>
-  );
-}
-
 function JournalCard({ entry, onOpen }) {
   return (
     <article
@@ -97,9 +59,13 @@ function JournalCard({ entry, onOpen }) {
       <div
         aria-hidden="true"
         className={`h-44 shrink-0 bg-cover bg-center sm:h-auto sm:w-56 ${
-          entry.photo ? "" : "bg-linear-to from-cyan-300/40 to-indigo-400/40"
+          entry.photo
+            ? ""
+            : `bg-linear-to-br ${entry.color || "from-cyan-300/40 to-indigo-400/40"}`
         }`}
-        style={entry.photo ? { backgroundImage: `url("${entry.photo}")` } : undefined}
+        style={
+          entry.photo ? { backgroundImage: `url("${entry.photo}")` } : undefined
+        }
       />
 
       <div className="flex-1 p-5">
@@ -137,10 +103,13 @@ function JournalEmptyState() {
   );
 }
 
-export default function Journal({ onBack, onOpenEntry }) { 
+export default function Journal({ onBack, onOpenEntry }) {
   const [plans] = useStoredState(PLANS_KEY, SEED_PLANS);
+
   const journalEntries = useMemo(() => {
-    return plans.filter(isPlanCompleted).map((plan) => ({
+    const list = Array.isArray(plans) ? plans : [];
+
+    return list.filter(isPlanCompleted).map((plan) => ({
       id: plan.id,
       title: plan.title || plan.name || plan.destination || "Completed trip",
       destination: plan.destination || "",
@@ -149,16 +118,17 @@ export default function Journal({ onBack, onOpenEntry }) {
       dateLabel: formatDateRange(plan),
       noteExcerpt: getNoteExcerpt(plan.notes),
       photo: plan.destinationPhoto || plan.photoUrl || plan.imageUrl || null,
+      color: plan.color,
       plan,
     }));
   }, [plans]);
 
   return (
     <Background>
-      <div className="min-h-screen px-6 py-8 text-white">
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
         <Navbar />
 
-        <main className="mx-auto mt-10 w-full max-w-6xl">
+        <main className="flex flex-1 flex-col">
           {onBack ? (
             <button
               type="button"
@@ -169,7 +139,7 @@ export default function Journal({ onBack, onOpenEntry }) {
             </button>
           ) : (
             <Link
-              href="/Main"
+              href="/Main/HOME"
               className="mb-5 inline-block text-sm text-white/65 transition hover:text-white"
             >
               ← Back
@@ -179,12 +149,16 @@ export default function Journal({ onBack, onOpenEntry }) {
           <header className="mb-8">
             <h1 className="text-4xl font-bold">Journal</h1>
             <p className="mt-1 text-sm text-white/65">
-              View only. Completed plans from My plans appear here automatically.
+              View only. Completed plans from My plans appear here
+              automatically.
             </p>
           </header>
 
           {journalEntries.length > 0 ? (
-            <section aria-label="Completed trips" className="flex flex-col gap-5">
+            <section
+              aria-label="Completed trips"
+              className="grid grid-cols-1 gap-5 xl:grid-cols-2"
+            >
               {journalEntries.map((entry) => (
                 <JournalCard
                   key={entry.id}

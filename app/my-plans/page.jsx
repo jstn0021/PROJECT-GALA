@@ -2,23 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Background } from "app/components/AuthCard";
-import { useStoredState, PLANS_KEY, SEED_PLANS } from "app/components/usePlanStore";
-
-/* ------------------------------------------------------------------ */
-/* Sample data. Papalitan ng galing sa API/database mamaya.           */
-/* `status: "Completed"` lang ang naka-save. Upcoming/Ongoing ay      */
-/* kinukuwenta base sa petsa.                                         */
-/* ------------------------------------------------------------------ */
-
-
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
+import {
+  useStoredState,
+  PLANS_KEY,
+  SEED_PLANS,
+} from "@/app/components/usePlanStore";
 
 const FILTERS = ["All", "Upcoming", "Ongoing", "Completed"];
 const STEPS = ["Upcoming", "Ongoing", "Completed"];
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                            */
-/* ------------------------------------------------------------------ */
 function todayString() {
   const d = new Date();
   const y = d.getFullYear();
@@ -35,14 +29,12 @@ function daysBetween(from, to) {
   return Math.round((toDate(to) - toDate(from)) / 86400000);
 }
 
-// Completed lang kapag pinindot ang button. Pag nagsimula na ang date, Ongoing na.
 function getStatus(plan) {
   if (plan.status === "Completed") return "Completed";
   if (todayString() < plan.startDate) return "Upcoming";
   return "Ongoing";
 }
 
-// Pwede lang i-complete kapag lumagpas na ang end date
 function canComplete(plan) {
   return plan.status !== "Completed" && todayString() > plan.endDate;
 }
@@ -99,58 +91,6 @@ function formatMoney(value) {
   }).format(value);
 }
 
-/* ------------------------------------------------------------------ */
-/* Navbar                                                             */
-/* ------------------------------------------------------------------ */
-function Navbar() {
-  return (
-    <header className="glass mx-auto flex w-full max-w-6xl items-center justify-between rounded-2xl px-6 py-3">
-      <Link href="/Main" className="text-xl font-bold tracking-tight text-white">
-        PROJECT-GALA
-      </Link>
-
-      <nav className="flex items-center gap-2 text-sm">
-        <Link
-          href="/Main"
-          className="rounded-xl px-4 py-2 text-white/75 transition hover:bg-white/10 hover:text-white"
-        >
-          Dashboard
-        </Link>
-
-        <Link
-          href="/my-plans"
-          className="rounded-xl bg-white/15 px-4 py-2 font-medium text-white"
-        >
-          My plans
-        </Link>
-
-        <Link
-          href="/Bucket-list"
-          className="rounded-xl px-4 py-2 text-white/75 transition hover:bg-white/10 hover:text-white"
-        >
-          Bucket list
-        </Link>
-
-        <Link
-          href="/journal"
-          className="rounded-xl px-4 py-2 text-white/75 transition hover:bg-white/10 hover:text-white"
-        >
-          Journal
-        </Link>
-      </nav>
-
-      <button
-        type="button"
-        aria-label="Profile"
-        className="h-9 w-9 rounded-full border border-white/40 bg-indigo-500"
-      />
-    </header>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Small pieces                                                       */
-/* ------------------------------------------------------------------ */
 function BudgetBar({ spent, budget }) {
   const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
   const over = spent > budget;
@@ -186,7 +126,9 @@ function StatusBadge({ status }) {
   };
 
   return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${styles[status]}`}>
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-medium ${styles[status]}`}
+    >
       {status}
     </span>
   );
@@ -212,7 +154,9 @@ function StatusStepper({ status }) {
               >
                 {reached ? "✓" : index + 1}
               </span>
-              <span className={`text-[11px] ${reached ? "text-white/85" : "text-white/40"}`}>
+              <span
+                className={`text-[11px] ${reached ? "text-white/85" : "text-white/40"}`}
+              >
                 {step}
               </span>
             </div>
@@ -231,9 +175,6 @@ function StatusStepper({ status }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Card                                                               */
-/* ------------------------------------------------------------------ */
 function PlanCard({ plan, onView, onComplete, onDelete }) {
   const status = getStatus(plan);
   const ready = canComplete(plan);
@@ -244,7 +185,9 @@ function PlanCard({ plan, onView, onComplete, onDelete }) {
         status === "Completed" ? "opacity-90" : ""
       }`}
     >
-      <div className={`h-36 bg-linear-to-br ${plan.color} ${status === "Completed" ? "saturate-50" : ""}`} />
+      <div
+        className={`h-48 bg-linear-to-br ${plan.color} ${status === "Completed" ? "saturate-50" : ""}`}
+      />
 
       <div className="p-5">
         <div className="mb-5 flex items-start justify-between gap-4">
@@ -295,9 +238,6 @@ function PlanCard({ plan, onView, onComplete, onDelete }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* View plan modal                                                    */
-/* ------------------------------------------------------------------ */
 function PlanDetails({ plan, onClose, onComplete, onDelete }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -353,19 +293,25 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
           {/* Quick facts */}
           <div className="mt-5 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-2xl bg-white/10 px-2 py-3">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">Dates</p>
+              <p className="text-[11px] uppercase tracking-wide text-white/50">
+                Dates
+              </p>
               <p className="mt-1 text-sm font-medium">
                 {formatDateRange(plan.startDate, plan.endDate)}
               </p>
             </div>
             <div className="rounded-2xl bg-white/10 px-2 py-3">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">Length</p>
+              <p className="text-[11px] uppercase tracking-wide text-white/50">
+                Length
+              </p>
               <p className="mt-1 text-sm font-medium">
                 {duration} day{duration === 1 ? "" : "s"}
               </p>
             </div>
             <div className="rounded-2xl bg-white/10 px-2 py-3">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">Status</p>
+              <p className="text-[11px] uppercase tracking-wide text-white/50">
+                Status
+              </p>
               <p className="mt-1 text-sm font-medium">{getCountdown(plan)}</p>
             </div>
           </div>
@@ -379,7 +325,9 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
           <div className="mt-6 rounded-2xl bg-white/10 p-4">
             <div className="mb-3 flex items-baseline justify-between">
               <h3 className="text-sm font-semibold">Budget</h3>
-              <span className={`text-xs ${remaining < 0 ? "text-red-200" : "text-white/60"}`}>
+              <span
+                className={`text-xs ${remaining < 0 ? "text-red-200" : "text-white/60"}`}
+              >
                 {remaining < 0
                   ? `${formatMoney(Math.abs(remaining))} over budget`
                   : `${formatMoney(remaining)} left`}
@@ -411,7 +359,8 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
 
                 {!ready && (
                   <p className="mt-2 text-center text-xs text-white/50">
-                    Available once the trip ends (after {formatLongDate(plan.endDate)}).
+                    Available once the trip ends (after{" "}
+                    {formatLongDate(plan.endDate)}).
                   </p>
                 )}
               </>
@@ -428,7 +377,9 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
 
               <button
                 type="button"
-                onClick={() => (confirmDelete ? onDelete() : setConfirmDelete(true))}
+                onClick={() =>
+                  confirmDelete ? onDelete() : setConfirmDelete(true)
+                }
                 onBlur={() => setConfirmDelete(false)}
                 className="text-sm text-red-200/70 transition hover:text-red-200"
               >
@@ -442,20 +393,18 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Page                                                               */
-/* ------------------------------------------------------------------ */
 export default function MyPlansPage() {
   const [plans, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
   const [filter, setFilter] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
 
-  const selectedPlan = plans.find((plan) => plan.id === selectedId) ?? null;
+  const safePlans = Array.isArray(plans) ? plans : [];
+  const selectedPlan = safePlans.find((plan) => plan.id === selectedId) ?? null;
 
   const filteredPlans = useMemo(() => {
-    if (filter === "All") return plans;
-    return plans.filter((plan) => getStatus(plan) === filter);
-  }, [plans, filter]);
+    if (filter === "All") return safePlans;
+    return safePlans.filter((plan) => getStatus(plan) === filter);
+  }, [safePlans, filter]);
 
   function deletePlan(id) {
     setPlans((current) => current.filter((plan) => plan.id !== id));
@@ -467,19 +416,19 @@ export default function MyPlansPage() {
       current.map((plan) =>
         plan.id === id && canComplete(plan)
           ? { ...plan, status: "Completed", completedAt: todayString() }
-          : plan
-      )
+          : plan,
+      ),
     );
   }
 
   return (
     <Background>
-      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
         <Navbar />
 
-        <main className="mt-10">
+        <main className="flex flex-1 flex-col">
           <Link
-            href="/Main"
+            href="/Main/HOME"
             className="mb-5 inline-block text-sm text-white/65 transition hover:text-white"
           >
             ← Back
@@ -517,7 +466,7 @@ export default function MyPlansPage() {
           </div>
 
           {filteredPlans.length > 0 ? (
-            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {filteredPlans.map((plan) => (
                 <PlanCard
                   key={plan.id}
@@ -532,7 +481,9 @@ export default function MyPlansPage() {
             <section className="glass rounded-3xl px-8 py-16 text-center">
               <p className="text-sm text-white/55">No plans here yet.</p>
               <h2 className="mt-2 text-2xl font-semibold">
-                {filter === "All" ? "Create your first plan" : `No ${filter.toLowerCase()} plans`}
+                {filter === "All"
+                  ? "Create your first plan"
+                  : `No ${filter.toLowerCase()} plans`}
               </h2>
 
               <Link

@@ -1,9 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Background, Logo } from "app/components/AuthCard";
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
+import LocationSearch from "@/app/components/LocationSearch";
+import {
+  useStoredState,
+  PLANS_KEY,
+  SEED_PLANS,
+} from "@/app/components/usePlanStore";
 
 /* ------------------------------------------------------------------ */
 /* Templates                                                          */
@@ -19,14 +25,22 @@ const TEMPLATES = {
   Weekend: {
     description: "A quick weekend escape",
     gradient: "from-rose-400 to-orange-300",
-    activities: ["Explore the city", "Local food experience", "Relax and unwind"],
+    activities: [
+      "Explore the city",
+      "Local food experience",
+      "Relax and unwind",
+    ],
     notes: "Keep the itinerary flexible and leave room for spontaneous plans.",
     budgetCategories: ["Accommodation", "Food", "Activities"],
   },
   Solo: {
     description: "A trip built around you",
     gradient: "from-teal-300 to-indigo-500",
-    activities: ["Explore independently", "Local food experience", "Personal free time"],
+    activities: [
+      "Explore independently",
+      "Local food experience",
+      "Personal free time",
+    ],
     notes: "Prioritize experiences that you can enjoy at your own pace.",
     budgetCategories: ["Accommodation", "Food", "Transport"],
   },
@@ -40,61 +54,28 @@ const TEMPLATES = {
   Adventure: {
     description: "Make the most of the outdoors",
     gradient: "from-cyan-300 to-emerald-500",
-    activities: ["Outdoor adventure", "Local exploration", "Adventure activity"],
+    activities: [
+      "Outdoor adventure",
+      "Local exploration",
+      "Adventure activity",
+    ],
     notes: "Check weather and equipment requirements before activities.",
     budgetCategories: ["Accommodation", "Transport", "Adventure"],
   },
 };
 
-const navLinks = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "My plans", href: "/my-plans", active: true },
-  { label: "Bucket list", href: "/Bucket-list" },
-  { label: "Journal", href: "/journal" },
-];
+const DEFAULT_GRADIENT = "from-teal-300 to-indigo-500";
 
-
+// Mga reusable na class
 const primaryBtn =
   "rounded-xl border border-teal-200/60 bg-teal-500/40 px-6 py-3 font-medium text-teal-50 transition hover:bg-teal-500/60";
 const ghostBtn =
   "rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-white/90 transition hover:bg-white/20";
 const label = "mb-2 block text-sm font-medium text-white/80";
 
-
-function TopNav() {
-  return (
-    <header className="glass flex items-center justify-between rounded-2xl px-5 py-3">
-      <div className="flex items-center gap-6">
-        <Logo />
-        <nav className="hidden items-center gap-1 md:flex">
-          {navLinks.map((l) => (
-            <Link
-              key={l.label}
-              href={l.href}
-              aria-current={l.active ? "newplan" : undefined}
-              className={`rounded-xl px-3 py-1.5 text-sm transition ${
-                l.active ? "bg-white/20 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
-          <button
-            type="button"
-            className="rounded-xl px-3 py-1.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
-          >
-            Explore ▾
-          </button>
-        </nav>
-      </div>
-      <button
-        type="button"
-        aria-label="Profile"
-        className="h-9 w-9 rounded-full border border-white/40 bg-indigo-500"
-      />
-    </header>
-  );
-}
+/* ------------------------------------------------------------------ */
+/* Small components                                                   */
+/* ------------------------------------------------------------------ */
 
 function StepIndicator({ step }) {
   const item = (n) => (
@@ -109,7 +90,10 @@ function StepIndicator({ step }) {
     </span>
   );
   return (
-    <div className="mt-6 flex items-center gap-3" aria-label={`Step ${step} of 2`}>
+    <div
+      className="mt-6 flex items-center gap-3"
+      aria-label={`Step ${step} of 2`}
+    >
       {item(1)}
       <div className="h-px w-10 bg-white/30" />
       {item(2)}
@@ -124,11 +108,11 @@ function TemplateCard({ name, template, selected, onSelect }) {
       aria-pressed={selected}
       onClick={() => onSelect(name)}
       className={`glass overflow-hidden rounded-3xl text-left transition hover:-translate-y-1 hover:bg-white/10 ${
-        selected ? "ring-2 ring-white/80" : ""
+        selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
       }`}
     >
       <div
-        className={`h-24 ${
+        className={`h-32 ${
           template.gradient
             ? `bg-gradient-to-br ${template.gradient}`
             : "border-b border-dashed border-white/30 bg-white/5"
@@ -149,7 +133,10 @@ function PreviewSection({ title, items }) {
       <div className="flex flex-col gap-2">
         {items.length > 0 ? (
           items.map((text, i) => (
-            <div key={i} className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80">
+            <div
+              key={i}
+              className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80"
+            >
               {text}
             </div>
           ))
@@ -174,8 +161,12 @@ function FieldError({ id, children }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Page                                                               */
+/* ------------------------------------------------------------------ */
 export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const router = useRouter();
+  const [, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
 
   const [step, setStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState("Blank");
@@ -183,6 +174,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
   const [form, setForm] = useState({
     destination: initialDestination,
+    location: null,
     startDate: "",
     endDate: "",
     activities: [],
@@ -191,7 +183,10 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
     budgetCategories: [],
   });
 
-  const template = useMemo(() => TEMPLATES[selectedTemplate], [selectedTemplate]);
+  const template = useMemo(
+    () => TEMPLATES[selectedTemplate],
+    [selectedTemplate],
+  );
 
   function updateForm(field, value) {
     setForm((c) => ({ ...c, [field]: value }));
@@ -223,7 +218,10 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   }
 
   function removeActivity(index) {
-    setForm((c) => ({ ...c, activities: c.activities.filter((_, i) => i !== index) }));
+    setForm((c) => ({
+      ...c,
+      activities: c.activities.filter((_, i) => i !== index),
+    }));
   }
 
   function validate() {
@@ -246,6 +244,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
     const newPlan = {
       id: Date.now(),
       title: form.destination.trim() || "New plan",
+      location: form.location,
       destination: form.destination.trim(),
       startDate: form.startDate,
       endDate: form.endDate,
@@ -255,9 +254,15 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
       spent: 0,
       budgetCategories: form.budgetCategories,
       template: selectedTemplate,
+      color: template.gradient || DEFAULT_GRADIENT, // kailangan ng My plans
     };
 
-    onSave?.(newPlan);
+    if (onSave) {
+      onSave(newPlan);
+    } else {
+      setPlans((cur) => [newPlan, ...cur]);
+      router.push("/my-plans");
+    }
   }
 
   function handleCancel() {
@@ -267,191 +272,258 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
   return (
     <Background>
-      <div className="mx-auto max-w-5xl p-6 md:p-10">
-        <TopNav />
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
+        <Navbar />
 
-        <div className="mt-10 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">New plan</h1>
-            <p className="mt-2 text-white/70">
-              {step === 1 ? "Step 1 of 2: choose a template" : "Step 2 of 2: plan details"}
-            </p>
+        <main className="flex flex-1 flex-col">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+                New plan
+              </h1>
+              <p className="mt-2 text-white/70">
+                {step === 1
+                  ? "Step 1 of 2: choose a template"
+                  : "Step 2 of 2: plan details"}
+              </p>
+            </div>
+            <button type="button" onClick={handleCancel} className={ghostBtn}>
+              Cancel
+            </button>
           </div>
-          <button type="button" onClick={handleCancel} className={ghostBtn}>
-            Cancel
-          </button>
-        </div>
 
-        <StepIndicator step={step} />
+          <StepIndicator step={step} />
 
-        {/* ---------------- STEP 1 ---------------- */}
-        {step === 1 && (
-          <section className="mt-8">
-            <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
-              {Object.entries(TEMPLATES).map(([name, t]) => (
-                <TemplateCard
-                  key={name}
-                  name={name}
-                  template={t}
-                  selected={selectedTemplate === name}
-                  onSelect={selectTemplate}
-                />
-              ))}
-            </div>
-
-            <p className="mt-6 text-white/70">
-              The selected template pre-fills these. Everything stays editable.
-            </p>
-
-            <div className="mt-4 grid gap-5 md:grid-cols-3">
-              <PreviewSection title="Activities" items={template.activities.slice(0, 3)} />
-              <PreviewSection title="Notes" items={template.notes ? [template.notes] : []} />
-              <PreviewSection title="Budget categories" items={template.budgetCategories.slice(0, 3)} />
-            </div>
-
-            <div className="mt-8 flex justify-end">
-              <button type="button" onClick={() => setStep(2)} className={primaryBtn}>
-                Continue
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* ---------------- STEP 2 ---------------- */}
-        {step === 2 && (
-          <form onSubmit={savePlan} noValidate className="glass mt-8 flex flex-col gap-6 rounded-3xl p-6 md:p-8">
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span className="text-white/70">Template</span>
-              <strong className="rounded-full border border-white/30 bg-white/10 px-3 py-1">
-                {selectedTemplate}
-              </strong>
-              <button type="button" onClick={() => setStep(1)} className="underline underline-offset-4 text-white/80 hover:text-white">
-                Change
-              </button>
-            </div>
-
-            <div>
-              <label htmlFor="destination" className={label}>Destination</label>
-              <input
-                id="destination"
-                value={form.destination}
-                onChange={(e) => updateForm("destination", e.target.value)}
-                placeholder="e.g. Kyoto, Japan"
-                aria-invalid={!!errors.destination}
-                aria-describedby={errors.destination ? "destination-error" : undefined}
-                className={`glass-input w-full rounded-xl px-4 py-3 ${errors.destination ? "is-error" : ""}`}
-              />
-              <FieldError id="destination-error">{errors.destination}</FieldError>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label htmlFor="startDate" className={label}>Start date</label>
-                <input
-                  id="startDate"
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e) => updateForm("startDate", e.target.value)}
-                  aria-invalid={!!errors.startDate}
-                  aria-describedby={errors.startDate ? "startDate-error" : undefined}
-                  className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.startDate ? "is-error" : ""}`}
-                />
-                <FieldError id="startDate-error">{errors.startDate}</FieldError>
+          {/* ---------------- STEP 1 ---------------- */}
+          {step === 1 && (
+            <section className="mt-8">
+              <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+                {Object.entries(TEMPLATES).map(([name, t]) => (
+                  <TemplateCard
+                    key={name}
+                    name={name}
+                    template={t}
+                    selected={selectedTemplate === name}
+                    onSelect={selectTemplate}
+                  />
+                ))}
               </div>
-              <div>
-                <label htmlFor="endDate" className={label}>End date</label>
-                <input
-                  id="endDate"
-                  type="date"
-                  min={form.startDate}
-                  value={form.endDate}
-                  onChange={(e) => updateForm("endDate", e.target.value)}
-                  aria-invalid={!!errors.endDate}
-                  aria-describedby={errors.endDate ? "endDate-error" : undefined}
-                  className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.endDate ? "is-error" : ""}`}
-                />
-                <FieldError id="endDate-error">{errors.endDate}</FieldError>
-              </div>
-            </div>
 
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-medium text-white/80">Activities</span>
-                <button type="button" onClick={addActivity} className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20">
-                  + Add activity
+              <p className="mt-6 text-white/70">
+                The selected template pre-fills these. Everything stays
+                editable.
+              </p>
+
+              <div className="mt-4 grid gap-5 md:grid-cols-3">
+                <PreviewSection
+                  title="Activities"
+                  items={template.activities.slice(0, 3)}
+                />
+                <PreviewSection
+                  title="Notes"
+                  items={template.notes ? [template.notes] : []}
+                />
+                <PreviewSection
+                  title="Budget categories"
+                  items={template.budgetCategories.slice(0, 3)}
+                />
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className={primaryBtn}
+                >
+                  Continue
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* ---------------- STEP 2 ---------------- */}
+          {step === 2 && (
+            <form
+              onSubmit={savePlan}
+              noValidate
+              className="glass mt-8 flex w-full flex-col gap-6 rounded-3xl p-6 md:p-8"
+            >
+              <div className="flex flex-wrap items-center gap-3 text-sm">
+                <span className="text-white/70">Template</span>
+                <strong className="rounded-full border border-white/30 bg-white/10 px-3 py-1">
+                  {selectedTemplate}
+                </strong>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="underline underline-offset-4 text-white/80 hover:text-white"
+                >
+                  Change
                 </button>
               </div>
 
-              <div className="flex flex-col gap-3">
-                {form.activities.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
-                    No activities yet. Add one to get started.
-                  </div>
-                )}
-                {form.activities.map((activity, index) => (
-                  <div key={index} className="flex gap-3">
-                    <input
-                      value={activity}
-                      onChange={(e) => updateActivity(index, e.target.value)}
-                      placeholder="Activity"
-                      aria-label={`Activity ${index + 1}`}
-                      className="glass-input w-full rounded-xl px-4 py-3"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeActivity(index)}
-                      aria-label="Remove activity"
-                      className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+              <div>
+                <label htmlFor="destination" className={label}>
+                  Destination
+                </label>
+                <LocationSearch
+                  id="destination"
+                  value={form.destination}
+                  invalid={!!errors.destination}
+                  onChange={(text) => {
+                    updateForm("destination", text);
+                    setForm((c) => ({ ...c, location: null }));
+                  }}
+                  onSelect={(loc) => {
+                    setForm((c) => ({
+                      ...c,
+                      destination: loc.label,
+                      location: loc,
+                    }));
+                    setErrors((e) => ({ ...e, destination: undefined }));
+                  }}
+                />
+                <FieldError id="destination-error">
+                  {errors.destination}
+                </FieldError>
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="notes" className={label}>Notes</label>
-              <textarea
-                id="notes"
-                rows={5}
-                value={form.notes}
-                onChange={(e) => updateForm("notes", e.target.value)}
-                placeholder="Add notes for this plan..."
-                className="glass-input w-full resize-y rounded-xl px-4 py-3"
-              />
-            </div>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="startDate" className={label}>
+                    Start date
+                  </label>
+                  <input
+                    id="startDate"
+                    type="date"
+                    value={form.startDate}
+                    onChange={(e) => updateForm("startDate", e.target.value)}
+                    aria-invalid={!!errors.startDate}
+                    aria-describedby={
+                      errors.startDate ? "startDate-error" : undefined
+                    }
+                    className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.startDate ? "is-error" : ""}`}
+                  />
+                  <FieldError id="startDate-error">
+                    {errors.startDate}
+                  </FieldError>
+                </div>
+                <div>
+                  <label htmlFor="endDate" className={label}>
+                    End date
+                  </label>
+                  <input
+                    id="endDate"
+                    type="date"
+                    min={form.startDate}
+                    value={form.endDate}
+                    onChange={(e) => updateForm("endDate", e.target.value)}
+                    aria-invalid={!!errors.endDate}
+                    aria-describedby={
+                      errors.endDate ? "endDate-error" : undefined
+                    }
+                    className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.endDate ? "is-error" : ""}`}
+                  />
+                  <FieldError id="endDate-error">{errors.endDate}</FieldError>
+                </div>
+              </div>
 
-            <div>
-              <label htmlFor="budget" className={label}>Total budget</label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">$</span>
-                <input
-                  id="budget"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={form.budget}
-                  onChange={(e) => updateForm("budget", e.target.value)}
-                  placeholder="2500"
-                  className="glass-input w-full rounded-xl py-3 pl-8 pr-4"
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium text-white/80">
+                    Activities
+                  </span>
+                  <button
+                    type="button"
+                    onClick={addActivity}
+                    className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20"
+                  >
+                    + Add activity
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {form.activities.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                      No activities yet. Add one to get started.
+                    </div>
+                  )}
+                  {form.activities.map((activity, index) => (
+                    <div key={index} className="flex gap-3">
+                      <input
+                        value={activity}
+                        onChange={(e) => updateActivity(index, e.target.value)}
+                        placeholder="Activity"
+                        aria-label={`Activity ${index + 1}`}
+                        className="glass-input w-full rounded-xl px-4 py-3"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeActivity(index)}
+                        aria-label="Remove activity"
+                        className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="notes" className={label}>
+                  Notes
+                </label>
+                <textarea
+                  id="notes"
+                  rows={5}
+                  value={form.notes}
+                  onChange={(e) => updateForm("notes", e.target.value)}
+                  placeholder="Add notes for this plan..."
+                  className="glass-input w-full resize-y rounded-xl px-4 py-3"
                 />
               </div>
-              <p className="mt-2 text-sm text-white/60">
-                This is the total amount the Budget tab compares your spending against.
-              </p>
-            </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <button type="button" onClick={() => setStep(1)} className={ghostBtn}>
-                ← Back
-              </button>
-              <button type="submit" className={primaryBtn}>
-                Save plan
-              </button>
-            </div>
-          </form>
-        )}
+              <div>
+                <label htmlFor="budget" className={label}>
+                  Total budget
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">
+                    ₱
+                  </span>
+                  <input
+                    id="budget"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.budget}
+                    onChange={(e) => updateForm("budget", e.target.value)}
+                    placeholder="25000"
+                    className="glass-input w-full rounded-xl py-3 pl-8 pr-4"
+                  />
+                </div>
+                <p className="mt-2 text-sm text-white/60">
+                  This is the total amount the Budget tab compares your spending
+                  against.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className={ghostBtn}
+                >
+                  ← Back
+                </button>
+                <button type="submit" className={primaryBtn}>
+                  Save plan
+                </button>
+              </div>
+            </form>
+          )}
+        </main>
       </div>
     </Background>
   );

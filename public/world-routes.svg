@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid slice">
+  <path d="M1329.4 313.1 Q1320.6 245.7 1364.4 193.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M1261.4 391.9 Q1278.0 337.5 1329.4 313.1" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M1329.4 313.1 Q1435.5 435.5 1416.9 596.5" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M1034.4 251.7 Q1195.4 217.5 1329.4 313.1" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M1123.0 232.5 Q1235.1 160.0 1364.4 193.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M1307.6 183.7 Q1238.7 277.7 1261.4 391.9" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M799.5 114.7 Q947.1 131.5 1034.4 251.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M808.7 127.1 Q989.0 110.6 1123.0 232.5" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M913.4 165.8 Q799.5 372.9 875.1 596.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M509.8 167.4 Q643.1 77.3 799.5 114.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M808.7 127.1 Q650.4 81.5 509.8 167.4" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M318.1 202.6 Q406.2 142.8 509.8 167.4" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M371.5 284.8 Q548.5 356.4 615.4 535.2" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M615.4 535.2 Q758.8 508.9 875.1 596.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M875.1 596.7 Q878.9 389.2 1034.4 251.7" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <path d="M1416.9 596.5 Q1384.1 460.0 1261.4 391.9" fill="none" stroke="white" stroke-opacity="0.3" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>
+  <circle cx="1329.4" cy="313.1" r="3" fill="white"/>
+  <circle cx="1329.4" cy="313.1" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-0.0s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-0.0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1364.4" cy="193.7" r="3" fill="white"/>
+  <circle cx="1364.4" cy="193.7" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-0.4s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-0.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1307.6" cy="183.7" r="3" fill="white"/>
+  <circle cx="1307.6" cy="183.7" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-0.8s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-0.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1261.4" cy="391.9" r="3" fill="white"/>
+  <circle cx="1261.4" cy="391.9" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-1.2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-1.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1123.0" cy="232.5" r="3" fill="white"/>
+  <circle cx="1123.0" cy="232.5" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-1.6s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-1.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1034.4" cy="251.7" r="3" fill="white"/>
+  <circle cx="1034.4" cy="251.7" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-2.0s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-2.0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="913.4" cy="165.8" r="3" fill="white"/>
+  <circle cx="913.4" cy="165.8" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-2.4s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-2.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="799.5" cy="114.7" r="3" fill="white"/>
+  <circle cx="799.5" cy="114.7" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-2.8s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-2.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="808.7" cy="127.1" r="3" fill="white"/>
+  <circle cx="808.7" cy="127.1" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-3.2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-3.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="875.1" cy="596.7" r="3" fill="white"/>
+  <circle cx="875.1" cy="596.7" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-3.6s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-3.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="509.8" cy="167.4" r="3" fill="white"/>
+  <circle cx="509.8" cy="167.4" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-4.0s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-4.0s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="318.1" cy="202.6" r="3" fill="white"/>
+  <circle cx="318.1" cy="202.6" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-4.4s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-4.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="371.5" cy="284.8" r="3" fill="white"/>
+  <circle cx="371.5" cy="284.8" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-4.8s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-4.8s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="615.4" cy="535.2" r="3" fill="white"/>
+  <circle cx="615.4" cy="535.2" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-5.2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-5.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1416.9" cy="596.5" r="3" fill="white"/>
+  <circle cx="1416.9" cy="596.5" r="3" fill="none" stroke="white">
+    <animate attributeName="r" values="3;14" dur="3s" begin="-5.6s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.8;0" dur="3s" begin="-5.6s" repeatCount="indefinite"/>
+  </circle>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="9.0s" begin="-0.0s" repeatCount="indefinite" rotate="auto" path="M1329.4 313.1 Q1320.6 245.7 1364.4 193.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="9.0s" begin="-0.0s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="10.7s" begin="-2.3s" repeatCount="indefinite" rotate="auto" path="M1261.4 391.9 Q1278.0 337.5 1329.4 313.1"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="10.7s" begin="-2.3s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="12.4s" begin="-4.6s" repeatCount="indefinite" rotate="auto" path="M1329.4 313.1 Q1435.5 435.5 1416.9 596.5"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="12.4s" begin="-4.6s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="14.1s" begin="-6.9s" repeatCount="indefinite" rotate="auto" path="M1034.4 251.7 Q1195.4 217.5 1329.4 313.1"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="14.1s" begin="-6.9s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="15.8s" begin="-9.2s" repeatCount="indefinite" rotate="auto" path="M1123.0 232.5 Q1235.1 160.0 1364.4 193.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="15.8s" begin="-9.2s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="17.5s" begin="-11.5s" repeatCount="indefinite" rotate="auto" path="M1307.6 183.7 Q1238.7 277.7 1261.4 391.9"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="17.5s" begin="-11.5s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="10.2s" begin="-3.6s" repeatCount="indefinite" rotate="auto" path="M799.5 114.7 Q947.1 131.5 1034.4 251.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="10.2s" begin="-3.6s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="11.9s" begin="-4.2s" repeatCount="indefinite" rotate="auto" path="M808.7 127.1 Q989.0 110.6 1123.0 232.5"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="11.9s" begin="-4.2s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="13.6s" begin="-4.8s" repeatCount="indefinite" rotate="auto" path="M913.4 165.8 Q799.5 372.9 875.1 596.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="13.6s" begin="-4.8s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="15.3s" begin="-5.4s" repeatCount="indefinite" rotate="auto" path="M509.8 167.4 Q643.1 77.3 799.5 114.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="15.3s" begin="-5.4s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="17.0s" begin="-6.0s" repeatCount="indefinite" rotate="auto" path="M808.7 127.1 Q650.4 81.5 509.8 167.4"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="17.0s" begin="-6.0s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="9.7s" begin="-5.9s" repeatCount="indefinite" rotate="auto" path="M318.1 202.6 Q406.2 142.8 509.8 167.4"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="9.7s" begin="-5.9s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="11.4s" begin="-4.8s" repeatCount="indefinite" rotate="auto" path="M371.5 284.8 Q548.5 356.4 615.4 535.2"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="11.4s" begin="-4.8s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="13.1s" begin="-3.7s" repeatCount="indefinite" rotate="auto" path="M615.4 535.2 Q758.8 508.9 875.1 596.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="13.1s" begin="-3.7s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="14.8s" begin="-2.6s" repeatCount="indefinite" rotate="auto" path="M875.1 596.7 Q878.9 389.2 1034.4 251.7"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="14.8s" begin="-2.6s" repeatCount="indefinite"/>
+  </g>
+  <g opacity="0">
+    <path d="M9 0 L-6 -5.5 L-2.5 0 L-6 5.5 Z" fill="white"/>
+    <animateMotion dur="16.5s" begin="-1.5s" repeatCount="indefinite" rotate="auto" path="M1416.9 596.5 Q1384.1 460.0 1261.4 391.9"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.08;0.92;1" dur="16.5s" begin="-1.5s" repeatCount="indefinite"/>
+  </g>
+</svg>
