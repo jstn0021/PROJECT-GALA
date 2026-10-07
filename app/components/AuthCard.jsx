@@ -1,3 +1,5 @@
+import LandingContent from "app/components/LandingContent";
+
 export function Background({ children }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0b1f33] via-[#12476b] to-[#1b6f7a]">
@@ -77,7 +79,19 @@ export default function AuthCard({
 }) {
   return (
     <Background>
-      <div className="flex min-h-screen items-center justify-center p-4">
+      {/* Naka-blur na landing page sa likod. inert = hindi ma-click/ma-tab */}
+      <div
+        aria-hidden="true"
+        inert
+        className="pointer-events-none fixed inset-0 z-0 select-none overflow-hidden"
+      >
+        <div className="origin-center scale-105 blur-md">
+          <LandingContent />
+        </div>
+        <div className="absolute inset-0 bg-slate-950/55" />
+      </div>
+
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="glass w-full max-w-md rounded-3xl p-8">
           {/* Brand, centered at top of the card */}
           <div className="text-center">

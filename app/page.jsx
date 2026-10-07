@@ -1,7 +1,21 @@
 import { redirect } from "next/navigation";
-import { getSession } from "../lib/session.js";
+import { Background } from "app/components/AuthCard";
+import LandingContent, { BRAND } from "app/components/LandingContent";
+import { getSession } from "lib/session";
 
-export default async function Index() {
-  const session = await getSession();
-  redirect(session ? "/dashboard" : "/login");
+export const metadata = { title: `${BRAND} | Plan your next adventure` };
+
+export default async function Home() {
+  // Naka-login na? diretso sa dashboard.
+  let session = null;
+  try {
+    session = await getSession();
+  } catch {}
+  if (session) redirect("/dashboard");
+
+  return (
+    <Background>
+      <LandingContent />
+    </Background>
+  );
 }
