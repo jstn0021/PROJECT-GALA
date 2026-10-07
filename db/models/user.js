@@ -14,6 +14,19 @@ const User = sequelize.define(
     passwordHash: { type: DataTypes.STRING, allowNull: false },
     resetToken: { type: DataTypes.STRING, allowNull: true },
     resetTokenExpires: { type: DataTypes.DATE, allowNull: true },
+    // "user" (regular) o "superadmin". Hindi puwedeng itakda sa signup.
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "user",
+      validate: { isIn: [["user", "superadmin"]] },
+    },
+    // true = hindi na makakapag-login / makakagamit ng app
+    disabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   },
   { tableName: "users" },
 );

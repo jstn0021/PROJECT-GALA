@@ -2,24 +2,29 @@ import Link from "next/link";
 
 export const BRAND = "PROJECT-GALA";
 
+// slot = susi sa site_images (puwedeng palitan ng superadmin sa /admin/images)
 const DESTINATIONS = [
   {
     name: "Baguio",
+    slot: "baguio",
     file: "/destinations/baguio.jpg",
     grad: "from-emerald-700 to-indigo-900",
   },
   {
     name: "El Nido",
+    slot: "elnido",
     file: "/destinations/elnido.jpg",
     grad: "from-teal-500 to-cyan-900",
   },
   {
     name: "Siargao",
+    slot: "siargao",
     file: "/destinations/siargao.webp",
     grad: "from-lime-400 to-teal-700",
   },
   {
     name: "Cebu",
+    slot: "cebu",
     file: "/destinations/cebu.jpg",
     grad: "from-sky-400 to-indigo-800",
   },
@@ -57,7 +62,14 @@ const goldBtn =
 
 // Presentational lang (walang session / server logic) kaya magagamit sa landing
 // at bilang naka-blur na backdrop ng login/signup pages.
-export default function LandingContent() {
+function initials(name) {
+  const w = name.trim().split(/\s+/);
+  return (
+    (w[0]?.[0] ?? "") + (w.length > 1 ? w[w.length - 1][0] : "")
+  ).toUpperCase();
+}
+
+export default function LandingContent({ images = {}, credits = [] }) {
   return (
     <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
       {/* Top bar */}
@@ -88,7 +100,9 @@ export default function LandingContent() {
         className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-indigo-500 via-teal-500 to-amber-300 px-6 py-12 sm:px-12 sm:py-16 xl:py-24"
         style={{
           backgroundImage:
-            "linear-gradient(90deg, rgba(79,70,229,.85) 0%, rgba(20,184,166,.45) 55%, rgba(0,0,0,.05) 100%), url('/destinations/baguio.jpg')",
+            "linear-gradient(90deg, rgba(79,70,229,.85) 0%, rgba(20,184,166,.45) 55%, rgba(0,0,0,.05) 100%), url('" +
+            (images.hero ?? "/destinations/baguio.jpg") +
+            "')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -153,7 +167,7 @@ export default function LandingContent() {
               href="/signup"
               className={`group relative flex aspect-[16/10] items-end overflow-hidden rounded-2xl bg-linear-to-br ${d.grad} border border-white/20 transition hover:-translate-y-1`}
               style={{
-                backgroundImage: `url('${d.file}')`,
+                backgroundImage: `url('${images[d.slot] ?? d.file}')`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
@@ -216,6 +230,47 @@ export default function LandingContent() {
           </Link>
         </div>
       </section>
+      {/* Credits */}
+      {credits.length > 0 && (
+        <section id="credits" className="pb-4">
+          <h2 className="px-1 text-lg font-semibold">Meet the team</h2>
+          <p className="mb-3 px-1 text-sm text-white/70">
+            The people who built {BRAND}.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {credits.map((c) => (
+              <div
+                key={c.id}
+                className="glass flex items-center gap-4 rounded-2xl p-4"
+              >
+                <span
+                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-indigo-400 to-teal-300 bg-cover bg-center text-lg font-bold"
+                  style={
+                    c.photoUrl
+                      ? { backgroundImage: `url('${c.photoUrl}')` }
+                      : undefined
+                  }
+                >
+                  {!c.photoUrl && initials(c.name)}
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold tracking-wide">
+                    {c.name}
+                  </span>
+                  <span className="block text-xs tracking-widest text-white/70">
+                    {c.role}
+                  </span>
+                  {c.description && (
+                    <span className="mt-1 block text-xs text-white/60">
+                      {c.description}
+                    </span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

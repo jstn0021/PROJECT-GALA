@@ -41,7 +41,9 @@ export default function Login() {
       });
       const result = await res.json();
       if (res.ok) {
-        router.push("/dashboard");
+        const next = new URLSearchParams(window.location.search).get("next");
+        const safe = next && next.startsWith("/") && !next.startsWith("//");
+        router.push(safe ? next : "/dashboard");
       } else {
         setError(result?.error_message || "Something went wrong");
         setFieldError({ email: true, password: true });

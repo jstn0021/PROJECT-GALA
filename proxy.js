@@ -10,21 +10,32 @@ const PROTECTED = [
   "/explore",
   "/profile",
   "/activity",
+  "/admin",
 ];
+
+const isUnder = (pathname, base) =>
+  pathname === base || pathname.startsWith(base + "/");
 
 export async function proxy(req) {
   const { pathname } = req.nextUrl;
-  const needsAuth = PROTECTED.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  );
-  if (!needsAuth) return NextResponse.next();
+  if (!PROTECTED.some((p) => isUnder(pathname, p))) return NextResponse.next();
 
   try {
     const token = req.cookies.get("gala_session")?.value;
-    await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET));
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(process.env.JWT_SECRET),
+    );
+
+    // /admin: superadmin lang. (Muling sine-check sa server/DB ang tunay na role.)
+    if (isUnder(pathname, "/admin") && payload.role !== "superadmin") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+    const login = new URL("/login", req.url);
+    login.searchParams.set("next", pathname);
+    return NextResponse.redirect(login);
   }
 }
 

@@ -3,7 +3,6 @@ import { useRouter } from "next/navigation";
 import LogoutButton from "../components/LogoutButton";
 import { Logo } from "../components/AuthCard";
 
-// Sample data lang, papalitan natin ng totoong data mula sa database
 const nextTrip = {
   id: 1,
   title: "Baguio Weekend Getaway",
@@ -12,7 +11,7 @@ const nextTrip = {
   daysToGo: 12,
   budget: 10000,
   spent: 6250,
-  image: "/baguio.jpg", // ilagay mo ang litrato sa public/baguio.jpg
+  image: "/baguio.jpg",
 };
 
 const saved = [

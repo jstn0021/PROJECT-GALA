@@ -1,20 +1,44 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LogoutButton from "./LogoutButton";
+import LogoutButton from "app/components/LogoutButton";
 
-const links = [
+const baseLinks = [
   { label: "Dashboard", href: "/dashboard" },
-  { label: "My plans", href: "/my-plans" },
+  { label: "My plans", href: "/my-plans", also: ["/newplan"] },
   { label: "Bucket list", href: "/bucket-list" },
   { label: "Journal", href: "/journal" },
 ];
 
+const adminLink = { label: "Admin", href: "/admin" };
+
+function isActive(pathname, link) {
+  const paths = [link.href, ...(link.also ?? [])];
+  return paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
 export default function Navbar() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Superadmin lang ang makakakita ng "Admin" tab.
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d) => alive && setIsAdmin(d.role === "superadmin"))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const links = isAdmin ? [...baseLinks, adminLink] : baseLinks;
 
   return (
-    <header className="glass-dark flex w-full items-center justify-between gap-4 rounded-full px-6 py-3">
+    <header className="glass mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl px-6 py-3">
       <Link
         href="/dashboard"
         className="text-xl font-bold tracking-tight text-white"
@@ -22,20 +46,20 @@ export default function Navbar() {
         PROJECT-GALA
       </Link>
 
-      <nav className="hidden items-center gap-2 text-sm md:flex">
+      <nav className="flex items-center gap-2 text-sm">
         {links.map((l) => {
-          const active =
-            pathname === l.href || pathname.startsWith(l.href + "/");
+          const active = isActive(pathname, l);
           return (
             <Link
               key={l.href}
               href={l.href}
               aria-current={active ? "page" : undefined}
-              className={`rounded-full px-4 py-2 transition ${
-                active
-                  ? "bg-indigo-500/40 font-semibold text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                  : "text-white/75 hover:bg-white/10 hover:text-white"
-              }`}
+              className={
+                "rounded-xl px-4 py-2 transition " +
+                (active
+                  ? "bg-white/15 font-medium text-white"
+                  : "text-white/75 hover:bg-white/10 hover:text-white")
+              }
             >
               {l.label}
             </Link>

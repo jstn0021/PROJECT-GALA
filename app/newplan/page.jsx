@@ -193,8 +193,6 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
   }
 
-  // Pag-pili ng template, dito na nag-pre-fill (hindi na ulit sa Continue,
-  // para hindi mabura ang na-edit ng user kapag bumalik sa Step 1)
   function selectTemplate(name) {
     const t = TEMPLATES[name];
     setSelectedTemplate(name);
@@ -254,7 +252,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
       spent: 0,
       budgetCategories: form.budgetCategories,
       template: selectedTemplate,
-      color: template.gradient || DEFAULT_GRADIENT, // kailangan ng My plans
+      color: template.gradient || DEFAULT_GRADIENT,
     };
 
     if (onSave) {

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import LandingContent from "app/components/LandingContent";
 
 export function Background({ children }) {
@@ -70,6 +73,22 @@ export function SubmitButton({ children, ...props }) {
   );
 }
 
+// Kinukuha ang custom na mga larawan para pareho ang itsura ng backdrop sa landing.
+function useSiteImages() {
+  const [images, setImages] = useState({});
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/site-images", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((d) => alive && setImages(d))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return images;
+}
+
 export default function AuthCard({
   title,
   subtitle,
@@ -77,6 +96,7 @@ export default function AuthCard({
   success,
   children,
 }) {
+  const images = useSiteImages();
   return (
     <Background>
       {/* Naka-blur na landing page sa likod. inert = hindi ma-click/ma-tab */}
@@ -86,7 +106,7 @@ export default function AuthCard({
         className="pointer-events-none fixed inset-0 z-0 select-none overflow-hidden"
       >
         <div className="origin-center scale-105 blur-md">
-          <LandingContent />
+          <LandingContent images={images} />
         </div>
         <div className="absolute inset-0 bg-slate-950/55" />
       </div>

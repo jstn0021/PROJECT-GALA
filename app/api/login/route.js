@@ -19,6 +19,12 @@ export async function POST(req) {
       );
     }
 
+    if (user.disabled) {
+      return NextResponse.json(
+        { error_message: "Your account has been disabled." },
+        { status: 403 },
+      );
+    }
     await createSession(user);
     return NextResponse.json({ email: user.email, fullName: user.fullName });
   } catch (err) {
