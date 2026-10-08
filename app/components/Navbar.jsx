@@ -5,15 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LogoutButton from "@/app/components/LogoutButton";
 import ProfileMenu from "@/app/components/Profile";
+import { Logo } from "@/app/components/AuthCard";
 
 const baseLinks = [
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "My plans", href: "/my-plans", also: ["/newplan"] },
-  { label: "Bucket list", href: "/bucket-list" },
-  { label: "Journal", href: "/journal" },
+  { label: "Dashboard", icon: "🏠", href: "/dashboard" },
+  { label: "My Plans", icon: "📅", href: "/my-plans", also: ["/newplan"] },
+  { label: "Bucket List", icon: "🔖", href: "/bucket-list" },
+  { label: "Journal", icon: "📓", href: "/journal" },
+  { label: "Explore", icon: "🧭", href: "/explore" },
 ];
 
-const adminLink = { label: "Admin", href: "/admin" };
+const adminLink = { label: "Admin", icon: "🛡️", href: "/admin" };
 
 function isActive(pathname, link) {
   const paths = [link.href, ...(link.also ?? [])];
@@ -26,7 +28,6 @@ export default function Navbar() {
   const [user, setUser] = useState({ name: "Traveler", email: "" });
 
   // Superadmin lang ang makakakita ng "Admin" tab.
-  // Also loads the name/email for the profile menu, if /api/me returns them.
   useEffect(() => {
     let alive = true;
     fetch("/api/me", { cache: "no-store" })
@@ -51,15 +52,12 @@ export default function Navbar() {
 
   return (
     // relative z-40 keeps the profile dropdown above the page cards below
-    <header className="glass relative z-40 mx-auto flex w-full max-w-6xl items-center justify-between gap-4 rounded-2xl px-6 py-3">
-      <Link
-        href="/dashboard"
-        className="text-xl font-bold tracking-tight text-white"
-      >
-        PROJECT-GALA
+    <header className="glass-dark relative z-40 flex w-full items-center gap-4 rounded-full px-6 py-3">
+      <Link href="/dashboard" aria-label="Dashboard">
+        <Logo />
       </Link>
 
-      <nav className="flex items-center gap-2 text-sm">
+      <nav className="ml-2 flex items-center gap-1 overflow-x-auto lg:ml-6 lg:gap-2">
         {links.map((l) => {
           const active = isActive(pathname, l);
           return (
@@ -67,27 +65,27 @@ export default function Navbar() {
               key={l.href}
               href={l.href}
               aria-current={active ? "page" : undefined}
-              className={
-                "rounded-xl px-4 py-2 transition " +
-                (active
-                  ? "bg-white/15 font-medium text-white"
-                  : "text-white/75 hover:bg-white/10 hover:text-white")
-              }
+              aria-label={l.label}
+              className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-sm transition hover:bg-white/10 lg:px-4 ${
+                active
+                  ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+                  : "text-white/80"
+              }`}
             >
-              {l.label}
+              <span>{l.icon}</span>
+              <span className="hidden md:inline">{l.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Avatar on every page: opens the menu with "Manage your account" → /profile.
-          Your existing LogoutButton is reused inside the menu, so logging out
-          works exactly as before. */}
-      <ProfileMenu
-        user={user}
-        profileHref="/profile"
-        logoutSlot={<LogoutButton />}
-      />
+      <div className="ml-auto">
+        <ProfileMenu
+          user={user}
+          profileHref="/profile"
+          logoutSlot={<LogoutButton />}
+        />
+      </div>
     </header>
   );
 }

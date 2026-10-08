@@ -73,9 +73,12 @@ const DEFAULT_GRADIENT = "from-teal-300 to-indigo-500";
 
 // Mga reusable na class
 const primaryBtn =
-  "rounded-xl border border-teal-200/60 bg-teal-500/40 px-6 py-3 font-medium text-teal-50 transition hover:bg-teal-500/60";
+  "rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-3 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
+
 const ghostBtn =
-  "rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-white/90 transition hover:bg-white/20";
+  "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
+const smallBtn =
+  "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
 const label = "mb-2 block text-sm font-medium text-white/80";
 
 const peso = (n) =>
@@ -217,7 +220,7 @@ function BudgetAllocation({
           <button
             type="button"
             onClick={onAdd}
-            className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20"
+            className="glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
           >
             + Add category
           </button>
@@ -242,7 +245,7 @@ function BudgetAllocation({
             className={`h-full rounded-full transition-all ${
               over
                 ? "bg-linear-to-r from-orange-300 to-red-400"
-                : "bg-linear-to-r from-cyan-300 to-teal-300"
+                : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
             }`}
             style={{ width: `${pct}%` }}
           />
@@ -657,7 +660,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                   <button
                     type="button"
                     onClick={addActivity}
-                    className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20"
+                    className="glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
                   >
                     + Add activity
                   </button>

@@ -23,13 +23,10 @@ const COVERS = {
   Adventure: "from-cyan-300 to-emerald-500",
 };
 
-const primaryBtn =
-  "rounded-xl border border-teal-200/60 bg-teal-500/40 px-6 py-3 font-medium text-teal-50 transition hover:bg-teal-500/60";
 const ghostBtn =
-  "rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-white/90 transition hover:bg-white/20";
+  "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
 const smallBtn =
-  "rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20";
-const fieldLabel = "mb-2 block text-sm font-medium text-white/80";
+  "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
 
 function todayString() {
   const d = new Date();
@@ -127,7 +124,7 @@ function BudgetBar({ spent, budget }) {
           className={`h-full rounded-full transition-all ${
             over
               ? "bg-linear-to-r from-orange-300 to-red-400"
-              : "bg-linear-to-r from-cyan-300 to-teal-300"
+              : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
           }`}
           style={{ width: `${percentage}%` }}
         />
@@ -166,7 +163,7 @@ function StatusStepper({ status }) {
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
                   reached
-                    ? "border-teal-200/70 bg-teal-400/60 text-white"
+                    ? "border-indigo-300/70 bg-indigo-500/60 text-white"
                     : "border-white/25 bg-white/5 text-white/40"
                 }`}
               >
@@ -182,7 +179,7 @@ function StatusStepper({ status }) {
             {index < STEPS.length - 1 && (
               <div
                 className={`mx-2 mb-5 h-0.5 flex-1 rounded-full ${
-                  index < current ? "bg-teal-300/70" : "bg-white/15"
+                  index < current ? "bg-indigo-400/70" : "bg-white/15"
                 }`}
               />
             )}
@@ -846,7 +843,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                   onClick={onComplete}
                   className={`h-11 w-full rounded-xl font-semibold transition ${
                     ready
-                      ? "bg-linear-to-r from-teal-400 to-emerald-400 text-white shadow-lg shadow-teal-500/30 hover:scale-[1.02] active:scale-95"
+                      ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] hover:scale-105 active:scale-95"
                       : "cursor-not-allowed border border-white/15 bg-white/5 text-white/40"
                   }`}
                 >
@@ -966,7 +963,7 @@ export default function MyPlansPage() {
 
             <Link
               href="/newplan"
-              className="rounded-xl border border-white/35 bg-teal-500/70 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-400/80"
+              className="rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-3 text-sm font-semibold shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95"
             >
               + New plan
             </Link>
@@ -980,7 +977,7 @@ export default function MyPlansPage() {
                 onClick={() => setFilter(tab)}
                 className={`rounded-full border px-4 py-2 text-sm transition ${
                   filter === tab
-                    ? "border-white/60 bg-white/20 text-white"
+                    ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
                     : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
                 }`}
               >
@@ -1013,7 +1010,7 @@ export default function MyPlansPage() {
 
               <Link
                 href="/newplan"
-                className="mt-6 inline-block rounded-xl bg-teal-500/70 px-5 py-3 font-medium transition hover:bg-teal-400/80"
+                className="mt-6 inline-block rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-3 font-semibold shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95"
               >
                 + New plan
               </Link>

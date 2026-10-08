@@ -269,7 +269,7 @@ export default function ProfilePage() {
 
   return (
     <main
-      className="min-h-screen w-full px-4 py-6 md:px-8"
+      className="relative isolate min-h-screen w-full overflow-hidden px-4 py-6 md:px-8"
       // Same palette as your other pages. If you already have a shared
       // background (the world map), put it here instead of this gradient.
       style={{
@@ -277,6 +277,13 @@ export default function ProfilePage() {
           "radial-gradient(ellipse at top left, rgba(194,125,40,0.75), transparent 45%), radial-gradient(ellipse at bottom right, rgba(168,85,190,0.55), transparent 50%), linear-gradient(180deg, #0b3a66 0%, #0a5a82 70%, #0b7a93 100%)",
       }}
     >
+      {/* Floating color blobs from globals.css (behind everything, no clicks) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="animate-float absolute -left-24 top-24 h-80 w-80 rounded-full bg-amber-400/30 blur-3xl" />
+        <div className="animate-float-slow absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-fuchsia-500/25 blur-3xl" />
+        <div className="animate-float absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-teal-300/25 blur-3xl" />
+      </div>
+
       <Navbar key={navKey} />
 
       <div className="mx-auto mt-10 w-full max-w-6xl pb-16">
@@ -419,7 +426,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/5 px-4 py-3">
+            <div className="flex items-center gap-3 rounded-2xl glass-dark px-4 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">Trip reminders</p>
                 <p className="text-xs text-white/60">
@@ -436,7 +443,7 @@ export default function ProfilePage() {
 
           {/* 3. ACCOUNT */}
           <Section title="Account" subtitle="Password, sign out, and account removal.">
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/5 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-2xl glass-dark px-4 py-3">
               <div>
                 <p className="text-sm font-medium">Password</p>
                 <p className="text-xs text-white/60">Choose a new password.</p>
@@ -446,7 +453,7 @@ export default function ProfilePage() {
               </Link>
             </div>
 
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/5 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-2xl glass-dark px-4 py-3">
               <div>
                 <p className="text-sm font-medium">Sign out</p>
                 <p className="text-xs text-white/60">

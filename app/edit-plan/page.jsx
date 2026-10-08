@@ -15,18 +15,29 @@ import { useEffect, useState } from "react";
 import LocationSearch from "@/app/components/LocationSearch";
 
 const TEMPLATE_OPTIONS = {
-  Blank: { image: "/newplan/blank.jpg", gradient: "from-teal-300 to-indigo-500" },
-  Weekend: { image: "/newplan/weekend.jpg", gradient: "from-rose-400 to-orange-300" },
+  Blank: {
+    image: "/newplan/blank.jpg",
+    gradient: "from-teal-300 to-indigo-500",
+  },
+  Weekend: {
+    image: "/newplan/weekend.jpg",
+    gradient: "from-rose-400 to-orange-300",
+  },
   Solo: { image: "/newplan/solo.jpg", gradient: "from-teal-300 to-indigo-500" },
-  Family: { image: "/newplan/family.jpg", gradient: "from-amber-300 to-emerald-400" },
-  Adventure: { image: "/newplan/adventure.jpg", gradient: "from-cyan-300 to-emerald-500" },
+  Family: {
+    image: "/newplan/family.jpg",
+    gradient: "from-amber-300 to-emerald-400",
+  },
+  Adventure: {
+    image: "/newplan/adventure.jpg",
+    gradient: "from-cyan-300 to-emerald-500",
+  },
 };
 
-const primaryBtn =
-  "rounded-xl border border-teal-200/60 bg-teal-500/40 px-6 py-3 font-medium text-teal-50 transition hover:bg-teal-500/60";
 const ghostBtn =
-  "rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-white/90 transition hover:bg-white/20";
-const label = "mb-2 block text-sm font-medium text-white/80";
+  "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
+const smallBtn =
+  "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
 
 const peso = (n) =>
   new Intl.NumberFormat("en-PH", {
@@ -271,7 +282,7 @@ export default function EditPlanModal({ plan, onClose, onSave }) {
               <button
                 type="button"
                 onClick={addActivity}
-                className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20"
+                className="glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
               >
                 + Add activity
               </button>
