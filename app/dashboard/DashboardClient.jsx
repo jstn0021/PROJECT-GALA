@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import LogoutButton from "../components/LogoutButton";
 import { Logo } from "../components/AuthCard";
+import ProfileMenu from "@/app/components/Profile";
 
 const nextTrip = {
   id: 1,
@@ -169,7 +170,7 @@ export default function DashboardClient({ name, email }) {
   return (
     <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
       {/* NAV */}
-      <header className="glass-dark flex items-center gap-4 rounded-full px-6 py-3">
+      <header className="glass-dark relative z-40 flex items-center gap-4 rounded-full px-6 py-3">
         <button onClick={() => go("/dashboard")}>
           <Logo />
         </button>
@@ -190,8 +191,11 @@ export default function DashboardClient({ name, email }) {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <span className="hidden text-sm text-white/70 xl:block">{email}</span>
-          <LogoutButton />
+          <ProfileMenu
+            user={{ name, email }}
+            profileHref="/profile"
+            logoutSlot={<LogoutButton />}
+          />
         </div>
       </header>
 
