@@ -38,6 +38,14 @@ export async function PATCH(req, { params }) {
     updates.description = description || null;
   }
 
+  for (const k of ["photoX", "photoY"]) {
+    if (form.has(k)) {
+      const v = Number(form.get(k));
+      if (!Number.isFinite(v)) return fail("Invalid photo position", 400);
+      updates[k] = Math.min(100, Math.max(0, Math.round(v)));
+    }
+  }
+
   const oldPath = row.photoPath;
   const img = await readImage(form.get("file"));
   if (img.error) return fail(img.error, 400);
@@ -54,6 +62,8 @@ export async function PATCH(req, { params }) {
     }
     updates.photoPath = path;
     updates.photoUrl = publicUrl(path);
+    if (!form.has("photoX")) updates.photoX = 50;
+    if (!form.has("photoY")) updates.photoY = 50;
   } else if (form.get("removePhoto") === "1") {
     updates.photoPath = null;
     updates.photoUrl = null;

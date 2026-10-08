@@ -10,6 +10,8 @@ const Credit = sequelize.define(
     description: { type: DataTypes.STRING(300), allowNull: true },
     photoUrl: { type: DataTypes.TEXT, allowNull: true },
     photoPath: { type: DataTypes.TEXT, allowNull: true },
+    photoX: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 50 },
+    photoY: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 50 },
     sortOrder: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
   { tableName: "credits", timestamps: false },

@@ -6,7 +6,7 @@ import LandingContent from "app/components/LandingContent";
 export function Background({ children }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0b1f33] via-[#12476b] to-[#1b6f7a]">
-      {/* mapa + air traffic, sabay na gumagalaw */}
+      {}
       <div className="pointer-events-none fixed inset-0 animate-map-drift">
         <div
           className="absolute inset-0 opacity-60 blur-[3px]"
@@ -73,7 +73,6 @@ export function SubmitButton({ children, ...props }) {
   );
 }
 
-// Kinukuha ang custom na mga larawan para pareho ang itsura ng backdrop sa landing.
 function useSiteImages() {
   const [images, setImages] = useState({});
   useEffect(() => {

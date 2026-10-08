@@ -16,7 +16,7 @@ export default function AdminTabs({ active }) {
           className={
             "rounded-full border px-4 py-1.5 transition " +
             (t.key === active
-              ? "border-white/60 bg-white/25"
+              ? "border-indigo-300/60 bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
               : "border-white/20 bg-white/5 text-white/75 hover:bg-white/10")
           }
         >

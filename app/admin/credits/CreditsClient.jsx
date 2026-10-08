@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 
 const input = "glass-input h-10 w-full rounded-xl px-3 text-sm";
 const btn =
-  "rounded-lg border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20 disabled:opacity-50";
-
+  "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10 disabled:opacity-50";
 function initials(name) {
   const w = name.trim().split(/\s+/);
   return (
@@ -14,14 +13,81 @@ function initials(name) {
   ).toUpperCase();
 }
 
-function Avatar({ name, url }) {
+function Avatar({ name, url, x = 50, y = 50 }) {
   return (
     <span
       className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-indigo-400 to-teal-300 bg-cover bg-center text-lg font-bold"
-      style={url ? { backgroundImage: `url('${url}')` } : undefined}
+      style={
+        url
+          ? {
+              backgroundImage: `url('${url}')`,
+              backgroundPosition: `${x}% ${y}%`,
+            }
+          : undefined
+      }
     >
       {!url && initials(name)}
     </span>
+  );
+}
+
+// Same 4:3 frame as the landing card. Click / drag on it to move the focal point.
+function PositionPicker({ c, pos, onChange, onSave, saving }) {
+  function move(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.min(
+      100,
+      Math.max(0, Math.round(((e.clientX - r.left) / r.width) * 100)),
+    );
+    const y = Math.min(
+      100,
+      Math.max(0, Math.round(((e.clientY - r.top) / r.height) * 100)),
+    );
+    onChange({ photoX: x, photoY: y });
+  }
+  const changed = pos.photoX !== c.photoX || pos.photoY !== c.photoY;
+  return (
+    <div className="space-y-2">
+      <div
+        className="relative aspect-[4/3] w-full max-w-xs cursor-crosshair touch-none select-none overflow-hidden rounded-2xl border border-white/30 bg-cover"
+        style={{
+          backgroundImage: `url('${c.photoUrl}')`,
+          backgroundPosition: `${pos.photoX}% ${pos.photoY}%`,
+        }}
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          move(e);
+        }}
+        onPointerMove={(e) => {
+          if (e.buttons) move(e);
+        }}
+      >
+        <span className="pointer-events-none absolute left-1/2 top-0 h-full w-px bg-white/30" />
+        <span className="pointer-events-none absolute left-0 top-1/2 h-px w-full bg-white/30" />
+      </div>
+      <p className="text-xs text-white/60">
+        Click or drag the preview to move the photo ({pos.photoX}%, {pos.photoY}
+        %).
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={btn}
+          disabled={!changed || saving}
+          onClick={onSave}
+        >
+          Save position
+        </button>
+        <button
+          type="button"
+          className={btn}
+          disabled={saving || (pos.photoX === 50 && pos.photoY === 50)}
+          onClick={() => onChange({ photoX: 50, photoY: 50 })}
+        >
+          Reset
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -53,6 +119,21 @@ export default function CreditsClient({ credits }) {
       setError("Something went wrong");
     }
     setBusy(null);
+  }
+
+  const [adjust, setAdjust] = useState({}); // id -> { photoX, photoY }, open picker
+  const pos = (c) => adjust[c.id] ?? { photoX: c.photoX, photoY: c.photoY };
+
+  function savePosition(c) {
+    const body = new FormData();
+    body.append("photoX", pos(c).photoX);
+    body.append("photoY", pos(c).photoY);
+    send(c.id, `/api/admin/credits/${c.id}`, { method: "PATCH", body }, () =>
+      setAdjust((a) => {
+        const { [c.id]: _, ...rest } = a;
+        return rest;
+      }),
+    );
   }
 
   const draft = (c) =>
@@ -191,7 +272,12 @@ export default function CreditsClient({ credits }) {
             d.description !== c.description;
           return (
             <article key={c.id} className="glass flex gap-4 rounded-3xl p-4">
-              <Avatar name={c.name} url={c.photoUrl} />
+              <Avatar
+                name={c.name}
+                url={c.photoUrl}
+                x={pos(c).photoX}
+                y={pos(c).photoY}
+              />
               <div className="min-w-0 flex-1 space-y-2">
                 <input
                   className={input}
@@ -236,6 +322,21 @@ export default function CreditsClient({ credits }) {
                     <button
                       type="button"
                       className={btn}
+                      onClick={() =>
+                        setAdjust((a) =>
+                          c.id in a
+                            ? (({ [c.id]: _, ...r }) => r)(a)
+                            : { ...a, [c.id]: pos(c) },
+                        )
+                      }
+                    >
+                      {c.id in adjust ? "Close adjust" : "Adjust photo"}
+                    </button>
+                  )}
+                  {c.photoUrl && (
+                    <button
+                      type="button"
+                      className={btn}
                       disabled={busy === c.id}
                       onClick={() => removePhoto(c)}
                     >
@@ -251,6 +352,20 @@ export default function CreditsClient({ credits }) {
                     Delete
                   </button>
                 </div>
+                {c.photoUrl && c.id in adjust && (
+                  <PositionPicker
+                    c={c}
+                    pos={pos(c)}
+                    saving={busy === c.id}
+                    onChange={(patch) =>
+                      setAdjust((a) => ({
+                        ...a,
+                        [c.id]: { ...pos(c), ...patch },
+                      }))
+                    }
+                    onSave={() => savePosition(c)}
+                  />
+                )}
               </div>
             </article>
           );

@@ -233,40 +233,41 @@ export default function LandingContent({ images = {}, credits = [] }) {
       {/* Credits */}
       {credits.length > 0 && (
         <section id="credits" className="pb-4">
-          <h2 className="px-1 text-lg font-semibold">Meet the team</h2>
-          <p className="mb-3 px-1 text-sm text-white/70">
+          <h2 className="px-1 text-2xl font-semibold">Meet the team</h2>
+          <p className="mb-4 px-1 text-white/70">
             The people who built {BRAND}.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-5">
             {credits.map((c) => (
-              <div
+              <article
                 key={c.id}
-                className="glass flex items-center gap-4 rounded-2xl p-4"
+                className="glass overflow-hidden rounded-3xl transition hover:-translate-y-1"
               >
-                <span
-                  className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-indigo-400 to-teal-300 bg-cover bg-center text-lg font-bold"
+                <div
+                  className="flex aspect-[4/3] items-center justify-center bg-linear-to-br from-indigo-500 via-teal-500 to-amber-300 bg-cover bg-center text-7xl font-extrabold text-white/90"
                   style={
                     c.photoUrl
-                      ? { backgroundImage: `url('${c.photoUrl}')` }
+                      ? {
+                          backgroundImage: `url('${c.photoUrl}')`,
+                          backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
+                        }
                       : undefined
                   }
                 >
                   {!c.photoUrl && initials(c.name)}
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-semibold tracking-wide">
-                    {c.name}
-                  </span>
-                  <span className="block text-xs tracking-widest text-white/70">
+                </div>
+                <div className="p-5">
+                  <h3 className="text-xl font-bold tracking-wide">{c.name}</h3>
+                  <p className="mt-1 text-sm font-medium tracking-widest text-amber-200">
                     {c.role}
-                  </span>
+                  </p>
                   {c.description && (
-                    <span className="mt-1 block text-xs text-white/60">
+                    <p className="mt-3 text-justify text-sm leading-relaxed text-white/75 hyphens-auto">
                       {c.description}
-                    </span>
+                    </p>
                   )}
-                </span>
-              </div>
+                </div>
+              </article>
             ))}
           </div>
         </section>

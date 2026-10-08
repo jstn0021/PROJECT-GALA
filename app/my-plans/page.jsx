@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
+import LocationSearch from "@/app/components/LocationSearch";
 import {
   useStoredState,
   PLANS_KEY,
@@ -12,6 +13,20 @@ import {
 
 const FILTERS = ["All", "Upcoming", "Ongoing", "Completed"];
 const STEPS = ["Upcoming", "Ongoing", "Completed"];
+
+// Cover choices in the edit form (same gradients as the New plan templates)
+const COVERS = {
+  Blank: "from-teal-300 to-indigo-500",
+  Weekend: "from-rose-400 to-orange-300",
+  Solo: "from-teal-300 to-indigo-500",
+  Family: "from-amber-300 to-emerald-400",
+  Adventure: "from-cyan-300 to-emerald-500",
+};
+
+const ghostBtn =
+  "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
+const smallBtn =
+  "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
 
 function todayString() {
   const d = new Date();
@@ -88,7 +103,7 @@ function formatMoney(value) {
     style: "currency",
     currency: "PHP",
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(value || 0);
 }
 
 function BudgetBar({ spent, budget }) {
@@ -109,7 +124,7 @@ function BudgetBar({ spent, budget }) {
           className={`h-full rounded-full transition-all ${
             over
               ? "bg-linear-to-r from-orange-300 to-red-400"
-              : "bg-linear-to-r from-cyan-300 to-teal-300"
+              : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
           }`}
           style={{ width: `${percentage}%` }}
         />
@@ -148,7 +163,7 @@ function StatusStepper({ status }) {
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
                   reached
-                    ? "border-teal-200/70 bg-teal-400/60 text-white"
+                    ? "border-indigo-300/70 bg-indigo-500/60 text-white"
                     : "border-white/25 bg-white/5 text-white/40"
                 }`}
               >
@@ -164,7 +179,7 @@ function StatusStepper({ status }) {
             {index < STEPS.length - 1 && (
               <div
                 className={`mx-2 mb-5 h-0.5 flex-1 rounded-full ${
-                  index < current ? "bg-teal-300/70" : "bg-white/15"
+                  index < current ? "bg-indigo-400/70" : "bg-white/15"
                 }`}
               />
             )}
@@ -175,7 +190,461 @@ function StatusStepper({ status }) {
   );
 }
 
-function PlanCard({ plan, onView, onComplete, onDelete }) {
+/* ------------------------------------------------------------------ */
+/* Edit plan modal                                                    */
+/* ------------------------------------------------------------------ */
+
+function FieldError({ children }) {
+  if (!children) return null;
+  return <p className="mt-2 text-sm text-red-200">{children}</p>;
+}
+
+function EditPlanModal({ plan, onClose, onSave }) {
+  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({
+    title: plan.title ?? "",
+    destination: plan.destination ?? "",
+    location: plan.location ?? null,
+    startDate: plan.startDate ?? "",
+    endDate: plan.endDate ?? "",
+    activities: [...(plan.activities ?? [])],
+    notes: plan.notes ?? "",
+    budget: plan.budget ? String(plan.budget) : "",
+    template: plan.template ?? "Blank",
+    color: plan.color ?? COVERS.Blank,
+    // Plans saved before allocations existed fall back to their category names
+    allocations: (
+      plan.budgetAllocations ??
+      (plan.budgetCategories ?? []).map((category) => ({
+        category,
+        amount: 0,
+      }))
+    ).map((a) => ({
+      name: a.category,
+      amount: a.amount ? String(a.amount) : "",
+    })),
+  });
+
+  const total = Number(form.budget) || 0;
+  const spent = plan.spent ?? 0;
+  const allocated = form.allocations.reduce(
+    (sum, a) => sum + (Number(a.amount) || 0),
+    0,
+  );
+  const unallocated = total - allocated;
+
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  function update(field, value) {
+    setForm((c) => ({ ...c, [field]: value }));
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
+  }
+
+  const clearAllocError = () =>
+    errors.allocation && setErrors((e) => ({ ...e, allocation: undefined }));
+
+  const setActivity = (i, v) =>
+    setForm((c) => ({
+      ...c,
+      activities: c.activities.map((a, idx) => (idx === i ? v : a)),
+    }));
+
+  const setAllocation = (i, field, v) => {
+    setForm((c) => ({
+      ...c,
+      allocations: c.allocations.map((a, idx) =>
+        idx === i ? { ...a, [field]: v } : a,
+      ),
+    }));
+    clearAllocError();
+  };
+
+  function splitEvenly() {
+    const count = form.allocations.length;
+    if (count === 0 || total <= 0) return;
+    const base = Math.floor(total / count);
+    const extra = total - base * count;
+    setForm((c) => ({
+      ...c,
+      allocations: c.allocations.map((a, i) => ({
+        ...a,
+        amount: String(base + (i === 0 ? extra : 0)),
+      })),
+    }));
+    clearAllocError();
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const next = {};
+    if (!form.destination.trim()) next.destination = "Enter a destination.";
+    if (!form.startDate) next.startDate = "Pick a start date.";
+    if (!form.endDate) next.endDate = "Pick an end date.";
+    else if (form.startDate && form.endDate < form.startDate)
+      next.endDate = "End date can't be before the start date.";
+    if (form.allocations.some((a) => Number(a.amount) > 0 && !a.name.trim()))
+      next.allocation = "Give every allocated amount a category name.";
+    else if (allocated > total)
+      next.allocation = `Allocations are ${formatMoney(allocated - total)} over your total budget.`;
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    const budgetAllocations = form.allocations
+      .filter((a) => a.name.trim() !== "")
+      .map((a) => ({ category: a.name.trim(), amount: Number(a.amount) || 0 }));
+
+    onSave({
+      ...plan, // keeps id, spent, status, completedAt…
+      title: form.title.trim() || form.destination.trim(),
+      destination: form.destination.trim(),
+      location: form.location,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      activities: form.activities.filter((a) => a.trim() !== ""),
+      notes: form.notes,
+      budget: total,
+      budgetCategories: budgetAllocations.map((a) => a.category),
+      budgetAllocations,
+      template: form.template,
+      color: form.color,
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-title"
+        onSubmit={handleSubmit}
+        noValidate
+        className="glass max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl"
+      >
+        <div className={`relative h-32 bg-linear-to-br ${form.color}`}>
+          <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-xl text-white transition hover:bg-black/50"
+          >
+            ×
+          </button>
+          <div className="absolute bottom-4 left-6">
+            <p className="text-sm text-white/75">Editing plan</p>
+            <h2 id="edit-title" className="text-2xl font-bold">
+              {form.title || form.destination || "Untitled plan"}
+            </h2>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-6 p-6 md:p-8">
+          <div>
+            <span className={fieldLabel}>Cover</span>
+            <div className="grid grid-cols-5 gap-3">
+              {Object.entries(COVERS).map(([name, gradient]) => (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={form.template === name}
+                  onClick={() =>
+                    setForm((c) => ({ ...c, template: name, color: gradient }))
+                  }
+                  className={`overflow-hidden rounded-xl border text-center text-xs transition hover:-translate-y-0.5 ${
+                    form.template === name
+                      ? "border-white/80 outline outline-2 outline-offset-2 outline-white/70"
+                      : "border-white/25"
+                  }`}
+                >
+                  <div className={`h-10 bg-linear-to-br ${gradient}`} />
+                  <span className="block bg-white/10 py-1.5">{name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="edit-name" className={fieldLabel}>
+              Plan name
+            </label>
+            <input
+              id="edit-name"
+              value={form.title}
+              onChange={(e) => update("title", e.target.value)}
+              placeholder="Siargao Getaway"
+              className="glass-input w-full rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="edit-destination" className={fieldLabel}>
+              Destination
+            </label>
+            <LocationSearch
+              id="edit-destination"
+              value={form.destination}
+              invalid={!!errors.destination}
+              onChange={(text) => {
+                update("destination", text);
+                setForm((c) => ({ ...c, location: null }));
+              }}
+              onSelect={(loc) => {
+                setForm((c) => ({
+                  ...c,
+                  destination: loc.label,
+                  location: loc,
+                }));
+                setErrors((e) => ({ ...e, destination: undefined }));
+              }}
+            />
+            <FieldError>{errors.destination}</FieldError>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="edit-start" className={fieldLabel}>
+                Start date
+              </label>
+              <input
+                id="edit-start"
+                type="date"
+                value={form.startDate}
+                onChange={(e) => update("startDate", e.target.value)}
+                aria-invalid={!!errors.startDate}
+                className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.startDate ? "is-error" : ""}`}
+              />
+              <FieldError>{errors.startDate}</FieldError>
+            </div>
+            <div>
+              <label htmlFor="edit-end" className={fieldLabel}>
+                End date
+              </label>
+              <input
+                id="edit-end"
+                type="date"
+                min={form.startDate}
+                value={form.endDate}
+                onChange={(e) => update("endDate", e.target.value)}
+                aria-invalid={!!errors.endDate}
+                className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.endDate ? "is-error" : ""}`}
+              />
+              <FieldError>{errors.endDate}</FieldError>
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-white/80">
+                Activities
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((c) => ({ ...c, activities: [...c.activities, ""] }))
+                }
+                className={smallBtn}
+              >
+                + Add activity
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {form.activities.length === 0 && (
+                <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                  No activities yet. Add one to get started.
+                </div>
+              )}
+              {form.activities.map((activity, i) => (
+                <div key={i} className="flex gap-3">
+                  <input
+                    value={activity}
+                    onChange={(e) => setActivity(i, e.target.value)}
+                    placeholder="Activity"
+                    aria-label={`Activity ${i + 1}`}
+                    className="glass-input w-full rounded-xl px-4 py-3"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((c) => ({
+                        ...c,
+                        activities: c.activities.filter((_, x) => x !== i),
+                      }))
+                    }
+                    aria-label="Remove activity"
+                    className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="edit-notes" className={fieldLabel}>
+              Notes
+            </label>
+            <textarea
+              id="edit-notes"
+              rows={4}
+              value={form.notes}
+              onChange={(e) => update("notes", e.target.value)}
+              placeholder="Add notes for this plan..."
+              className="glass-input w-full resize-y rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="edit-budget" className={fieldLabel}>
+              Total budget
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">
+                ₱
+              </span>
+              <input
+                id="edit-budget"
+                type="number"
+                min="0"
+                step="1"
+                value={form.budget}
+                onChange={(e) => update("budget", e.target.value)}
+                placeholder="25000"
+                className="glass-input w-full rounded-xl py-3 pl-8 pr-4"
+              />
+            </div>
+            <p
+              className={`mt-2 text-sm ${spent > total ? "text-red-200" : "text-white/60"}`}
+            >
+              {spent > total
+                ? `You've already spent ${formatMoney(spent)}, which is over this budget.`
+                : `Spent so far: ${formatMoney(spent)}. Spending is tracked in the Budget tab.`}
+            </p>
+          </div>
+
+          <div>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium text-white/80">
+                Budget allocation
+              </span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={splitEvenly}
+                  disabled={total <= 0 || form.allocations.length === 0}
+                  className={`${smallBtn} disabled:cursor-not-allowed disabled:opacity-40`}
+                >
+                  Split evenly
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((c) => ({
+                      ...c,
+                      allocations: [...c.allocations, { name: "", amount: "" }],
+                    }))
+                  }
+                  className={smallBtn}
+                >
+                  + Add category
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/20 bg-white/5 p-4">
+              <BudgetBar spent={allocated} budget={total} />
+              <p
+                className={`mt-2 text-xs ${unallocated < 0 ? "text-red-200" : "text-white/60"}`}
+              >
+                {unallocated < 0
+                  ? `${formatMoney(-unallocated)} over your total budget`
+                  : `${formatMoney(unallocated)} unallocated`}
+              </p>
+
+              <div className="mt-4 flex flex-col gap-3">
+                {form.allocations.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                    No categories yet. Add one to start allocating.
+                  </div>
+                )}
+                {form.allocations.map((row, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <input
+                      value={row.name}
+                      onChange={(e) => setAllocation(i, "name", e.target.value)}
+                      placeholder="Category"
+                      aria-label={`Category ${i + 1} name`}
+                      className="glass-input min-w-0 flex-1 rounded-xl px-4 py-3"
+                    />
+                    <div className="relative w-36 shrink-0 sm:w-44">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                        ₱
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={row.amount}
+                        onChange={(e) =>
+                          setAllocation(i, "amount", e.target.value)
+                        }
+                        placeholder="0"
+                        aria-label={`${row.name || `Category ${i + 1}`} amount`}
+                        className="glass-input w-full rounded-xl py-3 pl-7 pr-3"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((c) => ({
+                          ...c,
+                          allocations: c.allocations.filter((_, x) => x !== i),
+                        }));
+                        clearAllocError();
+                      }}
+                      aria-label={`Remove ${row.name || "category"}`}
+                      className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <FieldError>{errors.allocation}</FieldError>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <button type="button" onClick={onClose} className={ghostBtn}>
+              Cancel
+            </button>
+            <button type="submit" className={primaryBtn}>
+              Save changes
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Cards and details                                                  */
+/* ------------------------------------------------------------------ */
+
+function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
   const status = getStatus(plan);
   const ready = canComplete(plan);
 
@@ -207,13 +676,26 @@ function PlanCard({ plan, onView, onComplete, onDelete }) {
         <p className="mt-3 text-xs text-white/55">{getCountdown(plan)}</p>
 
         <div className="mt-4 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={onView}
-            className="text-sm text-white/75 transition hover:text-white"
-          >
-            View plan
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={onView}
+              className="text-sm text-white/75 transition hover:text-white"
+            >
+              View plan
+            </button>
+
+            {status !== "Completed" && (
+              <button
+                type="button"
+                onClick={onEdit}
+                aria-label={`Edit ${plan.title}`}
+                className="text-sm text-white/75 transition hover:text-white"
+              >
+                ✎ Edit
+              </button>
+            )}
+          </div>
 
           {ready && (
             <button
@@ -238,7 +720,7 @@ function PlanCard({ plan, onView, onComplete, onDelete }) {
   );
 }
 
-function PlanDetails({ plan, onClose, onComplete, onDelete }) {
+function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const status = getStatus(plan);
@@ -334,6 +816,17 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
               </span>
             </div>
             <BudgetBar spent={plan.spent} budget={plan.budget} />
+
+            {plan.budgetAllocations?.length > 0 && (
+              <ul className="mt-4 flex flex-col gap-1.5 border-t border-white/15 pt-3 text-xs text-white/70">
+                {plan.budgetAllocations.map((a) => (
+                  <li key={a.category} className="flex justify-between">
+                    <span>{a.category}</span>
+                    <span>{formatMoney(a.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Actions */}
@@ -350,7 +843,7 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
                   onClick={onComplete}
                   className={`h-11 w-full rounded-xl font-semibold transition ${
                     ready
-                      ? "bg-linear-to-r from-teal-400 to-emerald-400 text-white shadow-lg shadow-teal-500/30 hover:scale-[1.02] active:scale-95"
+                      ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] hover:scale-105 active:scale-95"
                       : "cursor-not-allowed border border-white/15 bg-white/5 text-white/40"
                   }`}
                 >
@@ -375,6 +868,16 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
                 Close
               </button>
 
+              {status !== "Completed" && (
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="text-sm text-white/80 transition hover:text-white"
+                >
+                  ✎ Edit plan
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() =>
@@ -393,13 +896,19 @@ function PlanDetails({ plan, onClose, onComplete, onDelete }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Page                                                               */
+/* ------------------------------------------------------------------ */
+
 export default function MyPlansPage() {
   const [plans, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
   const [filter, setFilter] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
 
   const safePlans = Array.isArray(plans) ? plans : [];
   const selectedPlan = safePlans.find((plan) => plan.id === selectedId) ?? null;
+  const editingPlan = safePlans.find((plan) => plan.id === editingId) ?? null;
 
   const filteredPlans = useMemo(() => {
     if (filter === "All") return safePlans;
@@ -419,6 +928,18 @@ export default function MyPlansPage() {
           : plan,
       ),
     );
+  }
+
+  function startEdit(id) {
+    setSelectedId(null); // close the details popup if it was open
+    setEditingId(id);
+  }
+
+  function updatePlan(updated) {
+    setPlans((current) =>
+      current.map((plan) => (plan.id === updated.id ? updated : plan)),
+    );
+    setEditingId(null);
   }
 
   return (
@@ -442,7 +963,7 @@ export default function MyPlansPage() {
 
             <Link
               href="/newplan"
-              className="rounded-xl border border-white/35 bg-teal-500/70 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-400/80"
+              className="rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-3 text-sm font-semibold shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95"
             >
               + New plan
             </Link>
@@ -456,7 +977,7 @@ export default function MyPlansPage() {
                 onClick={() => setFilter(tab)}
                 className={`rounded-full border px-4 py-2 text-sm transition ${
                   filter === tab
-                    ? "border-white/60 bg-white/20 text-white"
+                    ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
                     : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
                 }`}
               >
@@ -472,6 +993,7 @@ export default function MyPlansPage() {
                   key={plan.id}
                   plan={plan}
                   onView={() => setSelectedId(plan.id)}
+                  onEdit={() => startEdit(plan.id)}
                   onComplete={() => completePlan(plan.id)}
                   onDelete={() => deletePlan(plan.id)}
                 />
@@ -488,7 +1010,7 @@ export default function MyPlansPage() {
 
               <Link
                 href="/newplan"
-                className="mt-6 inline-block rounded-xl bg-teal-500/70 px-5 py-3 font-medium transition hover:bg-teal-400/80"
+                className="mt-6 inline-block rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-3 font-semibold shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95"
               >
                 + New plan
               </Link>
@@ -500,8 +1022,17 @@ export default function MyPlansPage() {
           <PlanDetails
             plan={selectedPlan}
             onClose={() => setSelectedId(null)}
+            onEdit={() => startEdit(selectedPlan.id)}
             onComplete={() => completePlan(selectedPlan.id)}
             onDelete={() => deletePlan(selectedPlan.id)}
+          />
+        )}
+
+        {editingPlan && (
+          <EditPlanModal
+            plan={editingPlan}
+            onClose={() => setEditingId(null)}
+            onSave={updatePlan}
           />
         )}
       </div>

@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import LogoutButton from "../components/LogoutButton";
-import { Logo } from "../components/AuthCard";
+import Navbar from "@/app/components/Navbar";
 
 const nextTrip = {
   id: 1,
@@ -77,14 +76,6 @@ const activities = [
 const bucketDone = 3;
 const bucketTotal = 10;
 
-const navLinks = [
-  { label: "Dashboard", icon: "🏠", path: "/dashboard" },
-  { label: "My Plans", icon: "📅", path: "/my-plans" },
-  { label: "Bucket List", icon: "🔖", path: "/bucket-list" },
-  { label: "Journal", icon: "📓", path: "/journal" },
-  { label: "Explore", icon: "🧭", path: "/explore" },
-];
-
 const peso = (n) => `₱${n.toLocaleString("en-PH")}`;
 
 function Card({ title, icon, action, onAction, children, className = "" }) {
@@ -159,7 +150,7 @@ function Ring({ percent, children }) {
   );
 }
 
-export default function DashboardClient({ name, email }) {
+export default function DashboardClient({ name }) {
   const router = useRouter();
   const go = (p) => router.push(p);
 
@@ -168,32 +159,8 @@ export default function DashboardClient({ name, email }) {
 
   return (
     <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
-      {/* NAV */}
-      <header className="glass-dark flex items-center gap-4 rounded-full px-6 py-3">
-        <button onClick={() => go("/dashboard")}>
-          <Logo />
-        </button>
-        <nav className="ml-6 hidden items-center gap-2 lg:flex">
-          {navLinks.map((l) => (
-            <button
-              key={l.path}
-              onClick={() => go(l.path)}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${
-                l.path === "/dashboard"
-                  ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                  : "text-white/80"
-              }`}
-            >
-              <span>{l.icon}</span>
-              {l.label}
-            </button>
-          ))}
-        </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="hidden text-sm text-white/70 xl:block">{email}</span>
-          <LogoutButton />
-        </div>
-      </header>
+      {/* NAV (shared: includes Admin tab for superadmin + Profile menu) */}
+      <Navbar />
 
       {/* WELCOME */}
       <section className="glass-dark flex flex-wrap items-center justify-between gap-4 rounded-3xl px-6 py-5">

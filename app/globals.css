@@ -77,7 +77,7 @@ body {
 .animate-map-drift {
   animation: map-drift 40s ease-in-out infinite;
 }
-
+/* Disable animations for users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-map-drift,
   .animate-float,
@@ -85,6 +85,7 @@ body {
     animation: none;
   }
 }
+/* Map drift animation */
 @keyframes map-drift {
   0%,
   100% {
@@ -97,6 +98,7 @@ body {
 .animate-map-drift {
   animation: map-drift 40s ease-in-out infinite;
 }
+/* Dark glass panel */
 .glass-dark {
   background: linear-gradient(
     135deg,
@@ -109,4 +111,16 @@ body {
   box-shadow:
     0 0 28px rgba(80, 90, 255, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+/* Hide scrollbars */
+html,
+body,
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari */
 }
