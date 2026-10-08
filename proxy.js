@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const PROTECTED = [
-  "/dashboard",
-  "/my-plans",
-  "/bucket-list",
-  "/journal",
-  "/newplan",
-  "/explore",
-  "/profile",
-  "/activity",
+  //"/dashboard",
+  //"/my-plans",
+  //"/bucket-list",
+  //"/journal",
+  //"/newplan",
+  //"/explore",
+  //"/profile",
+  //"/activity",
 ];
 
 export async function proxy(req) {

@@ -80,10 +80,10 @@ const bucketTotal = 10;
 
 const navLinks = [
   { label: "Dashboard", icon: "🏠", path: "/dashboard" },
+  { label: "Explore", icon: "🧭", path: "/explore" },
   { label: "My Plans", icon: "📅", path: "/my-plans" },
   { label: "Bucket List", icon: "🔖", path: "/bucket-list" },
   { label: "Journal", icon: "📓", path: "/journal" },
-  { label: "Explore", icon: "🧭", path: "/explore" },
 ];
 
 const peso = (n) => `₱${n.toLocaleString("en-PH")}`;
@@ -179,11 +179,10 @@ export default function DashboardClient({ name, email }) {
             <button
               key={l.path}
               onClick={() => go(l.path)}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${
-                l.path === "/dashboard"
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${l.path === "/dashboard"
                   ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
                   : "text-white/80"
-              }`}
+                }`}
             >
               <span>{l.icon}</span>
               {l.label}

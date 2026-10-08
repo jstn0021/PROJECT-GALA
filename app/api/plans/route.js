@@ -1,6 +1,6 @@
 import { requireUserId } from "lib/server/auth";
 import { handleError, ok, readJson } from "lib/server/http";
-import * as plans from "lib/services/plans";
+import * as plans from "../../../lib/services/plans";
 
 export async function GET() {
     try {

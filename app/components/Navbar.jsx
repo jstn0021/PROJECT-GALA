@@ -5,6 +5,7 @@ import LogoutButton from "./LogoutButton";
 
 const links = [
   { label: "Dashboard", href: "/dashboard" },
+  { label: "Explore", href: "/explore" },
   { label: "My plans", href: "/my-plans" },
   { label: "Bucket list", href: "/bucket-list" },
   { label: "Journal", href: "/journal" },

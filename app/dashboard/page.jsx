@@ -6,6 +6,10 @@ import DashboardClient from "./DashboardClient";
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect("/login");
+  //const session = {
+  //name: "Developer",
+  //email: "dev@gala.local",
+  //};
 
   const firstName = String(session.name || "").split(" ")[0] || "traveler";
 

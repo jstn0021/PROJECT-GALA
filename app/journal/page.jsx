@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { listMedia, addMedia } from "@/lib/client/plans";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import {
@@ -41,7 +42,57 @@ function getNoteExcerpt(notes, maxLength = 105) {
   return clean.length <= maxLength ? clean : `${clean.slice(0, maxLength)}…`;
 }
 
-function JournalCard({ entry, onOpen }) {
+/**
+ * JOURNAL CARD WITH GALLERY (MULTIPLE PHOTOS & VIDEOS - UP TO 10)
+ */
+function JournalCard({ entry, onOpen, onAddMedia }) {
+  const fileInputRef = useRef(null);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+
+  const mediaList = entry.mediaList || [];
+  const MAX_MEDIA = 10;
+
+  const handleUploadClick = (e) => {
+    e.stopPropagation(); // Iwasan ang pagbubukas ng buong card modal
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    // Limitahan sa natitirang slots hanggang 10
+    const remainingSlots = MAX_MEDIA - mediaList.length;
+    const filesToUpload = files.slice(0, remainingSlots);
+
+    const newMediaItems = [];
+
+    for (const file of filesToUpload) {
+      const isVideo = file.type.startsWith("video/");
+      const reader = new FileReader();
+
+      const mediaUrl = await new Promise((resolve) => {
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      newMediaItems.push({
+        url: mediaUrl,
+        mediaType: isVideo ? "video" : "image",
+        name: file.name,
+      });
+    }
+
+    if (newMediaItems.length > 0) {
+      await onAddMedia?.(entry.id, newMediaItems);
+    }
+
+    // Reset input
+    e.target.value = "";
+  };
+
+  const currentMedia = mediaList[activeMediaIndex];
+
   return (
     <article
       role="button"
@@ -54,38 +105,127 @@ function JournalCard({ entry, onOpen }) {
         }
       }}
       aria-label={`Open journal entry for ${entry.title}`}
-      className="glass flex cursor-pointer flex-col overflow-hidden rounded-3xl transition duration-200 hover:-translate-y-1 sm:flex-row"
+      className="glass flex cursor-pointer flex-col overflow-hidden rounded-3xl transition duration-200 hover:-translate-y-1 md:flex-row"
     >
-      <div
-        aria-hidden="true"
-        className={`h-44 shrink-0 bg-cover bg-center sm:h-auto sm:w-56 ${
-          entry.photo
-            ? ""
-            : `bg-linear-to-br ${entry.color || "from-cyan-300/40 to-indigo-400/40"}`
-        }`}
-        style={
-          entry.photo ? { backgroundImage: `url("${entry.photo}")` } : undefined
-        }
+      {/* Hidden Multiple File Input for Photos and Videos */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*,video/*"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
       />
 
-      <div className="flex-1 p-5">
-        <h2 className="text-lg font-semibold">{entry.title}</h2>
+      {/* MEDIA GALLERY DISPLAY AREA */}
+      <div className="relative h-56 shrink-0 bg-slate-900 md:h-auto md:w-72">
+        {mediaList.length > 0 ? (
+          <div className="relative h-full w-full">
+            {/* Display Video or Image depending on media type */}
+            {currentMedia?.mediaType === "video" ? (
+              <video
+                src={currentMedia.url}
+                className="h-full w-full object-cover"
+                controls={false}
+                muted
+                loop
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <div
+                className="h-full w-full bg-cover bg-center"
+                style={{ backgroundImage: `url("${currentMedia?.url}")` }}
+              />
+            )}
 
-        {entry.destination && (
-          <p className="mt-1 text-sm text-white/70">{entry.destination}</p>
+            {/* Indicator / Badge count (e.g., 3/10) */}
+            <div className="absolute top-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+              📷 {activeMediaIndex + 1} / {mediaList.length}
+            </div>
+
+            {/* Thumbnail Navigation / Dots inside card */}
+            {mediaList.length > 1 && (
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-1.5 overflow-x-auto py-1">
+                {mediaList.map((m, idx) => (
+                  <button
+                    key={m.id ?? idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMediaIndex(idx);
+                    }}
+                    className={`h-2 rounded-full transition-all ${activeMediaIndex === idx
+                      ? "w-5 bg-teal-400"
+                      : "w-2 bg-white/50 hover:bg-white"
+                      }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Empty Gallery Placeholder */
+          <div
+            className={`flex h-full w-full flex-col items-center justify-center p-4 bg-linear-to-br ${entry.color || "from-cyan-500/20 to-indigo-600/30"
+              }`}
+          >
+            <span className="text-3xl">📷</span>
+            <p className="mt-1 text-xs text-white/60">No photos or videos yet</p>
+          </div>
         )}
 
-        <p className="mt-1 text-xs text-white/50">{entry.dateLabel}</p>
+        {/* ADD MEDIA (+) BUTTON OVERLAY */}
+        {mediaList.length < MAX_MEDIA && (
+          <button
+            type="button"
+            onClick={handleUploadClick}
+            title={`Add photo/video (${mediaList.length}/${MAX_MEDIA})`}
+            className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-teal-500 text-slate-900 shadow-xl transition hover:scale-110 active:scale-95"
+          >
+            <span className="text-xl font-extrabold line-none">+</span>
+          </button>
+        )}
+      </div>
 
-        <div className="mt-4">
-          {entry.noteExcerpt ? (
-            <p className="text-sm text-white/75">{entry.noteExcerpt}</p>
-          ) : (
-            <div className="space-y-2">
-              <div className="h-2 w-full rounded-full bg-white/10" />
-              <div className="h-2 w-2/3 rounded-full bg-white/10" />
-            </div>
+      {/* CARD CONTENT */}
+      <div className="flex flex-1 flex-col justify-between p-5">
+        <div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-white">{entry.title}</h2>
+            <span className="text-[11px] text-teal-300 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20">
+              Completed
+            </span>
+          </div>
+
+          {entry.destination && (
+            <p className="mt-1 text-sm text-white/70">📍 {entry.destination}</p>
           )}
+
+          <p className="mt-1 text-xs text-white/50">📅 {entry.dateLabel}</p>
+
+          <div className="mt-4">
+            {entry.noteExcerpt ? (
+              <p className="text-sm leading-relaxed text-white/80">
+                {entry.noteExcerpt}
+              </p>
+            ) : (
+              <p className="text-xs italic text-white/40">
+                No personal journal notes added yet.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* GALLERY SUMMARY COUNTER */}
+        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-xs text-white/50">
+          <span>
+            {mediaList.length === 0
+              ? "0 media items"
+              : `${mediaList.length} ${mediaList.length === 1 ? "media item" : "media items"
+              } saved`}
+          </span>
+          <span className="text-teal-300 hover:underline">View Journal →</span>
         </div>
       </div>
     </article>
@@ -105,6 +245,44 @@ function JournalEmptyState() {
 
 export default function Journal({ onBack, onOpenEntry }) {
   const [plans] = useStoredState(PLANS_KEY, SEED_PLANS);
+  const [mediaByPlan, setMediaByPlan] = useState({});
+  const [mediaError, setMediaError] = useState("");
+
+  // Load media ng bawat completed trip mula sa API
+  useEffect(() => {
+    const list = Array.isArray(plans) ? plans : [];
+    const completed = list.filter(isPlanCompleted);
+    let cancelled = false;
+
+    Promise.all(
+      completed.map((plan) =>
+        listMedia(plan.id)
+          .then((data) => [plan.id, data.mediaList])
+          .catch((err) => {
+            console.warn("listMedia failed:", plan.id, err.status, err.code, err.message);
+            return [plan.id, []];
+          })
+      )
+    ).then((pairs) => {
+      if (!cancelled) setMediaByPlan(Object.fromEntries(pairs));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [plans]);
+
+  // Mag-upload ng bagong media sa API, tapos i-update ang listahan ng plan
+  const handleAddMedia = async (planId, newMediaItems) => {
+    setMediaError("");
+    try {
+      const data = await addMedia(planId, newMediaItems);
+      setMediaByPlan((prev) => ({ ...prev, [planId]: data.mediaList }));
+    } catch (err) {
+      console.error("addMedia failed:", err.status, err.code, err.message, err.details);
+      setMediaError(`${err.message} (${err.status ?? "?"} ${err.code ?? ""})`);
+    }
+  };
 
   const journalEntries = useMemo(() => {
     const list = Array.isArray(plans) ? plans : [];
@@ -117,11 +295,11 @@ export default function Journal({ onBack, onOpenEntry }) {
       endDate: plan.endDate,
       dateLabel: formatDateRange(plan),
       noteExcerpt: getNoteExcerpt(plan.notes),
-      photo: plan.destinationPhoto || plan.photoUrl || plan.imageUrl || null,
+      mediaList: mediaByPlan[plan.id] || [], // galing na sa API
       color: plan.color,
       plan,
     }));
-  }, [plans]);
+  }, [plans, mediaByPlan]);
 
   return (
     <Background>
@@ -139,7 +317,7 @@ export default function Journal({ onBack, onOpenEntry }) {
             </button>
           ) : (
             <Link
-              href="/Main/HOME"
+              href="/dashboard"
               className="mb-5 inline-block text-sm text-white/65 transition hover:text-white"
             >
               ← Back
@@ -147,12 +325,15 @@ export default function Journal({ onBack, onOpenEntry }) {
           )}
 
           <header className="mb-8">
-            <h1 className="text-4xl font-bold">Journal</h1>
+            <h1 className="text-4xl font-bold">Journal & Memories</h1>
             <p className="mt-1 text-sm text-white/65">
-              View only. Completed plans from My plans appear here
-              automatically.
+              View completed trips and attach up to 10 photos or video clips per trip.
             </p>
           </header>
+
+          {mediaError && (
+            <p className="mb-4 text-sm text-red-300">{mediaError}</p>
+          )}
 
           {journalEntries.length > 0 ? (
             <section
@@ -164,6 +345,7 @@ export default function Journal({ onBack, onOpenEntry }) {
                   key={entry.id}
                   entry={entry}
                   onOpen={() => onOpenEntry?.(entry)}
+                  onAddMedia={handleAddMedia}
                 />
               ))}
             </section>
@@ -172,8 +354,7 @@ export default function Journal({ onBack, onOpenEntry }) {
           )}
 
           <p className="mt-8 text-center text-xs text-white/50">
-            Journal entries are created automatically from completed plans. To
-            change an entry, edit the plan in My plans.
+            Journal entries are created automatically from completed plans.
           </p>
         </main>
       </div>
