@@ -72,10 +72,14 @@ const TEMPLATES = {
 const DEFAULT_GRADIENT = "from-teal-300 to-indigo-500";
 
 // Mga reusable na class
+const primaryBtn =
+  "rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-3 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
+
 const ghostBtn =
   "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
 const smallBtn =
   "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
+const label = "mb-2 block text-sm font-medium text-white/80";
 
 const peso = (n) =>
   new Intl.NumberFormat("en-PH", {
