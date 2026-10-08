@@ -1,5 +1,17 @@
 "use client";
 
+/**
+ * Bucket list "New plan" page, with budget allocation added.
+ * This is your bucket-list file plus:
+ *   - BudgetAllocation component, peso formatter, toAllocations helper
+ *   - form.allocations (replaces form.budgetCategories) + its handlers
+ *   - allocation validation, saved as budgetAllocations
+ *   - <BudgetAllocation /> in Step 2 under Total budget (inside the
+ *     "invisible while searching" wrapper)
+ *   - Family image path fixed to match the other four
+ * Everything else (search overlap fix, place-name title, images) is unchanged.
+ */
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Background } from "@/app/components/AuthCard";
@@ -14,10 +26,14 @@ import {
 /* ------------------------------------------------------------------ */
 /* Templates                                                          */
 /* ------------------------------------------------------------------ */
+// Folder inside /public that holds the template photos.
+// Change this one line if your folder has a different name.
+const IMAGE_DIR = "/new-plan";
+
 const TEMPLATES = {
   Blank: {
     description: "Start empty",
-    image: "/new-plan/blank.jpg",
+    image: `${IMAGE_DIR}/blank.jpg`,
     gradient: "",
     activities: [],
     notes: "",
@@ -25,7 +41,7 @@ const TEMPLATES = {
   },
   Weekend: {
     description: "A quick weekend escape",
-    image: "/new-plan/weekend.jpg",
+    image: `${IMAGE_DIR}/weekend.jpg`,
     gradient: "from-rose-400 to-orange-300",
     activities: [
       "Explore the city",
@@ -37,7 +53,7 @@ const TEMPLATES = {
   },
   Solo: {
     description: "A trip built around you",
-    image: "/new-plan/solo.jpg",
+    image: `${IMAGE_DIR}/solo.jpg`,
     gradient: "from-teal-300 to-indigo-500",
     activities: [
       "Explore independently",
@@ -49,7 +65,7 @@ const TEMPLATES = {
   },
   Family: {
     description: "Something for everyone",
-    image: "/newplan/family.jpg",
+    image: `${IMAGE_DIR}/family.jpg`,
     gradient: "from-amber-300 to-emerald-400",
     activities: ["Family attraction", "Kid-friendly activity", "Family meal"],
     notes: "Leave some downtime between activities for the family.",
@@ -57,7 +73,7 @@ const TEMPLATES = {
   },
   Adventure: {
     description: "Make the most of the outdoors",
-    image: "/new-plan/adventure.jpg",
+    image: `${IMAGE_DIR}/adventure.jpg`,
     gradient: "from-cyan-300 to-emerald-500",
     activities: [
       "Outdoor adventure",
@@ -126,6 +142,7 @@ function TemplateCard({ name, template, selected, onSelect }) {
         selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
       }`}
     >
+      {/* The <img> must sit INSIDE this relative box */}
       <div
         className={`relative h-32 overflow-hidden ${
           template.gradient
@@ -323,6 +340,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const [step, setStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState("Blank");
   const [errors, setErrors] = useState({});
+  const [searching, setSearching] = useState(false);
 
   const [form, setForm] = useState({
     destination: initialDestination,
@@ -461,9 +479,9 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
     const newPlan = {
       id: Date.now(),
-      title: form.destination.trim() || "New plan",
-      location: form.location,
+      title: form.location?.name || form.destination.trim() || "New plan",
       destination: form.destination.trim(),
+      location: form.location,
       startDate: form.startDate,
       endDate: form.endDate,
       activities: form.activities.filter((a) => a.trim() !== ""),
@@ -472,10 +490,10 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
       spent: 0,
       // Same shape as before (array of names), so other pages keep working
       budgetCategories: budgetAllocations.map((a) => a.category),
-      // New: how much of the budget goes to each category
+      // How much of the budget goes to each category
       budgetAllocations,
       template: selectedTemplate,
-      color: template.gradient || DEFAULT_GRADIENT,
+      color: template.gradient || DEFAULT_GRADIENT, // kailangan ng My plans
     };
 
     if (onSave) {
@@ -591,6 +609,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                   id="destination"
                   value={form.destination}
                   invalid={!!errors.destination}
+                  onOpenChange={setSearching}
                   onChange={(text) => {
                     updateForm("destination", text);
                     setForm((c) => ({ ...c, location: null }));
@@ -609,148 +628,155 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 </FieldError>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="startDate" className={label}>
-                    Start date
-                  </label>
-                  <input
-                    id="startDate"
-                    type="date"
-                    value={form.startDate}
-                    onChange={(e) => updateForm("startDate", e.target.value)}
-                    aria-invalid={!!errors.startDate}
-                    aria-describedby={
-                      errors.startDate ? "startDate-error" : undefined
-                    }
-                    className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.startDate ? "is-error" : ""}`}
-                  />
-                  <FieldError id="startDate-error">
-                    {errors.startDate}
-                  </FieldError>
+              {/* Nakatago habang bukas ang search results para walang overlap */}
+              <div
+                className={`flex flex-col gap-6 ${searching ? "invisible" : ""}`}
+              >
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="startDate" className={label}>
+                      Start date
+                    </label>
+                    <input
+                      id="startDate"
+                      type="date"
+                      value={form.startDate}
+                      onChange={(e) => updateForm("startDate", e.target.value)}
+                      aria-invalid={!!errors.startDate}
+                      aria-describedby={
+                        errors.startDate ? "startDate-error" : undefined
+                      }
+                      className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.startDate ? "is-error" : ""}`}
+                    />
+                    <FieldError id="startDate-error">
+                      {errors.startDate}
+                    </FieldError>
+                  </div>
+                  <div>
+                    <label htmlFor="endDate" className={label}>
+                      End date
+                    </label>
+                    <input
+                      id="endDate"
+                      type="date"
+                      min={form.startDate}
+                      value={form.endDate}
+                      onChange={(e) => updateForm("endDate", e.target.value)}
+                      aria-invalid={!!errors.endDate}
+                      aria-describedby={
+                        errors.endDate ? "endDate-error" : undefined
+                      }
+                      className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.endDate ? "is-error" : ""}`}
+                    />
+                    <FieldError id="endDate-error">{errors.endDate}</FieldError>
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="endDate" className={label}>
-                    End date
-                  </label>
-                  <input
-                    id="endDate"
-                    type="date"
-                    min={form.startDate}
-                    value={form.endDate}
-                    onChange={(e) => updateForm("endDate", e.target.value)}
-                    aria-invalid={!!errors.endDate}
-                    aria-describedby={
-                      errors.endDate ? "endDate-error" : undefined
-                    }
-                    className={`glass-input w-full rounded-xl px-4 py-3 [color-scheme:dark] ${errors.endDate ? "is-error" : ""}`}
-                  />
-                  <FieldError id="endDate-error">{errors.endDate}</FieldError>
-                </div>
-              </div>
 
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-medium text-white/80">
-                    Activities
-                  </span>
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-medium text-white/80">
+                      Activities
+                    </span>
+                    <button
+                      type="button"
+                      onClick={addActivity}
+                      className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20"
+                    >
+                      + Add activity
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    {form.activities.length === 0 && (
+                      <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                        No activities yet. Add one to get started.
+                      </div>
+                    )}
+                    {form.activities.map((activity, index) => (
+                      <div key={index} className="flex gap-3">
+                        <input
+                          value={activity}
+                          onChange={(e) =>
+                            updateActivity(index, e.target.value)
+                          }
+                          placeholder="Activity"
+                          aria-label={`Activity ${index + 1}`}
+                          className="glass-input w-full rounded-xl px-4 py-3"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeActivity(index)}
+                          aria-label="Remove activity"
+                          className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="notes" className={label}>
+                    Notes
+                  </label>
+                  <textarea
+                    id="notes"
+                    rows={5}
+                    value={form.notes}
+                    onChange={(e) => updateForm("notes", e.target.value)}
+                    placeholder="Add notes for this plan..."
+                    className="glass-input w-full resize-y rounded-xl px-4 py-3"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="budget" className={label}>
+                    Total budget
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">
+                      ₱
+                    </span>
+                    <input
+                      id="budget"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={form.budget}
+                      onChange={(e) => updateForm("budget", e.target.value)}
+                      placeholder="25000"
+                      className="glass-input w-full rounded-xl py-3 pl-8 pr-4"
+                    />
+                  </div>
+                  <p className="mt-2 text-sm text-white/60">
+                    This is the total amount the Budget tab compares your
+                    spending against.
+                  </p>
+                </div>
+
+                <BudgetAllocation
+                  rows={form.allocations}
+                  total={totalBudget}
+                  error={errors.allocation}
+                  onChange={updateAllocation}
+                  onAdd={addAllocation}
+                  onRemove={removeAllocation}
+                  onSplit={splitAllocationsEvenly}
+                />
+
+                <div className="flex items-center justify-between pt-2">
                   <button
                     type="button"
-                    onClick={addActivity}
-                    className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20"
+                    onClick={() => setStep(1)}
+                    className={ghostBtn}
                   >
-                    + Add activity
+                    ← Back
+                  </button>
+                  <button type="submit" className={primaryBtn}>
+                    Save plan
                   </button>
                 </div>
-
-                <div className="flex flex-col gap-3">
-                  {form.activities.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
-                      No activities yet. Add one to get started.
-                    </div>
-                  )}
-                  {form.activities.map((activity, index) => (
-                    <div key={index} className="flex gap-3">
-                      <input
-                        value={activity}
-                        onChange={(e) => updateActivity(index, e.target.value)}
-                        placeholder="Activity"
-                        aria-label={`Activity ${index + 1}`}
-                        className="glass-input w-full rounded-xl px-4 py-3"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeActivity(index)}
-                        aria-label="Remove activity"
-                        className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="notes" className={label}>
-                  Notes
-                </label>
-                <textarea
-                  id="notes"
-                  rows={5}
-                  value={form.notes}
-                  onChange={(e) => updateForm("notes", e.target.value)}
-                  placeholder="Add notes for this plan..."
-                  className="glass-input w-full resize-y rounded-xl px-4 py-3"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="budget" className={label}>
-                  Total budget
-                </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">
-                    ₱
-                  </span>
-                  <input
-                    id="budget"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={form.budget}
-                    onChange={(e) => updateForm("budget", e.target.value)}
-                    placeholder="25000"
-                    className="glass-input w-full rounded-xl py-3 pl-8 pr-4"
-                  />
-                </div>
-                <p className="mt-2 text-sm text-white/60">
-                  This is the total amount the Budget tab compares your spending
-                  against.
-                </p>
-              </div>
-
-              <BudgetAllocation
-                rows={form.allocations}
-                total={totalBudget}
-                error={errors.allocation}
-                onChange={updateAllocation}
-                onAdd={addAllocation}
-                onRemove={removeAllocation}
-                onSplit={splitAllocationsEvenly}
-              />
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className={ghostBtn}
-                >
-                  ← Back
-                </button>
-                <button type="submit" className={primaryBtn}>
-                  Save plan
-                </button>
               </div>
             </form>
           )}
