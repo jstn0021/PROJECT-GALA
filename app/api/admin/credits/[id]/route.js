@@ -7,7 +7,6 @@ import Credit from "db/models/credit";
 const fail = (message, status) =>
   NextResponse.json({ error_message: message }, { status });
 
-// I-edit: name, role, file (bagong photo), removePhoto="1"  (lahat optional)
 export async function PATCH(req, { params }) {
   const admin = await getAdmin();
   if (!admin) return fail("Forbidden", 403);
@@ -20,21 +19,27 @@ export async function PATCH(req, { params }) {
   if (!form) return fail("Invalid request", 400);
 
   const updates = {};
+
   if (form.has("name")) {
     const name = String(form.get("name")).trim();
-    if (!name || name.length > 120) return fail("Invalid name", 400);
+    if (!name) return fail("Name is required", 400);
+    if (name.length > 120)
+      return fail("Name is too long (max 120 characters)", 400);
     updates.name = name;
   }
+
   if (form.has("role")) {
     const role = String(form.get("role")).trim();
-    if (!role || role.length > 120) return fail("Invalid role", 400);
+    if (!role) return fail("Role is required", 400);
+    if (role.length > 1000)
+      return fail("Role is too long (max 1000 characters)", 400);
     updates.role = role;
   }
 
   if (form.has("description")) {
     const description = String(form.get("description")).trim();
-    if (description.length > 300)
-      return fail("Description is too long (max 300 characters)", 400);
+    if (description.length > 1000)
+      return fail("Description is too long (max 1000 characters)", 400);
     updates.description = description || null;
   }
 
@@ -69,8 +74,10 @@ export async function PATCH(req, { params }) {
     updates.photoUrl = null;
   }
 
+  // 6. Database Update
   await row.update(updates);
   if (oldPath && "photoPath" in updates) await deleteObject(oldPath);
+
   return NextResponse.json({ ok: true });
 }
 

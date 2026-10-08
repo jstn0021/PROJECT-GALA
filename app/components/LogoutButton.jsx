@@ -1,13 +1,23 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 
 export default function LogoutButton() {
   const router = useRouter();
 
   const logout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    try {
+      await fetch("/api/logout", { method: "POST" });
+
+      window.localStorage.removeItem("gala-avatar");
+      window.localStorage.removeItem("gala-name");
+      window.localStorage.removeItem("gala-reminders");
+
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   return (

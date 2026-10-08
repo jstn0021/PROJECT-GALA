@@ -2,7 +2,6 @@ import Link from "next/link";
 
 export const BRAND = "PROJECT-GALA";
 
-// slot = susi sa site_images (puwedeng palitan ng superadmin sa /admin/images)
 const DESTINATIONS = [
   {
     name: "Baguio",
@@ -60,8 +59,6 @@ const FEATURES = [
 const goldBtn =
   "rounded-full bg-amber-400 px-5 py-2 font-semibold text-slate-900 transition hover:bg-amber-300";
 
-// Presentational lang (walang session / server logic) kaya magagamit sa landing
-// at bilang naka-blur na backdrop ng login/signup pages.
 function initials(name) {
   const w = name.trim().split(/\s+/);
   return (

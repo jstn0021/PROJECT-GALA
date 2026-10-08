@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * app/components/ProfileMenu.jsx
- * Account dropdown for the navbar (like Google / Facebook / Messenger).
- * Click the avatar to open: profile photo, trip reminders, manage account,
- * help, and log out. The panel has a solid background, so page content never
- * shows through it.
- */
-
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -154,7 +146,8 @@ export default function ProfileMenu({
   useEffect(() => {
     if (!open) return;
     const onDown = (e) => {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target))
+        setOpen(false);
     };
     const onKey = (e) => {
       if (e.key === "Escape") {
@@ -172,27 +165,52 @@ export default function ProfileMenu({
 
   async function handlePhoto(event) {
     const file = event.target.files?.[0];
-    event.target.value = ""; // allow choosing the same file again
+    event.target.value = ""; // Clear selection
+
     if (!file) return;
+
     if (!file.type.startsWith("image/")) {
       setPhotoError("Choose an image file.");
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
       setPhotoError("Image must be under 5 MB.");
       return;
     }
+
     try {
-      setPhoto(await resizeToSquare(file));
       setPhotoError("");
-    } catch {
-      setPhotoError("Couldn't read that image.");
+
+      const croppedBase64 = await resizeToSquare(file);
+
+      const blobRes = await fetch(croppedBase64);
+      const blob = await blobRes.blob();
+
+      const formData = new FormData();
+      formData.append("file", blob, "avatar.jpg");
+
+      const res = await fetch("/api/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload image.");
+      }
+
+      setPhoto(data.url);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setPhotoError(err.message || "Couldn't upload that image.");
     }
   }
 
   function handleLogout() {
     setOpen(false);
-    // Replace /login with wherever your app sends logged-out users
+
     if (onLogout) onLogout();
     else router.push("/login");
   }
@@ -215,7 +233,6 @@ export default function ProfileMenu({
         <div
           role="dialog"
           aria-label="Account"
-          // Solid background (no transparency or blur) so nothing shows through
           className="absolute right-0 top-full z-50 mt-3 w-88 max-w-[calc(100vw-2rem)] rounded-3xl border border-white/25 bg-linear-to-br from-[#16265a] to-[#0a1230] p-3 text-white shadow-2xl shadow-black/60"
         >
           {/* Profile header */}
@@ -286,7 +303,9 @@ export default function ProfileMenu({
                 <Icon d={ICONS.bell} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">Trip reminders</span>
+                <span className="block text-sm font-medium">
+                  Trip reminders
+                </span>
                 <span className="block text-xs text-white/60">
                   Notify me before a trip starts
                 </span>
@@ -306,7 +325,9 @@ export default function ProfileMenu({
               <span className={iconBubble}>
                 <Icon d={ICONS.help} />
               </span>
-              <span className="flex-1 text-sm font-medium">Help &amp; support</span>
+              <span className="flex-1 text-sm font-medium">
+                Help &amp; support
+              </span>
               <Icon d={ICONS.chevron} className="h-4 w-4 text-white/50" />
             </Link>
           </div>

@@ -226,12 +226,12 @@ export default function CreditsClient({ credits }) {
         </label>
         <label className="block text-sm sm:col-span-2">
           <span className="mb-1 block text-white/70">
-            Description (optional, max 300 characters)
+            Description (optional, max 1000 characters)
           </span>
           <textarea
             className="glass-input w-full rounded-xl px-3 py-2 text-sm"
             rows={2}
-            maxLength={300}
+            maxLength={1000}
             value={add.description}
             placeholder="Short intro about this person"
             onChange={(e) => setAdd({ ...add, description: e.target.value })}
@@ -294,7 +294,7 @@ export default function CreditsClient({ credits }) {
                 <textarea
                   className="glass-input w-full rounded-xl px-3 py-2 text-sm"
                   rows={2}
-                  maxLength={300}
+                  maxLength={1000}
                   value={d.description}
                   placeholder="Description (optional)"
                   onChange={(e) => setDraft(c, { description: e.target.value })}
