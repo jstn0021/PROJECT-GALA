@@ -21,6 +21,20 @@ const User = sequelize.define(
       defaultValue: "user",
       validate: { isIn: [["user", "superadmin"]] },
     },
+    avatarUrl: { type: DataTypes.TEXT },
+    birthday: { type: DataTypes.DATEONLY },
+    travelStyle: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      validate: {
+        isIn: [["Weekend", "Solo", "Family", "Adventure"]],
+      },
+    },
+    reminders: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     // true = hindi na makakapag-login / makakagamit ng app
     disabled: {
       type: DataTypes.BOOLEAN,

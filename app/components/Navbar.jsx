@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LogoutButton from "@/app/components/LogoutButton";
 import ProfileMenu from "@/app/components/Profile";
 import { Logo } from "@/app/components/AuthCard";
 
@@ -18,6 +17,9 @@ const baseLinks = [
 
 const adminLink = { label: "Admin", icon: "🛡️", href: "/admin" };
 
+// Mga role na may access sa Admin tab
+const ADMIN_ROLES = ["admin", "superadmin"];
+
 function isActive(pathname, link) {
   const paths = [link.href, ...(link.also ?? [])];
   return paths.some((p) => pathname === p || pathname.startsWith(p + "/"));
@@ -26,24 +28,31 @@ function isActive(pathname, link) {
 export default function Navbar() {
   const pathname = usePathname() ?? "";
   const [isAdmin, setIsAdmin] = useState(false);
-  const [user, setUser] = useState({ name: "Traveler", email: "" });
+  const [user, setUser] = useState({
+    name: "Traveler",
+    email: "",
+    avatarUrl: null,
+    reminders: true,
+  });
 
-  // Superadmin lang ang makakakita ng "Admin" tab.
   useEffect(() => {
     let alive = true;
     fetch("/api/me", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : {}))
       .then((d) => {
         if (!alive) return;
-        setIsAdmin(d.role === "superadmin");
-        if (d.name || d.email) {
-          setUser((u) => ({
-            name: d.name ?? u.name,
-            email: d.email ?? u.email,
-          }));
+        setIsAdmin(ADMIN_ROLES.includes(d.role));
+        if (d.name || d.email || d.avatarUrl) {
+          setUser({
+            name: d.name || "Traveler",
+            email: d.email ?? "",
+            avatarUrl: d.avatarUrl ?? null,
+            reminders: d.reminders ?? true,
+          });
         }
       })
       .catch(() => {});
+
     return () => {
       alive = false;
     };
@@ -52,7 +61,6 @@ export default function Navbar() {
   const links = isAdmin ? [...baseLinks, adminLink] : baseLinks;
 
   return (
-    // relative z-40 keeps the profile dropdown above the page cards below
     <header className="glass-dark relative z-40 flex w-full items-center gap-4 rounded-full px-6 py-3">
       <Link href="/dashboard" aria-label="Dashboard">
         <Logo />
@@ -81,11 +89,7 @@ export default function Navbar() {
       </nav>
 
       <div className="ml-auto">
-        <ProfileMenu
-          user={user}
-          profileHref="/profile"
-          logoutSlot={<LogoutButton />}
-        />
+        <ProfileMenu user={user} profileHref="/profile" />
       </div>
     </header>
   );

@@ -4,49 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-/* ---------------- small helpers ---------------- */
-
-function usePersisted(key, fallback) {
-  const [value, setValue] = useState(fallback);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(key);
-      if (raw !== null) setValue(JSON.parse(raw));
-    } catch {}
-  }, [key]);
-
-  const update = (next) => {
-    setValue(next);
-    try {
-      window.localStorage.setItem(key, JSON.stringify(next));
-    } catch {}
-  };
-  return [value, update];
-}
-
-// Crop to a centered square and shrink, so the saved photo stays small
-async function resizeToSquare(file, size = 192) {
-  const bitmap = await createImageBitmap(file);
-  const side = Math.min(bitmap.width, bitmap.height);
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  canvas
-    .getContext("2d")
-    .drawImage(
-      bitmap,
-      (bitmap.width - side) / 2,
-      (bitmap.height - side) / 2,
-      side,
-      side,
-      0,
-      0,
-      size,
-      size,
-    );
-  return canvas.toDataURL("image/jpeg", 0.85);
-}
-
 function Icon({ d, className = "h-5 w-5" }) {
   return (
     <svg
@@ -66,11 +23,7 @@ function Icon({ d, className = "h-5 w-5" }) {
 
 const ICONS = {
   bell: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
-  help: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01",
   logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
-  camera:
-    "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-  chevron: "m9 18 6-6-6-6",
 };
 
 function Avatar({ photo, name, size = 40 }) {
@@ -121,26 +74,25 @@ const rowBase =
 const iconBubble =
   "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10";
 
-/* ---------------- component ---------------- */
-
 export default function ProfileMenu({
-  user = { name: "Your name", email: "name@company.com" },
+  user = { name: "Traveler", email: "", avatarUrl: null, reminders: true },
   profileHref = "/profile",
-  helpHref = "/help",
-  onLogout,
-  logoutSlot, // optional: render your own <LogoutButton /> in the Log out row
+  onLogout, // optional: palitan ang default na logout
 }) {
   const router = useRouter();
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
-  const fileRef = useRef(null);
 
   const [open, setOpen] = useState(false);
-  const [photo, setPhoto] = usePersisted("gala-avatar", null);
-  const [reminders, setReminders] = usePersisted("gala-reminders", true);
-  const [photoError, setPhotoError] = useState("");
-  const [savedName] = usePersisted("gala-name", null);
-  const displayName = savedName || user.name;
+  const [reminders, setReminders] = useState(user.reminders ?? true);
+
+  // Sumusunod sa value mula sa database kapag dumating na ang /api/me
+  useEffect(() => {
+    setReminders(user.reminders ?? true);
+  }, [user.reminders]);
+
+  const photo = user.avatarUrl;
+  const displayName = user.name || "Traveler";
 
   // Close on outside click or Escape
   useEffect(() => {
@@ -163,56 +115,31 @@ export default function ProfileMenu({
     };
   }, [open]);
 
-  async function handlePhoto(event) {
-    const file = event.target.files?.[0];
-    event.target.value = ""; // Clear selection
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setPhotoError("Choose an image file.");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setPhotoError("Image must be under 5 MB.");
-      return;
-    }
-
+  async function toggleReminders(next) {
+    setReminders(next);
     try {
-      setPhotoError("");
-
-      const croppedBase64 = await resizeToSquare(file);
-
-      const blobRes = await fetch(croppedBase64);
-      const blob = await blobRes.blob();
-
-      const formData = new FormData();
-      formData.append("file", blob, "avatar.jpg");
-
-      const res = await fetch("/api/avatar", {
-        method: "POST",
-        body: formData,
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reminders: next }),
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to upload image.");
-      }
-
-      setPhoto(data.url);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setPhotoError(err.message || "Couldn't upload that image.");
+      if (!res.ok) throw new Error();
+    } catch {
+      setReminders(!next); // ibalik kung pumalya
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     setOpen(false);
-
-    if (onLogout) onLogout();
-    else router.push("/login");
+    if (onLogout) return onLogout();
+    try {
+      await fetch("/api/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      router.push("/");
+      router.refresh();
+    }
   }
 
   return (
@@ -237,27 +164,8 @@ export default function ProfileMenu({
         >
           {/* Profile header */}
           <div className="flex flex-col items-center px-3 pb-3 pt-4 text-center">
-            <div className="relative">
-              <div className="rounded-full border border-white/40 p-1">
-                <Avatar photo={photo} name={displayName} size={80} />
-              </div>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                aria-label="Change profile photo"
-                className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-white/40 bg-teal-500 text-teal-50 shadow transition hover:bg-teal-400"
-              >
-                <Icon d={ICONS.camera} className="h-4 w-4" />
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhoto}
-                className="sr-only"
-                tabIndex={-1}
-                aria-hidden
-              />
+            <div className="rounded-full border border-white/40 p-1">
+              <Avatar photo={photo} name={displayName} size={80} />
             </div>
 
             <p className="mt-3 max-w-full truncate text-lg font-semibold">
@@ -266,24 +174,6 @@ export default function ProfileMenu({
             <p className="max-w-full truncate text-sm text-white/65">
               {user.email}
             </p>
-
-            {photo && (
-              <button
-                type="button"
-                onClick={() => {
-                  setPhoto(null);
-                  setPhotoError("");
-                }}
-                className="mt-2 text-xs text-white/60 underline underline-offset-4 transition hover:text-white"
-              >
-                Remove photo
-              </button>
-            )}
-            {photoError && (
-              <p role="alert" className="mt-2 text-xs text-red-200">
-                {photoError}
-              </p>
-            )}
 
             <Link
               href={profileHref}
@@ -312,42 +202,24 @@ export default function ProfileMenu({
               </span>
               <Switch
                 checked={!!reminders}
-                onChange={setReminders}
+                onChange={toggleReminders}
                 label="Trip reminders"
               />
             </div>
-
-            <Link
-              href={helpHref}
-              onClick={() => setOpen(false)}
-              className={rowBase}
-            >
-              <span className={iconBubble}>
-                <Icon d={ICONS.help} />
-              </span>
-              <span className="flex-1 text-sm font-medium">
-                Help &amp; support
-              </span>
-              <Icon d={ICONS.chevron} className="h-4 w-4 text-white/50" />
-            </Link>
           </div>
 
           <div className="my-1 h-px bg-white/15" />
 
-          {logoutSlot ? (
-            <div className="flex justify-center px-3 py-2">{logoutSlot}</div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={`${rowBase} text-red-200`}
-            >
-              <span className={iconBubble}>
-                <Icon d={ICONS.logout} />
-              </span>
-              <span className="text-sm font-medium">Log out</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={`${rowBase} text-red-200`}
+          >
+            <span className={iconBubble}>
+              <Icon d={ICONS.logout} />
+            </span>
+            <span className="text-sm font-medium">Log out</span>
+          </button>
         </div>
       )}
     </div>
