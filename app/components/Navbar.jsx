@@ -9,7 +9,8 @@ import { Logo } from "@/app/components/AuthCard";
 
 const baseLinks = [
   { label: "Dashboard", icon: "🏠", href: "/dashboard" },
-  { label: "My Plans", icon: "📅", href: "/my-plans", also: ["/newplan"] },
+  { label: "My Plans", icon: "📅", href: "/my-plans" },
+  { label: "New Plan", icon: "✈️", href: "/newplan" },
   { label: "Bucket List", icon: "🔖", href: "/bucket-list" },
   { label: "Journal", icon: "📓", href: "/journal" },
   { label: "Explore", icon: "🧭", href: "/explore" },

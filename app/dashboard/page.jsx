@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   return (
     <Background>
-      <DashboardClient name={firstName} email={session.email} />
+      <DashboardClient name={firstName} />
     </Background>
   );
 }

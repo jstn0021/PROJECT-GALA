@@ -2,17 +2,45 @@
 
 import { useEffect, useRef, useState } from "react";
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * HELPERS
+ * ───────────────────────────────────────────────────────────────────────────*/
+
+/**
+ * Builds the dropdown label from a mapped place object returned by
+ * /api/search-places.  Falls back gracefully when fields are missing.
+ *
+ * @param {Object} p
+ * @returns {string}
+ */
 function buildLabel(p) {
-  const parts = [p.name, p.city, p.state, p.country].filter(Boolean);
-  return [...new Set(parts)].join(", ");
+  // `label` is already a formatted PH address from the API
+  return p.label || p.name || "Unknown Place";
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * COMPONENT
+ * ───────────────────────────────────────────────────────────────────────────*/
+
+/**
+ * Typeahead destination search restricted to the Philippines.
+ *
+ * Props:
+ *   value        {string}   – controlled input value
+ *   onChange     {Function} – (text: string) => void  — fires on every keystroke
+ *   onSelect     {Function} – (location: Object) => void — fires on item pick
+ *   onOpenChange {Function} – (isOpen: boolean) => void — optional
+ *   placeholder  {string}
+ *   id           {string}
+ *   invalid      {boolean}
+ *   autoFocus    {boolean}
+ */
 export default function LocationSearch({
   value,
-  onChange, // (text) => void, tinatawag habang nagta-type
-  onSelect, // (location) => void, tinatawag kapag pumili
-  onOpenChange, // (isOpen) => void, para i-hide ang nasa ilalim habang bukas
-  placeholder = "Search a place, e.g. Kyoto",
+  onChange,
+  onSelect,
+  onOpenChange,
+  placeholder = "Search a Philippine destination…",
   id,
   invalid = false,
   autoFocus = false,
@@ -26,12 +54,12 @@ export default function LocationSearch({
   const boxRef = useRef(null);
   const skipRef = useRef(false);
 
-  // Ipaalam sa parent kung bukas o sarado ang listahan
+  // Notify parent when dropdown opens/closes
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
-  // Mag-search 350ms matapos tumigil sa pag-type
+  // Debounced search — fires 350 ms after the user stops typing
   useEffect(() => {
     if (skipRef.current) {
       skipRef.current = false;
@@ -47,26 +75,22 @@ export default function LocationSearch({
     }
 
     const controller = new AbortController();
+
     const timer = setTimeout(async () => {
       setLoading(true);
       setError("");
       try {
         const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`,
+          `/api/search-places?q=${encodeURIComponent(q)}`,
           { signal: controller.signal },
         );
-        if (!res.ok) throw new Error("Request failed");
-        const data = await res.json();
 
-        setResults(
-          (data.features ?? []).map((f) => ({
-            name: f.properties.name || buildLabel(f.properties),
-            label: buildLabel(f.properties),
-            country: f.properties.country ?? "",
-            lat: f.geometry.coordinates[1],
-            lng: f.geometry.coordinates[0],
-          })),
-        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        const places = data.places ?? [];
+
+        setResults(places);
         setActive(-1);
         setOpen(true);
       } catch (err) {
@@ -85,17 +109,20 @@ export default function LocationSearch({
     };
   }, [value]);
 
-  // Isara kapag nag-click sa labas
+  // Close dropdown on outside click
   useEffect(() => {
     function onDown(e) {
-      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
+      if (boxRef.current && !boxRef.current.contains(e.target)) {
+        setOpen(false);
+      }
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, []);
 
   function choose(place) {
-    if (place.label !== value) skipRef.current = true;
+    const label = buildLabel(place);
+    if (label !== value) skipRef.current = true;
     onSelect(place);
     setOpen(false);
     setResults([]);
@@ -107,7 +134,6 @@ export default function LocationSearch({
       setOpen(false);
       return;
     }
-
     if (!open || results.length === 0) return;
 
     if (e.key === "ArrowDown") {
@@ -124,6 +150,7 @@ export default function LocationSearch({
 
   return (
     <div ref={boxRef} className="relative">
+      {/* Input */}
       <div className="relative">
         <span
           aria-hidden="true"
@@ -145,29 +172,35 @@ export default function LocationSearch({
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           onKeyDown={onKeyDown}
-          className={`glass-input h-11 w-full rounded-xl pl-11 pr-10 ${invalid ? "is-error" : ""}`}
+          className={`glass-input h-11 w-full rounded-xl pl-11 pr-10 ${
+            invalid ? "is-error" : ""
+          }`}
         />
         {loading && (
           <span className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         )}
       </div>
 
+      {/* Dropdown */}
       {open && (
         <ul
           role="listbox"
           className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-white/20 bg-indigo-950 shadow-2xl shadow-black/50"
         >
+          {/* Error state */}
           {error && <li className="px-4 py-3 text-sm text-red-200">{error}</li>}
 
+          {/* Empty state */}
           {!error && results.length === 0 && !loading && (
             <li className="px-4 py-3 text-sm text-white/60">
-              No places found.
+              No Philippine destinations found.
             </li>
           )}
 
+          {/* Results */}
           {results.map((place, index) => (
             <li
-              key={`${place.lat}-${place.lng}-${index}`}
+              key={place.id ?? `${place.lat}-${place.lng}-${index}`}
               role="option"
               aria-selected={index === active}
             >
@@ -176,27 +209,44 @@ export default function LocationSearch({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => choose(place)}
                 onMouseEnter={() => setActive(index)}
-                className={`flex w-full items-start gap-3 px-4 py-2.5 text-left transition ${
+                className={`flex w-full items-center gap-3 px-3 py-2 text-left transition ${
                   index === active ? "bg-white/15" : "hover:bg-white/10"
                 }`}
               >
-                <span aria-hidden="true" className="mt-0.5">
-                  📍
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">
+                {/* Thumbnail */}
+                <img
+                  src={place.image || "/destinations/elnido.jpg"}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-10 w-14 shrink-0 rounded-lg object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = "/destinations/elnido.jpg";
+                  }}
+                />
+
+                {/* Text */}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-white">
                     {place.name}
                   </span>
-                  <span className="block truncate text-xs text-white/60">
-                    {place.label}
+                  <span className="block truncate text-xs text-white/55">
+                    {buildLabel(place)}
                   </span>
                 </span>
+
+                {/* Type badge */}
+                {place.type && place.type !== "place" && (
+                  <span className="shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-[10px] text-white/40 capitalize">
+                    {place.type}
+                  </span>
+                )}
               </button>
             </li>
           ))}
 
+          {/* Attribution */}
           <li className="border-t border-white/10 px-4 py-1.5 text-[10px] text-white/40">
-            © OpenStreetMap contributors
+            © OpenStreetMap contributors · Wikimedia Commons
           </li>
         </ul>
       )}

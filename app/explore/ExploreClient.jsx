@@ -1,0 +1,914 @@
+"use client";
+
+import { useEffect, useState, useRef, useTransition } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Background } from "@/app/components/AuthCard";
+import Navbar from "@/app/components/Navbar";
+
+// Preset quick-search suggestions for rapid user discovery
+const QUICK_SUGGESTIONS = [
+  { label: "🏝️ Boracay", query: "Boracay" },
+  { label: "🌊 El Nido", query: "El Nido" },
+  { label: "🍓 Baguio", query: "Baguio" },
+  { label: "🏄 Siargao", query: "Siargao" },
+  { label: "🌋 Batanes", query: "Batanes" },
+  { label: "🍫 Bohol", query: "Chocolate Hills" },
+  { label: "🌸 Kyoto", query: "Kyoto" },
+  { label: "🗼 Tokyo", query: "Tokyo" },
+  { label: "🏖️ Bali", query: "Bali" },
+];
+
+const CATEGORIES = [
+  { id: "all", label: "All" },
+  { id: "beaches", label: "🏝️ Beaches & Islands" },
+  { id: "mountains", label: "⛰️ Mountains & Nature" },
+  { id: "heritage", label: "🏛️ Heritage & Culture" },
+  { id: "cities", label: "🌆 Cities & Food" },
+];
+
+// Freemium search limit for guests
+const GUEST_SEARCH_LIMIT = 3;
+const GUEST_SEARCH_KEY = "gala_guest_search_count";
+
+const primaryBtn =
+  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
+
+export default function ExploreClient({
+  initialIsLoggedIn = false,
+  user = null,
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || searchParams.get("query") || "";
+
+  const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
+  const [currentUser, setCurrentUser] = useState(user);
+  const [guestSearchCount, setGuestSearchCount] = useState(0);
+
+  // Auth restriction modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalReason, setAuthModalReason] = useState("search_limit"); // "search_limit" | "save_place"
+  const [attemptedPlace, setAttemptedPlace] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [places, setPlaces] = useState([]);
+  const [featuredBackup, setFeaturedBackup] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);
+  const [savedBucketMap, setSavedBucketMap] = useState({});
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  const searchDebounceRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const [, startTransition] = useTransition();
+
+  // Re-verify session dynamically from /api/session
+  useEffect(() => {
+    async function verifySession() {
+      try {
+        const res = await fetch("/api/session");
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.isLoggedIn === "boolean") {
+            setIsLoggedIn(data.isLoggedIn);
+            setCurrentUser(data.user);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not check session:", err);
+      }
+    }
+    verifySession();
+  }, []);
+
+  // Load guest search count from localStorage
+  useEffect(() => {
+    try {
+      const storedCount = localStorage.getItem(GUEST_SEARCH_KEY);
+      const parsed = parseInt(storedCount || "0", 10);
+      setGuestSearchCount(Number.isNaN(parsed) ? 0 : parsed);
+    } catch (e) {
+      console.warn("Could not read guest search count from localStorage", e);
+    }
+  }, []);
+
+  // Load existing bucket list from localStorage to know what's already saved
+  // Load saved places from the API (name -> id), so Explore matches the Bucket List page
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let alive = true;
+
+    fetch("/api/bucket-list", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { places: [] }))
+      .then((d) => {
+        if (!alive) return;
+        const map = {};
+        (d.places ?? []).forEach((p) => {
+          if (p.name) map[p.name.toLowerCase()] = p.id;
+        });
+        setSavedBucketMap(map);
+      })
+      .catch((e) => console.warn("Could not load bucket list", e));
+
+    return () => {
+      alive = false;
+    };
+  }, [isLoggedIn]);
+
+  // Fetch initial featured places on page mount
+  useEffect(() => {
+    async function loadInitial() {
+      setIsLoading(true);
+      try {
+        if (initialQuery.trim().length >= 2) {
+          // Query passed from the landing page search form
+          await performSearch(initialQuery.trim());
+        } else {
+          await loadFeaturedPlaces("all", false);
+        }
+      } catch (err) {
+        console.error("Initial load failed:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadInitial();
+  }, []);
+
+  // Close the auth modal with the Escape key
+  useEffect(() => {
+    if (!showAuthModal) return;
+    function onKey(e) {
+      if (e.key === "Escape") closeAuthModal();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showAuthModal]);
+
+  function closeAuthModal() {
+    setShowAuthModal(false);
+    setAttemptedPlace(null);
+  }
+
+  // Fetch featured places from backend endpoint
+  async function loadFeaturedPlaces(category = "all", isRandom = false) {
+    try {
+      setIsLoading(true);
+      setSearchError("");
+      const params = new URLSearchParams();
+      if (isRandom) params.set("random", "true");
+      if (category && category !== "all") params.set("category", category);
+      params.set("limit", "16");
+
+      const res = await fetch(`/api/featured-places?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to load destinations");
+      const data = await res.json();
+      const list = data.places || data.data || [];
+      setPlaces(list);
+      setFeaturedBackup(list);
+    } catch (err) {
+      console.error("Error fetching destinations:", err);
+      setSearchError("Couldn't load destinations. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setIsShuffling(false);
+    }
+  }
+
+  // Search via backend (OpenStreetMap / Nominatim) with guest limit check
+  async function performSearch(query) {
+    const q = query.trim();
+    if (!q || q.length < 2) {
+      if (featuredBackup.length > 0) {
+        setPlaces(featuredBackup);
+      } else {
+        await loadFeaturedPlaces(activeCategory, false);
+      }
+      setIsSearching(false);
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // Freemium search limit (guests / logged-out users only)
+    // -------------------------------------------------------------
+    if (!isLoggedIn) {
+      let currentCount = 0;
+      try {
+        currentCount = parseInt(
+          localStorage.getItem(GUEST_SEARCH_KEY) || "0",
+          10,
+        );
+        if (Number.isNaN(currentCount)) currentCount = 0;
+      } catch (e) {
+        currentCount = guestSearchCount;
+      }
+
+      // Guest has reached the limit: show the auth modal
+      if (currentCount >= GUEST_SEARCH_LIMIT) {
+        setAuthModalReason("search_limit");
+        setShowAuthModal(true);
+        setIsSearching(false);
+        return;
+      }
+
+      // Increment the count in localStorage
+      const nextCount = currentCount + 1;
+      try {
+        localStorage.setItem(GUEST_SEARCH_KEY, nextCount.toString());
+      } catch (e) {
+        console.warn("Could not update guest search count", e);
+      }
+      setGuestSearchCount(nextCount);
+    }
+    // Logged-in users skip the block above and go straight to the search below.
+
+    try {
+      setIsSearching(true);
+      setSearchError("");
+      const res = await fetch(`/api/search-places?q=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error("Search request failed");
+      const data = await res.json();
+      const results = data.places || data.data || [];
+      setPlaces(results);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchError("Couldn't search OpenStreetMap. Please try again.");
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  // Handle typing in the search bar (debounced, with guest limit check)
+  function handleSearchInputChange(e) {
+    const val = e.target.value;
+    setSearchQuery(val);
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    if (!val.trim()) {
+      performSearch("");
+      return;
+    }
+
+    if (!isLoggedIn && guestSearchCount >= GUEST_SEARCH_LIMIT) {
+      setAuthModalReason("search_limit");
+      setShowAuthModal(true);
+      return;
+    }
+
+    searchDebounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        performSearch(val);
+      });
+    }, 450);
+  }
+
+  // Explicit submit button or Enter key
+  async function handleSaveToBucketList(place, e) {
+    e?.stopPropagation();
+
+    // Guests can't save; show the login modal instead
+    if (!isLoggedIn) {
+      setAttemptedPlace(place);
+      setAuthModalReason("save_place");
+      setShowAuthModal(true);
+      return;
+    }
+
+    const placeKey = place.name.toLowerCase();
+    const savedId = savedBucketMap[placeKey];
+
+    try {
+      if (savedId) {
+        // Remove
+        const res = await fetch(`/api/bucket-list/${savedId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok && res.status !== 404) throw new Error("Delete failed");
+
+        setSavedBucketMap((prev) => {
+          const next = { ...prev };
+          delete next[placeKey];
+          return next;
+        });
+        showToast(`Removed ${place.name} from your Bucket List.`);
+      } else {
+        // Add
+        const res = await fetch("/api/bucket-list", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: place.name }),
+        });
+
+        if (res.status === 409) {
+          // Already on the list: resync so the heart shows as saved
+          const list = await fetch("/api/bucket-list", { cache: "no-store" })
+            .then((r) => r.json())
+            .catch(() => ({ places: [] }));
+          const map = {};
+          (list.places ?? []).forEach((p) => {
+            if (p.name) map[p.name.toLowerCase()] = p.id;
+          });
+          setSavedBucketMap(map);
+          showToast(`${place.name} is already on your Bucket List.`);
+          return;
+        }
+        if (!res.ok) throw new Error("Save failed");
+
+        const created = await res.json();
+        setSavedBucketMap((prev) => ({ ...prev, [placeKey]: created.id }));
+        showToast(`${place.name} saved to your Bucket List! 🔖`);
+      }
+    } catch (err) {
+      console.error("Failed to update bucket list:", err);
+      showToast("Couldn't update your Bucket List. Please try again.");
+    }
+  }
+
+  // Toast notification
+  function showToast(msg) {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((current) => (current === msg ? null : current));
+    }, 3200);
+  }
+
+  // Start trip planning from a place card
+  function handlePlanTrip(place, e) {
+    e?.stopPropagation();
+    router.push(`/newplan?destination=${encodeURIComponent(place.name)}`);
+  }
+
+  const isSearchLimit = authModalReason === "search_limit";
+
+  return (
+    <Background>
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
+        {/* NAV */}
+        <Navbar />
+
+        {/* HEADER + SEARCH */}
+        <section className="px-2 py-4 text-center">
+          <span className="glass-dark inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold tracking-wider text-indigo-200">
+            🧭 DREAM · PLAN · GALA
+          </span>
+          <h1 className="mt-4 text-5xl font-extrabold tracking-tight drop-shadow-lg md:text-7xl">
+            Find your <span className="text-indigo-300">Next na Gala</span>
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sky-300 drop-shadow md:text-lg">
+            Search popular spots and hidden gems in the Philippines and around
+            the world, powered by real-time OpenStreetMap search.
+          </p>
+
+          {/* Search bar */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="glass-input mx-auto mt-6 flex max-w-3xl items-center gap-2 rounded-full p-1.5 text-left transition focus-within:shadow-[0_0_28px_rgba(99,102,241,0.45)]"
+          >
+            <span className="pl-4" aria-hidden="true">
+              📍
+            </span>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              placeholder="Where to? (e.g. Batanes, Palawan, Boracay)"
+              className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-white placeholder:text-white/60 focus:outline-none"
+              aria-label="Search places and destinations"
+            />
+
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                aria-label="Clear search"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-white/70 transition hover:bg-white/30 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSearching}
+              className={`flex shrink-0 items-center gap-2 rounded-full px-6 py-2.5 disabled:opacity-70 ${primaryBtn}`}
+            >
+              {isSearching ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  <span className="hidden sm:inline">Searching...</span>
+                </span>
+              ) : (
+                <span>Search</span>
+              )}
+            </button>
+          </form>
+
+          {/* Quick suggestion chips */}
+          <div className="mt-4 flex flex-col items-center gap-2 text-xs sm:text-sm">
+            <span className="text-white/70">Popular:</span>
+
+            {[QUICK_SUGGESTIONS.slice(0, 5), QUICK_SUGGESTIONS.slice(5)].map(
+              (row, rowIdx) => (
+                <div
+                  key={rowIdx}
+                  className="flex flex-wrap items-center justify-center gap-2"
+                >
+                  {row.map((chip) => (
+                    <button
+                      key={chip.query}
+                      type="button"
+                      onClick={() => handleSelectSuggestion(chip)}
+                      className="glass-dark rounded-full px-3 py-1 font-medium text-white/90 transition hover:bg-indigo-500/30 hover:text-white"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              ),
+            )}
+          </div>
+        </section>
+
+        {/* CATEGORIES + SHUFFLE */}
+        <section className="glass-dark mx-auto flex w-full max-w-fit items-center gap-1 overflow-x-auto rounded-full px-3 py-2 lg:gap-2">
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.id && !searchQuery;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleCategoryChange(cat.id)}
+                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${
+                  isActive
+                    ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+                    : "text-white/80"
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="whitespace-nowrap rounded-full px-4 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+            >
+              ✕ Back to featured
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleShufflePlaces}
+            disabled={isShuffling}
+            className="flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-indigo-100 transition hover:bg-white/10 active:scale-95"
+            title="Show a different set of random destinations"
+          >
+            <span className={isShuffling ? "animate-spin" : ""}>🎲</span>
+            <span>Surprise me</span>
+          </button>
+        </section>
+
+        {/* STATUS LINE */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-2 text-sm">
+          <div className="flex flex-wrap items-center gap-2 font-medium">
+            {searchQuery ? (
+              <>
+                <span className="text-indigo-300">🔍 Search results</span>
+                <span className="text-white/60">for</span>
+                <span className="font-semibold text-white">
+                  "{searchQuery}"
+                </span>
+                <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs text-white/80">
+                  {places.length} {places.length === 1 ? "place" : "places"}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-indigo-300">
+                  ✨ Featured & random destinations
+                </span>
+                <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs text-white/80">
+                  {places.length} {places.length === 1 ? "place" : "places"}
+                </span>
+              </>
+            )}
+          </div>
+
+          <span className="text-xs text-white/50">
+            {searchQuery
+              ? "Powered by OpenStreetMap (Nominatim)"
+              : "Curated Unsplash travel photos"}
+          </span>
+        </div>
+
+        {searchError && (
+          <div className="rounded-2xl border border-red-400/40 bg-red-500/20 px-4 py-3 text-sm text-red-200">
+            {searchError}
+          </div>
+        )}
+
+        {/* PLACES GRID */}
+        <main className="flex-1">
+          {isLoading || isSearching ? (
+            /* Loading skeleton */
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="glass-dark flex h-[380px] animate-pulse flex-col overflow-hidden rounded-3xl p-3"
+                >
+                  <div className="h-48 w-full rounded-2xl bg-white/10" />
+                  <div className="mt-4 h-6 w-3/4 rounded-lg bg-white/15" />
+                  <div className="mt-2 h-4 w-1/2 rounded-md bg-white/10" />
+                  <div className="mt-3 h-10 w-full rounded-md bg-white/5" />
+                  <div className="mt-auto h-9 w-full rounded-xl bg-white/10" />
+                </div>
+              ))}
+            </div>
+          ) : places.length === 0 ? (
+            /* Empty state */
+            <div className="glass-dark mx-auto my-12 flex max-w-lg flex-col items-center rounded-3xl p-10 text-center">
+              <span className="text-6xl">🔍🍃</span>
+              <h3 className="mt-4 text-2xl font-bold">No places found</h3>
+              <p className="mt-2 text-sm text-white/70">
+                No matching destinations for "<strong>{searchQuery}</strong>".
+                Check the spelling or try a popular island or city.
+              </p>
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className={`mt-6 rounded-full px-6 py-2.5 ${primaryBtn}`}
+              >
+                View featured places
+              </button>
+            </div>
+          ) : (
+            /* Destination cards */
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {places.map((place) => {
+                const isSaved = !!savedBucketMap[place.name?.toLowerCase()];
+
+                return (
+                  <article
+                    key={place.id}
+                    onClick={() => setSelectedPlace(place)}
+                    className="group glass-dark relative flex cursor-pointer flex-col overflow-hidden rounded-3xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-900">
+                      <img
+                        src={place.image}
+                        alt={place.name}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            place.fallbackImage || "/destinations/elnido.jpg";
+                        }}
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                      />
+
+                      <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-black/30" />
+
+                      <div className="absolute inset-x-3 top-3 flex items-center justify-between">
+                        <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md">
+                          <span>⭐</span>
+                          <span>{place.rating || "4.8"}</span>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={(e) => handleSaveToBucketList(place, e)}
+                          aria-label={
+                            isSaved
+                              ? "Remove from bucket list"
+                              : "Save to bucket list"
+                          }
+                          title={
+                            !isLoggedIn
+                              ? "Log in to save this to your Bucket List"
+                              : isSaved
+                                ? "Saved to Bucket List"
+                                : "Save to Bucket List"
+                          }
+                          className={`flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-90 ${
+                            isSaved
+                              ? "border-indigo-300 bg-indigo-500 text-white shadow-lg shadow-indigo-500/50"
+                              : "border-white/30 bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
+                          }`}
+                        >
+                          {isSaved ? "🔖" : "🤍"}
+                        </button>
+                      </div>
+
+                      {place.category && (
+                        <div className="absolute bottom-3 left-3">
+                          <span className="rounded-full border border-indigo-300/30 bg-indigo-950/70 px-3 py-1 text-[11px] font-medium text-indigo-200 backdrop-blur-md">
+                            {place.category}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex flex-1 flex-col p-5">
+                      <h3 className="text-xl font-bold tracking-tight text-white transition group-hover:text-indigo-300">
+                        {place.name}
+                      </h3>
+
+                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
+                        <span>📍</span>
+                        <span className="truncate">{place.location}</span>
+                      </p>
+
+                      <p className="mt-2.5 line-clamp-3 text-xs leading-relaxed text-white/75">
+                        {place.description}
+                      </p>
+
+                      {Array.isArray(place.tags) && place.tags.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {place.tags.slice(0, 3).map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] text-white/70"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="mt-auto pt-4">
+                        <div className="flex items-center gap-2 border-t border-white/10 pt-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPlace(place);
+                            }}
+                            className="flex-1 rounded-full border border-white/20 bg-white/5 py-2 text-center text-xs font-medium text-white transition hover:bg-white/15"
+                          >
+                            Details
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => handlePlanTrip(place, e)}
+                            className={`flex-1 rounded-full py-2 text-center text-xs ${primaryBtn}`}
+                          >
+                            Plan trip
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </main>
+
+        {/* PLACE DETAIL MODAL */}
+        {selectedPlace && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            role="presentation"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedPlace(null);
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-place-title"
+              className="glass-dark max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl p-0 shadow-2xl"
+            >
+              {/* Hero image */}
+              <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
+                <img
+                  src={selectedPlace.image}
+                  alt={selectedPlace.name}
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      selectedPlace.fallbackImage || "/destinations/elnido.jpg";
+                  }}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/20 to-transparent" />
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlace(null)}
+                  aria-label="Close"
+                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-lg text-white/90 backdrop-blur-md transition hover:bg-black/90 hover:text-white"
+                >
+                  ✕
+                </button>
+
+                <div className="absolute bottom-4 left-6 right-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-indigo-500/80 px-3 py-1 text-xs font-semibold text-white">
+                      {selectedPlace.category || "Destination"}
+                    </span>
+                    <span className="rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-amber-300">
+                      ⭐ {selectedPlace.rating || "4.8"}
+                    </span>
+                  </div>
+                  <h2
+                    id="modal-place-title"
+                    className="mt-2 text-2xl font-bold sm:text-3xl"
+                  >
+                    {selectedPlace.name}
+                  </h2>
+                  <p className="flex items-center gap-1.5 text-sm text-sky-300">
+                    <span>📍</span>
+                    <span>{selectedPlace.location}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="space-y-5 p-6 text-sm">
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
+                    About
+                  </h4>
+                  <p className="mt-1.5 leading-relaxed text-white/85">
+                    {selectedPlace.description}
+                  </p>
+                </div>
+
+                {selectedPlace.highlights &&
+                  selectedPlace.highlights.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
+                        Highlights
+                      </h4>
+                      <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {selectedPlace.highlights.map((h, hIdx) => (
+                          <li
+                            key={hIdx}
+                            className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-white/90"
+                          >
+                            <span className="text-indigo-300">✓</span>
+                            <span>{h}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                {selectedPlace.bestTimeToVisit && (
+                  <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
+                    <span className="font-semibold text-indigo-200">
+                      🗓️ Best time to visit
+                    </span>
+                    <p className="mt-1 text-white/80">
+                      {selectedPlace.bestTimeToVisit}
+                    </p>
+                  </div>
+                )}
+
+                {/* Footer actions */}
+                <div className="flex flex-wrap items-center justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlace(null)}
+                    className="rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-white/80 transition hover:bg-white/15 hover:text-white"
+                  >
+                    Close
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => handleSaveToBucketList(selectedPlace, e)}
+                    className={`rounded-full px-5 py-2.5 font-medium transition ${
+                      savedBucketMap[selectedPlace.name?.toLowerCase()]
+                        ? "border border-indigo-300 bg-indigo-500/40 text-white"
+                        : "border border-white/25 bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                  >
+                    {savedBucketMap[selectedPlace.name?.toLowerCase()]
+                      ? "Remove from Bucket List 🔖"
+                      : "Save to Bucket List 🔖"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePlanTrip(selectedPlace)}
+                    className={`rounded-full px-6 py-2.5 ${primaryBtn}`}
+                  >
+                    Plan your trip ✈️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AUTH MODAL (guest search limit / save place) */}
+        {showAuthModal && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            role="presentation"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) closeAuthModal();
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="auth-modal-title"
+              className="glass-dark relative w-full max-w-md rounded-3xl p-8 text-center shadow-2xl"
+            >
+              <button
+                type="button"
+                onClick={closeAuthModal}
+                aria-label="Close"
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/25 hover:text-white"
+              >
+                ✕
+              </button>
+
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/30 text-3xl shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+                {isSearchLimit ? "🔍" : "🔖"}
+              </div>
+
+              <h2
+                id="auth-modal-title"
+                className="mt-5 text-2xl font-bold tracking-tight"
+              >
+                {isSearchLimit ? (
+                  <>
+                    You've used your{" "}
+                    <span className="text-indigo-300">
+                      {GUEST_SEARCH_LIMIT} free searches
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Log in to{" "}
+                    <span className="text-indigo-300">save places</span>
+                  </>
+                )}
+              </h2>
+
+              <p className="mt-2 text-sm leading-relaxed text-white/75">
+                {isSearchLimit
+                  ? "Create a free account or log in to keep searching destinations around the world."
+                  : attemptedPlace?.name
+                    ? `Create a free account or log in to save ${attemptedPlace.name} to your Bucket List and start planning your trip.`
+                    : "Create a free account or log in to save destinations to your Bucket List."}
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Link
+                  href="/signup"
+                  className={`rounded-full px-6 py-2.5 text-center ${primaryBtn}`}
+                >
+                  Sign up
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-full border border-white/25 bg-white/10 px-6 py-2.5 text-center font-semibold transition hover:bg-white/20"
+                >
+                  Log in
+                </Link>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeAuthModal}
+                className="mt-4 text-sm text-white/55 transition hover:text-white"
+              >
+                {isSearchLimit ? "Maybe later" : "Keep browsing"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TOAST */}
+        {toastMessage && (
+          <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
+            <div className="glass-dark flex items-center gap-3 rounded-full border border-indigo-300/40 bg-slate-950/90 px-6 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur-xl">
+              <span>✨</span>
+              <span>{toastMessage}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </Background>
+  );
+}
