@@ -5,11 +5,6 @@ import { useRouter } from "next/navigation";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
-import {
-  useStoredState,
-  PLANS_KEY,
-  SEED_PLANS,
-} from "@/app/components/usePlanStore";
 
 /* ------------------------------------------------------------------ */
 /* Templates                                                          */
@@ -98,11 +93,10 @@ const toAllocations = (names) => names.map((name) => ({ name, amount: "" }));
 function StepIndicator({ step }) {
   const item = (n) => (
     <span
-      className={`rounded-full border px-4 py-1 text-sm ${
-        step === n
-          ? "border-white/60 bg-white/25 text-white"
-          : "border-white/20 bg-white/5 text-white/60"
-      }`}
+      className={`rounded-full border px-4 py-1 text-sm ${step === n
+        ? "border-white/60 bg-white/25 text-white"
+        : "border-white/20 bg-white/5 text-white/60"
+        }`}
     >
       Step {n}
     </span>
@@ -125,16 +119,14 @@ function TemplateCard({ name, template, selected, onSelect }) {
       type="button"
       aria-pressed={selected}
       onClick={() => onSelect(name)}
-      className={`glass overflow-hidden rounded-3xl text-left transition hover:-translate-y-1 hover:bg-white/10 ${
-        selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
-      }`}
+      className={`glass overflow-hidden rounded-3xl text-left transition hover:-translate-y-1 hover:bg-white/10 ${selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
+        }`}
     >
       <div
-        className={`relative h-32 overflow-hidden ${
-          template.gradient
-            ? `bg-gradient-to-br ${template.gradient}`
-            : "border-b border-dashed border-white/30 bg-white/5"
-        }`}
+        className={`relative h-32 overflow-hidden ${template.gradient
+          ? `bg-gradient-to-br ${template.gradient}`
+          : "border-b border-dashed border-white/30 bg-white/5"
+          }`}
       >
         {template.image && (
           <img
@@ -242,11 +234,10 @@ function BudgetAllocation({
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-white/15">
           <div
-            className={`h-full rounded-full transition-all ${
-              over
-                ? "bg-linear-to-r from-orange-300 to-red-400"
-                : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
-            }`}
+            className={`h-full rounded-full transition-all ${over
+              ? "bg-linear-to-r from-orange-300 to-red-400"
+              : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
+              }`}
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -321,7 +312,6 @@ function BudgetAllocation({
 /* ------------------------------------------------------------------ */
 export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const router = useRouter();
-  const [, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
 
   const [step, setStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState("Blank");
@@ -330,6 +320,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const [form, setForm] = useState({
     destination: initialDestination,
     location: null,
+    image: null,
     startDate: "",
     endDate: "",
     activities: [],
@@ -448,11 +439,12 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
     return next;
   }
 
-  function savePlan(event) {
+  async function savePlan(event) {
     event.preventDefault();
 
     const found = validate();
     setErrors(found);
+
     if (Object.keys(found).length > 0) return;
 
     const budgetAllocations = form.allocations
@@ -462,30 +454,59 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
         amount: Number(a.amount) || 0,
       }));
 
-    const newPlan = {
-      id: Date.now(),
-      title: form.destination.trim() || "New plan",
-      location: form.location,
+    const payload = {
+      title: form.destination.trim(),
       destination: form.destination.trim(),
+      image: form.image,
       startDate: form.startDate,
       endDate: form.endDate,
-      activities: form.activities.filter((a) => a.trim() !== ""),
+      activities: form.activities.filter(
+        (a) => a.trim() !== ""
+      ),
       notes: form.notes,
       budget: totalBudget,
-      spent: 0,
-      // Same shape as before (array of names), so other pages keep working
-      budgetCategories: budgetAllocations.map((a) => a.category),
-      // New: how much of the budget goes to each category
+      templateType: selectedTemplate,
       budgetAllocations,
-      template: selectedTemplate,
-      color: template.gradient || DEFAULT_GRADIENT,
     };
+    console.log("IMAGE VALUE:", form.image);
+    console.log("IMAGE TYPE:", typeof form.image);
+    console.log("NEW PLAN PAYLOAD:", payload);
+    try {
+      const response = await fetch("/api/plans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (onSave) {
-      onSave(newPlan);
-    } else {
-      setPlans((cur) => [newPlan, ...cur]);
-      router.push("/my-plans");
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Create plan failed:", result);
+
+        setErrors((prev) => ({
+          ...prev,
+          submit:
+            result.message ||
+            result.error?.message ||
+            "Failed to save plan.",
+        }));
+        return;
+      }
+
+      if (onSave) {
+        await onSave(result);
+      } else {
+        router.push("/my-plans");
+      }
+    } catch (error) {
+      console.error("Failed to save plan:", error);
+
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Unable to save plan. Please try again.",
+      }));
     }
   }
 
@@ -595,16 +616,25 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                   value={form.destination}
                   invalid={!!errors.destination}
                   onChange={(text) => {
-                    updateForm("destination", text);
-                    setForm((c) => ({ ...c, location: null }));
+                    setForm((c) => ({
+                      ...c,
+                      destination: text,
+                      location: null,
+                      image: null,
+                    }));
                   }}
                   onSelect={(loc) => {
                     setForm((c) => ({
                       ...c,
                       destination: loc.label,
                       location: loc,
+                      image: loc.image || null,
                     }));
-                    setErrors((e) => ({ ...e, destination: undefined }));
+
+                    setErrors((e) => ({
+                      ...e,
+                      destination: undefined,
+                    }));
                   }}
                 />
                 <FieldError id="destination-error">
@@ -742,6 +772,12 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 onRemove={removeAllocation}
                 onSplit={splitAllocationsEvenly}
               />
+
+              {errors.submit && (
+                <p className="text-sm text-red-300">
+                  {errors.submit}
+                </p>
+              )}
 
               <div className="flex items-center justify-between pt-2">
                 <button

@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { listMedia, addMedia } from "@/lib/client/plans";
+import { listMedia, addMedia, deleteMedia } from "@/lib/client/plans";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
-import {
-  useStoredState,
-  PLANS_KEY,
-  SEED_PLANS,
-} from "@/app/components/usePlanStore";
 
 function isPlanCompleted(plan) {
-  return plan?.status === "Completed";
+  return Boolean(plan?.completedAt);
 }
 
 function formatDate(date) {
@@ -50,6 +45,11 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
 
   const mediaList = entry.mediaList || [];
+  useEffect(() => {
+    setActiveMediaIndex((index) =>
+      Math.min(index, Math.max(0, mediaList.length - 1))
+    );
+  }, [mediaList.length]);
   const MAX_MEDIA = 10;
 
   const handleUploadClick = (e) => {
@@ -59,36 +59,24 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files || []);
-    if (!files.length) return;
 
-    // Limitahan sa natitirang slots hanggang 10
+    if (files.length === 0) return;
+
     const remainingSlots = MAX_MEDIA - mediaList.length;
-    const filesToUpload = files.slice(0, remainingSlots);
 
-    const newMediaItems = [];
-
-    for (const file of filesToUpload) {
-      const isVideo = file.type.startsWith("video/");
-      const reader = new FileReader();
-
-      const mediaUrl = await new Promise((resolve) => {
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-
-      newMediaItems.push({
-        url: mediaUrl,
-        mediaType: isVideo ? "video" : "image",
-        name: file.name,
-      });
+    if (files.length > remainingSlots) {
+      alert(`You can only add ${remainingSlots} more media items.`);
+      e.target.value = "";
+      return;
     }
 
-    if (newMediaItems.length > 0) {
-      await onAddMedia?.(entry.id, newMediaItems);
+    try {
+      await onAddMedia?.(entry.id, files);
+    } catch (error) {
+      console.error("Journal upload failed:", error);
+    } finally {
+      e.target.value = "";
     }
-
-    // Reset input
-    e.target.value = "";
   };
 
   const currentMedia = mediaList[activeMediaIndex];
@@ -133,10 +121,26 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
                 playsInline
               />
             ) : (
+
               <div
-                className="h-full w-full bg-cover bg-center"
-                style={{ backgroundImage: `url("${currentMedia?.url}")` }}
-              />
+                className={`flex h-full w-full flex-col items-center justify-center bg-cover bg-center bg-linear-to-br ${entry.color || "from-cyan-500/20 to-indigo-600/30"
+                  }`}
+                style={
+                  entry.image
+                    ? { backgroundImage: `url("${entry.image}")` }
+                    : undefined
+                }
+              >
+                {!entry.image && (
+                  <>
+                    <span className="text-3xl">📷</span>
+                    <p className="mt-1 text-xs text-white/60">
+                      No photos or videos yet
+                    </p>
+                  </>
+                )}
+              </div>
+
             )}
 
             {/* Indicator / Badge count (e.g., 3/10) */}
@@ -155,11 +159,10 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
                       e.stopPropagation();
                       setActiveMediaIndex(idx);
                     }}
-                    className={`h-2 rounded-full transition-all ${
-                      activeMediaIndex === idx
-                        ? "w-5 bg-teal-400"
-                        : "w-2 bg-white/50 hover:bg-white"
-                    }`}
+                    className={`h-2 rounded-full transition-all ${activeMediaIndex === idx
+                      ? "w-5 bg-teal-400"
+                      : "w-2 bg-white/50 hover:bg-white"
+                      }`}
                   />
                 ))}
               </div>
@@ -168,9 +171,8 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
         ) : (
           /* Empty Gallery Placeholder */
           <div
-            className={`flex h-full w-full flex-col items-center justify-center p-4 bg-linear-to-br ${
-              entry.color || "from-cyan-500/20 to-indigo-600/30"
-            }`}
+            className={`flex h-full w-full flex-col items-center justify-center p-4 bg-linear-to-br ${entry.color || "from-cyan-500/20 to-indigo-600/30"
+              }`}
           >
             <span className="text-3xl">📷</span>
             <p className="mt-1 text-xs text-white/60">
@@ -226,9 +228,8 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
           <span>
             {mediaList.length === 0
               ? "0 media items"
-              : `${mediaList.length} ${
-                  mediaList.length === 1 ? "media item" : "media items"
-                } saved`}
+              : `${mediaList.length} ${mediaList.length === 1 ? "media item" : "media items"
+              } saved`}
           </span>
           <span className="text-teal-300 hover:underline">View Journal →</span>
         </div>
@@ -249,10 +250,51 @@ function JournalEmptyState() {
 }
 
 export default function Journal({ onBack, onOpenEntry }) {
-  const [plans] = useStoredState(PLANS_KEY, SEED_PLANS);
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [mediaByPlan, setMediaByPlan] = useState({});
   const [mediaError, setMediaError] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCompletedPlans() {
+      try {
+        const response = await fetch("/api/plans", {
+          cache: "no-store",
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            result.error?.message || "Failed to load journal."
+          );
+        }
+        if (!Array.isArray(result.data)) {
+          throw new Error("Invalid plans response.");
+        }
+        const completed = result.data.filter(
+          (plan) => Boolean(plan.completedAt)
+        );
+        if (!cancelled) {
+          setPlans(completed);
+          setLoadError("");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(error.message);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadCompletedPlans();
 
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   // Load media ng bawat completed trip mula sa API
   useEffect(() => {
     const list = Array.isArray(plans) ? plans : [];
@@ -284,20 +326,71 @@ export default function Journal({ onBack, onOpenEntry }) {
   }, [plans]);
 
   // Mag-upload ng bagong media sa API, tapos i-update ang listahan ng plan
-  const handleAddMedia = async (planId, newMediaItems) => {
+
+  const handleAddMedia = async (planId, files) => {
     setMediaError("");
+
     try {
-      const data = await addMedia(planId, newMediaItems);
-      setMediaByPlan((prev) => ({ ...prev, [planId]: data.mediaList }));
+      const data = await addMedia(planId, files);
+
+      setMediaByPlan((prev) => ({
+        ...prev,
+        [planId]: data.mediaList ?? [],
+      }));
     } catch (err) {
-      console.error(
-        "addMedia failed:",
-        err.status,
-        err.code,
-        err.message,
-        err.details,
+      console.error("Add media failed:", err);
+
+      setMediaError(
+        err.message || "Unable to upload media."
       );
-      setMediaError(`${err.message} (${err.status ?? "?"} ${err.code ?? ""})`);
+
+      throw err;
+    }
+  };
+
+
+  const [deletingMediaId, setDeletingMediaId] = useState(null);
+
+  const handleDeleteMedia = async (planId, mediaId) => {
+    if (deletingMediaId !== null) return;
+
+    const confirmed = window.confirm(
+      "Delete this photo/video permanently?"
+    );
+
+    if (!confirmed) return;
+
+    setDeletingMediaId(mediaId);
+    setMediaError("");
+
+    try {
+      await deleteMedia(planId, mediaId);
+
+      // Kunin ang updated gallery mula sa backend.
+      const data = await listMedia(planId);
+
+      setMediaByPlan((prev) => ({
+        ...prev,
+        [planId]: data.mediaList ?? [],
+      }));
+    } catch (error) {
+      console.error("Delete media failed:", error);
+      setMediaError(error.message || "Unable to delete media.");
+
+      // Refresh din kahit nagka-error, in case successful
+      // ang delete pero pumalya ang response.
+      try {
+        const data = await listMedia(planId);
+
+        setMediaByPlan((prev) => ({
+          ...prev,
+          [planId]: data.mediaList ?? [],
+        }));
+      } catch {
+        // Keep the current gallery if reloading fails.
+      }
+    } finally {
+      setDeletingMediaId(null);
     }
   };
 
@@ -314,6 +407,7 @@ export default function Journal({ onBack, onOpenEntry }) {
       noteExcerpt: getNoteExcerpt(plan.notes),
       mediaList: mediaByPlan[plan.id] || [], // galing na sa API
       color: plan.color,
+      image: plan.image ?? null,
       plan,
     }));
   }, [plans, mediaByPlan]);
@@ -322,6 +416,115 @@ export default function Journal({ onBack, onOpenEntry }) {
     <Background>
       <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
         <Navbar />
+
+
+        {selectedEntry && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) {
+                setSelectedEntry(null);
+              }
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="journal-detail-title"
+              className="glass max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl p-6 text-white"
+            >
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div>
+                  <h2
+                    id="journal-detail-title"
+                    className="text-2xl font-bold"
+                  >
+                    {selectedEntry.title}
+                  </h2>
+
+                  <p className="mt-1 text-sm text-white/70">
+                    📍 {selectedEntry.destination}
+                  </p>
+
+                  <p className="mt-1 text-xs text-white/50">
+                    📅 {selectedEntry.dateLabel}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedEntry(null)}
+                  className="rounded-full bg-white/10 px-3 py-1 text-xl hover:bg-white/20"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(mediaByPlan[selectedEntry.id] ?? []).map((media) => (
+
+                  <div
+                    key={media.id}
+                    className="relative overflow-hidden rounded-xl bg-black/30"
+                  >
+                    {media.mediaType === "video" ? (
+                      <video
+                        src={media.url}
+                        controls
+                        className="aspect-video w-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={media.url}
+                        alt={media.name || "Journal photo"}
+                        className="aspect-video w-full object-cover"
+                      />
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDeleteMedia(selectedEntry.id, media.id)
+                      }
+                      disabled={deletingMediaId !== null}
+                      title="Delete media"
+                      aria-label={`Delete ${media.name || "media"}`}
+                      className="absolute right-2 top-2 rounded-full bg-red-600/90 p-2 text-white shadow-lg transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {deletingMediaId === media.id ? "…" : "🗑️"}
+                    </button>
+                  </div>
+
+                ))}
+              </div>
+
+              {(mediaByPlan[selectedEntry.id] ?? []).length === 0 && (
+                <p className="text-sm text-white/50">
+                  No uploaded memories yet.
+                </p>
+              )}
+
+              <div className="mt-6">
+                <h3 className="mb-2 font-semibold">Trip Notes</h3>
+                <p className="whitespace-pre-wrap text-sm text-white/75">
+                  {selectedEntry.plan?.notes || "No notes added."}
+                </p>
+              </div>
+
+              {selectedEntry.plan?.activities?.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 font-semibold">Planned Activities</h3>
+                  <ul className="list-inside list-disc space-y-1 text-sm text-white/75">
+                    {selectedEntry.plan.activities.map((activity, index) => (
+                      <li key={index}>{activity}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
 
         <main className="flex flex-1 flex-col">
           {onBack ? (
@@ -353,7 +556,11 @@ export default function Journal({ onBack, onOpenEntry }) {
             <p className="mb-4 text-sm text-red-300">{mediaError}</p>
           )}
 
-          {journalEntries.length > 0 ? (
+          {loading ? (
+            <p className="text-white/70">Loading your journal...</p>
+          ) : loadError ? (
+            <p className="text-red-300">{loadError}</p>
+          ) : journalEntries.length > 0 ? (
             <section
               aria-label="Completed trips"
               className="grid grid-cols-1 gap-5 xl:grid-cols-2"
@@ -362,7 +569,7 @@ export default function Journal({ onBack, onOpenEntry }) {
                 <JournalCard
                   key={entry.id}
                   entry={entry}
-                  onOpen={() => onOpenEntry?.(entry)}
+                  onOpen={() => setSelectedEntry(entry)}
                   onAddMedia={handleAddMedia}
                 />
               ))}

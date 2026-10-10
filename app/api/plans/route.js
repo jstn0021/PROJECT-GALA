@@ -12,6 +12,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+    console.log("POST /api/plans REACHED");
     try {
         const userId = await requireUserId();
         const body = await readJson(request);
