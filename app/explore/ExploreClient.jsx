@@ -14,9 +14,9 @@ const QUICK_SUGGESTIONS = [
   { label: "🏄 Siargao", query: "Siargao" },
   { label: "🌋 Batanes", query: "Batanes" },
   { label: "🍫 Bohol", query: "Chocolate Hills" },
-  { label: "🌸 Kyoto", query: "Kyoto" },
-  { label: "🗼 Tokyo", query: "Tokyo" },
-  { label: "🏖️ Bali", query: "Bali" },
+  { label: "🌊 Camiguin", query: "Camiguin" },
+  { label: "🌋 Mayon", query: "Mayon Volcano" },
+  { label: "🏛️ Vigan", query: "Vigan" },
 ];
 
 const CATEGORIES = [
@@ -34,16 +34,12 @@ const GUEST_SEARCH_KEY = "gala_guest_search_count";
 const primaryBtn =
   "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
 
-export default function ExploreClient({
-  initialIsLoggedIn = false,
-  user = null,
-}) {
+export default function ExploreClient({ initialIsLoggedIn = false }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || searchParams.get("query") || "";
 
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
-  const [currentUser, setCurrentUser] = useState(user);
   const [guestSearchCount, setGuestSearchCount] = useState(0);
 
   // Auth restriction modal state
@@ -76,7 +72,6 @@ export default function ExploreClient({
           const data = await res.json();
           if (typeof data.isLoggedIn === "boolean") {
             setIsLoggedIn(data.isLoggedIn);
-            setCurrentUser(data.user);
           }
         }
       } catch (err) {
@@ -97,7 +92,6 @@ export default function ExploreClient({
     }
   }, []);
 
-  // Load existing bucket list from localStorage to know what's already saved
   // Load saved places from the API (name -> id), so Explore matches the Bucket List page
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -270,7 +264,41 @@ export default function ExploreClient({
     }, 450);
   }
 
-  // Explicit submit button or Enter key
+  // UI handlers used by the search bar, category chips, and shuffle button.
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    performSearch(searchQuery);
+  }
+
+  function handleClearSearch() {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery("");
+    setActiveCategory("all");
+    loadFeaturedPlaces("all", false);
+  }
+
+  function handleSelectSuggestion(chip) {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery(chip.query);
+    performSearch(chip.query);
+  }
+
+  function handleCategoryChange(category) {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery("");
+    setActiveCategory(category);
+    loadFeaturedPlaces(category, false);
+  }
+
+  async function handleShufflePlaces() {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery("");
+    setIsShuffling(true);
+    await loadFeaturedPlaces(activeCategory, true);
+  }
+
+  // Toggle destination via the existing Bucket List API.
   async function handleSaveToBucketList(place, e) {
     e?.stopPropagation();
 
@@ -304,7 +332,11 @@ export default function ExploreClient({
         const res = await fetch("/api/bucket-list", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: place.name }),
+          body: JSON.stringify({
+            name: place.name,
+            image: place.image || null,
+            location: place.location || null,
+          }),
         });
 
         if (res.status === 409) {
@@ -363,8 +395,7 @@ export default function ExploreClient({
             Find your <span className="text-indigo-300">Next na Gala</span>
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sky-300 drop-shadow md:text-lg">
-            Search popular spots and hidden gems in the Philippines and around
-            the world, powered by real-time OpenStreetMap search.
+            Search popular spots and hidden gems in the Philippines and enjoy your trip
           </p>
 
           {/* Search bar */}
@@ -447,11 +478,10 @@ export default function ExploreClient({
                 key={cat.id}
                 type="button"
                 onClick={() => handleCategoryChange(cat.id)}
-                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${
-                  isActive
-                    ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                    : "text-white/80"
-                }`}
+                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${isActive
+                  ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+                  : "text-white/80"
+                  }`}
               >
                 {cat.label}
               </button>
@@ -602,11 +632,10 @@ export default function ExploreClient({
                                 ? "Saved to Bucket List"
                                 : "Save to Bucket List"
                           }
-                          className={`flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-90 ${
-                            isSaved
-                              ? "border-indigo-300 bg-indigo-500 text-white shadow-lg shadow-indigo-500/50"
-                              : "border-white/30 bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
-                          }`}
+                          className={`flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-90 ${isSaved
+                            ? "border-indigo-300 bg-indigo-500 text-white shadow-lg shadow-indigo-500/50"
+                            : "border-white/30 bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
+                            }`}
                         >
                           {isSaved ? "🔖" : "🤍"}
                         </button>
@@ -794,11 +823,10 @@ export default function ExploreClient({
                   <button
                     type="button"
                     onClick={(e) => handleSaveToBucketList(selectedPlace, e)}
-                    className={`rounded-full px-5 py-2.5 font-medium transition ${
-                      savedBucketMap[selectedPlace.name?.toLowerCase()]
-                        ? "border border-indigo-300 bg-indigo-500/40 text-white"
-                        : "border border-white/25 bg-white/10 text-white hover:bg-white/20"
-                    }`}
+                    className={`rounded-full px-5 py-2.5 font-medium transition ${savedBucketMap[selectedPlace.name?.toLowerCase()]
+                      ? "border border-indigo-300 bg-indigo-500/40 text-white"
+                      : "border border-white/25 bg-white/10 text-white hover:bg-white/20"
+                      }`}
                   >
                     {savedBucketMap[selectedPlace.name?.toLowerCase()]
                       ? "Remove from Bucket List 🔖"

@@ -16,16 +16,16 @@ export async function GET(request) {
     const random = searchParams.get("random") === "true";
     const limit = parseInt(searchParams.get("limit") || "12", 10);
     const category = searchParams.get("category") || "all";
-
-    // Kunin ang mga featured / random destinations
+    const query =
+      category === "all"
+        ? "Philippines travel destinations"
+        : `Philippines ${category} travel destinations`;
     let places = getFeaturedPlaces({
       random,
       limit: Number.isNaN(limit) ? 12 : limit,
       category,
     });
 
-    // Optional: Kung may naka-configure na UNSPLASH_ACCESS_KEY sa env,
-    // pwede ring mag-fetch mula sa live Unsplash Search API
     if (process.env.UNSPLASH_ACCESS_KEY && searchParams.get("live_unsplash") === "true") {
       try {
         const query = category === "all" ? "philippines travel landscape" : `${category} travel landscape`;
@@ -41,7 +41,6 @@ export async function GET(request) {
         if (res.ok) {
           const unsplashData = await res.json();
           if (unsplashData.results && unsplashData.results.length > 0) {
-            // Pag-samahin ang live unsplash images sa curated destinations
             places = places.map((place, idx) => {
               const livePhoto = unsplashData.results[idx];
               if (livePhoto) {

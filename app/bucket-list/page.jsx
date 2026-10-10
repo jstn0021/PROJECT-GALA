@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
+import LocationSearch from "@/app/components/LocationSearch";
 
 // Color names from the API -> card gradients (full class names so Tailwind keeps them)
 const GRADIENTS = {
@@ -21,6 +22,7 @@ export default function BucketListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
+  const [selectedPlace, setSelectedPlace] = useState(null);
   const [adding, setAdding] = useState(false);
 
   async function load() {
@@ -53,7 +55,11 @@ export default function BucketListPage() {
       const res = await fetch("/api/bucket-list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: value }),
+        body: JSON.stringify({
+          name: value,
+          image: selectedPlace?.image || null,
+          location: selectedPlace?.location || selectedPlace?.label || null,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 409) {
@@ -67,6 +73,7 @@ export default function BucketListPage() {
       }
       setPlaces((p) => [...p, data]);
       setName("");
+      setSelectedPlace(null);
     } catch (err) {
       setError(err.message || "Couldn't add that place.");
     } finally {
@@ -132,19 +139,27 @@ export default function BucketListPage() {
 
           <form
             onSubmit={addPlace}
-            className="glass-input flex max-w-2xl items-center gap-2 rounded-full p-1.5"
+            className="glass-input relative z-50 flex w-full max-w-2xl items-center gap-2 rounded-full p-1.5"
           >
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Add a place (e.g. Kyoto)"
-              maxLength={150}
-              aria-label="Place name"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-white placeholder:text-white/60 focus:outline-none"
-            />
+
+            <div className="relative min-w-0 flex-1">
+              <LocationSearch
+                value={name}
+                onChange={(text) => {
+                  setName(text);
+                  setSelectedPlace(null);
+                }}
+                onSelect={(place) => {
+                  setName(place.label || place.name);
+                  setSelectedPlace(place);
+                }}
+                placeholder="Search Philippine destinations..."
+              />
+            </div>
+
             <button
               type="submit"
-              disabled={adding || !name.trim()}
+              disabled={adding || !selectedPlace || !name.trim()}
               className={primaryBtn}
             >
               {adding ? "Adding..." : "Add"}
@@ -185,9 +200,8 @@ export default function BucketListPage() {
                   className="glass-dark flex flex-col overflow-hidden rounded-3xl"
                 >
                   <div
-                    className={`relative h-44 bg-linear-to-br ${
-                      GRADIENTS[place.color] ?? GRADIENTS.green
-                    }`}
+                    className={`relative h-44 bg-linear-to-br ${GRADIENTS[place.color] ?? GRADIENTS.green
+                      }`}
                   >
                     {place.image && (
                       <img
@@ -198,9 +212,8 @@ export default function BucketListPage() {
                           // Broken link: hide it so the gradient shows instead
                           e.currentTarget.style.display = "none";
                         }}
-                        className={`absolute inset-0 h-full w-full object-cover ${
-                          place.completed ? "saturate-50" : ""
-                        }`}
+                        className={`absolute inset-0 h-full w-full object-cover ${place.completed ? "saturate-50" : ""
+                          }`}
                       />
                     )}
                     <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-transparent to-black/20" />
@@ -208,9 +221,8 @@ export default function BucketListPage() {
                   <div className="flex flex-1 flex-col gap-4 p-5">
                     <div>
                       <h3
-                        className={`text-xl font-bold tracking-tight ${
-                          place.completed ? "text-white/50 line-through" : ""
-                        }`}
+                        className={`text-xl font-bold tracking-tight ${place.completed ? "text-white/50 line-through" : ""
+                          }`}
                       >
                         {place.name}
                       </h3>
@@ -224,11 +236,10 @@ export default function BucketListPage() {
                       <button
                         type="button"
                         onClick={() => toggleDone(place)}
-                        className={`flex-1 rounded-full border px-3 py-2 text-sm transition ${
-                          place.completed
-                            ? "border-indigo-300 bg-indigo-500/40"
-                            : "border-white/25 bg-white/10 hover:bg-white/20"
-                        }`}
+                        className={`flex-1 rounded-full border px-3 py-2 text-sm transition ${place.completed
+                          ? "border-indigo-300 bg-indigo-500/40"
+                          : "border-white/25 bg-white/10 hover:bg-white/20"
+                          }`}
                       >
                         {place.completed ? "✓ Done" : "Mark as done"}
                       </button>

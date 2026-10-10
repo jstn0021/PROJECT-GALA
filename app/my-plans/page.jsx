@@ -1,19 +1,11 @@
 "use client";
-
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
-import {
-  useStoredState,
-  PLANS_KEY,
-  SEED_PLANS,
-} from "@/app/components/usePlanStore";
-
 const FILTERS = ["All", "Upcoming", "Ongoing", "Completed"];
 const STEPS = ["Upcoming", "Ongoing", "Completed"];
-
 // Cover choices in the edit form (same gradients as the New plan templates)
 const COVERS = {
   Blank: "from-teal-300 to-indigo-500",
@@ -22,7 +14,6 @@ const COVERS = {
   Family: "from-amber-300 to-emerald-400",
   Adventure: "from-cyan-300 to-emerald-500",
 };
-
 const ghostBtn =
   "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
 const smallBtn =
@@ -30,7 +21,6 @@ const smallBtn =
 const primaryBtn =
   "rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-3 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
 const fieldLabel = "mb-2 block text-sm font-medium text-white/80";
-
 function todayString() {
   const d = new Date();
   const y = d.getFullYear();
@@ -38,61 +28,55 @@ function todayString() {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
-
 function toDate(value) {
   return new Date(`${value}T00:00:00`);
 }
-
 function daysBetween(from, to) {
   return Math.round((toDate(to) - toDate(from)) / 86400000);
 }
-
 function getStatus(plan) {
-  if (plan.status === "Completed") return "Completed";
-  if (todayString() < plan.startDate) return "Upcoming";
+  if (plan.completedAt || plan.status === "Completed") {
+    return "Completed";
+  }
+  const today = todayString();
+  if (today < plan.startDate) {
+    return "Upcoming";
+  }
+  if (today > plan.endDate) {
+    return "Completed";
+  }
   return "Ongoing";
 }
-
 function canComplete(plan) {
-  return plan.status !== "Completed" && todayString() > plan.endDate;
+  return !plan.completedAt && plan.status !== "Completed" && todayString() > plan.endDate;
 }
-
 function getCountdown(plan) {
   const today = todayString();
   const status = getStatus(plan);
-
   if (status === "Completed") return "Trip completed";
-
   if (status === "Upcoming") {
     const days = daysBetween(today, plan.startDate);
     return days === 1 ? "Starts tomorrow" : `${days} days to go`;
   }
-
   if (today <= plan.endDate) {
     const total = daysBetween(plan.startDate, plan.endDate) + 1;
     return `Day ${daysBetween(plan.startDate, today) + 1} of ${total}`;
   }
-
   const ago = daysBetween(plan.endDate, today);
   return `Ended ${ago} day${ago === 1 ? "" : "s"} ago`;
 }
-
 function formatDateRange(start, end) {
   const startDate = toDate(start);
   const endDate = toDate(end);
-
   const startDay = startDate.getDate();
   const endDay = endDate.getDate();
   const startMonth = startDate.toLocaleDateString("en-US", { month: "short" });
   const endMonth = endDate.toLocaleDateString("en-US", { month: "short" });
-
   if (startMonth === endMonth) {
     return `${startDay} to ${endDay} ${startMonth}`;
   }
-
   return `${startDay} ${startMonth} to ${endDay} ${endMonth}`;
 }
-
 function formatLongDate(value) {
   return toDate(value).toLocaleDateString("en-US", {
     month: "short",
@@ -100,7 +84,6 @@ function formatLongDate(value) {
     year: "numeric",
   });
 }
-
 function formatMoney(value) {
   return new Intl.NumberFormat("en-PH", {
     style: "currency",
@@ -108,11 +91,9 @@ function formatMoney(value) {
     maximumFractionDigits: 0,
   }).format(value || 0);
 }
-
 function BudgetBar({ spent, budget }) {
   const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
   const over = spent > budget;
-
   return (
     <div>
       <div className="mb-2 flex justify-between text-xs text-white/65">
@@ -121,28 +102,24 @@ function BudgetBar({ spent, budget }) {
         </span>
         <span>{Math.round(percentage)}%</span>
       </div>
-
       <div className="h-2 overflow-hidden rounded-full bg-white/15">
         <div
-          className={`h-full rounded-full transition-all ${
-            over
-              ? "bg-linear-to-r from-orange-300 to-red-400"
-              : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
-          }`}
+          className={`h-full rounded-full transition-all ${over
+            ? "bg-linear-to-r from-orange-300 to-red-400"
+            : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
+            }`}
           style={{ width: `${percentage}%` }}
         />
       </div>
     </div>
   );
 }
-
 function StatusBadge({ status }) {
   const styles = {
     Upcoming: "bg-sky-400/20 text-sky-100",
     Ongoing: "bg-yellow-300/20 text-yellow-100",
     Completed: "bg-emerald-400/20 text-emerald-100",
   };
-
   return (
     <span
       className={`rounded-full px-3 py-1 text-xs font-medium ${styles[status]}`}
@@ -151,24 +128,20 @@ function StatusBadge({ status }) {
     </span>
   );
 }
-
 function StatusStepper({ status }) {
   const current = STEPS.indexOf(status);
-
   return (
     <div className="flex items-center">
       {STEPS.map((step, index) => {
         const reached = index <= current;
-
         return (
           <div key={step} className="flex flex-1 items-center last:flex-none">
             <div className="flex flex-col items-center gap-1.5">
               <span
-                className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
-                  reached
-                    ? "border-indigo-300/70 bg-indigo-500/60 text-white"
-                    : "border-white/25 bg-white/5 text-white/40"
-                }`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${reached
+                  ? "border-indigo-300/70 bg-indigo-500/60 text-white"
+                  : "border-white/25 bg-white/5 text-white/40"
+                  }`}
               >
                 {reached ? "✓" : index + 1}
               </span>
@@ -178,12 +151,10 @@ function StatusStepper({ status }) {
                 {step}
               </span>
             </div>
-
             {index < STEPS.length - 1 && (
               <div
-                className={`mx-2 mb-5 h-0.5 flex-1 rounded-full ${
-                  index < current ? "bg-indigo-400/70" : "bg-white/15"
-                }`}
+                className={`mx-2 mb-5 h-0.5 flex-1 rounded-full ${index < current ? "bg-indigo-400/70" : "bg-white/15"
+                  }`}
               />
             )}
           </div>
@@ -192,22 +163,20 @@ function StatusStepper({ status }) {
     </div>
   );
 }
-
 /* ------------------------------------------------------------------ */
 /* Edit plan modal                                                    */
 /* ------------------------------------------------------------------ */
-
 function FieldError({ children }) {
   if (!children) return null;
   return <p className="mt-2 text-sm text-red-200">{children}</p>;
 }
-
 function EditPlanModal({ plan, onClose, onSave }) {
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     title: plan.title ?? "",
     destination: plan.destination ?? "",
     location: plan.location ?? null,
+    image: plan.image ?? null,
     startDate: plan.startDate ?? "",
     endDate: plan.endDate ?? "",
     activities: [...(plan.activities ?? [])],
@@ -227,7 +196,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
       amount: a.amount ? String(a.amount) : "",
     })),
   });
-
   const total = Number(form.budget) || 0;
   const spent = plan.spent ?? 0;
   const allocated = form.allocations.reduce(
@@ -235,27 +203,22 @@ function EditPlanModal({ plan, onClose, onSave }) {
     0,
   );
   const unallocated = total - allocated;
-
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
   function update(field, value) {
     setForm((c) => ({ ...c, [field]: value }));
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
   }
-
   const clearAllocError = () =>
     errors.allocation && setErrors((e) => ({ ...e, allocation: undefined }));
-
   const setActivity = (i, v) =>
     setForm((c) => ({
       ...c,
       activities: c.activities.map((a, idx) => (idx === i ? v : a)),
     }));
-
   const setAllocation = (i, field, v) => {
     setForm((c) => ({
       ...c,
@@ -265,7 +228,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
     }));
     clearAllocError();
   };
-
   function splitEvenly() {
     const count = form.allocations.length;
     if (count === 0 || total <= 0) return;
@@ -280,10 +242,8 @@ function EditPlanModal({ plan, onClose, onSave }) {
     }));
     clearAllocError();
   }
-
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-
     const next = {};
     if (!form.destination.trim()) next.destination = "Enter a destination.";
     if (!form.startDate) next.startDate = "Pick a start date.";
@@ -294,31 +254,34 @@ function EditPlanModal({ plan, onClose, onSave }) {
       next.allocation = "Give every allocated amount a category name.";
     else if (allocated > total)
       next.allocation = `Allocations are ${formatMoney(allocated - total)} over your total budget.`;
-
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-
     const budgetAllocations = form.allocations
       .filter((a) => a.name.trim() !== "")
       .map((a) => ({ category: a.name.trim(), amount: Number(a.amount) || 0 }));
-
-    onSave({
-      ...plan, // keeps id, spent, status, completedAt…
-      title: form.title.trim() || form.destination.trim(),
-      destination: form.destination.trim(),
-      location: form.location,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      activities: form.activities.filter((a) => a.trim() !== ""),
-      notes: form.notes,
-      budget: total,
-      budgetCategories: budgetAllocations.map((a) => a.category),
-      budgetAllocations,
-      template: form.template,
-      color: form.color,
-    });
+    try {
+      await onSave({
+        ...plan, // keeps id, spent, status, completedAt…
+        title: form.title.trim() || form.destination.trim(),
+        destination: form.destination.trim(),
+        location: form.location,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        activities: form.activities.filter((a) => a.trim() !== ""),
+        notes: form.notes,
+        budget: total,
+        budgetCategories: budgetAllocations.map((a) => a.category),
+        budgetAllocations,
+        template: form.template,
+        color: form.color,
+      });
+    } catch (error) {
+      setErrors((previous) => ({
+        ...previous,
+        submit: error.message || "Unable to update plan.",
+      }));
+    }
   }
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
@@ -335,7 +298,10 @@ function EditPlanModal({ plan, onClose, onSave }) {
         noValidate
         className="glass max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl"
       >
-        <div className={`relative h-32 bg-linear-to-br ${form.color}`}>
+        <div
+          className={`relative h-32 bg-cover bg-center bg-linear-to-br ${form.color}`}
+          style={form.image ? { backgroundImage: `url("${form.image}")` } : undefined}
+        >
           <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
           <button
             type="button"
@@ -352,7 +318,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
             </h2>
           </div>
         </div>
-
         <div className="flex flex-col gap-6 p-6 md:p-8">
           <div>
             <span className={fieldLabel}>Cover</span>
@@ -365,11 +330,10 @@ function EditPlanModal({ plan, onClose, onSave }) {
                   onClick={() =>
                     setForm((c) => ({ ...c, template: name, color: gradient }))
                   }
-                  className={`overflow-hidden rounded-xl border text-center text-xs transition hover:-translate-y-0.5 ${
-                    form.template === name
-                      ? "border-white/80 outline outline-2 outline-offset-2 outline-white/70"
-                      : "border-white/25"
-                  }`}
+                  className={`overflow-hidden rounded-xl border text-center text-xs transition hover:-translate-y-0.5 ${form.template === name
+                    ? "border-white/80 outline outline-2 outline-offset-2 outline-white/70"
+                    : "border-white/25"
+                    }`}
                 >
                   <div className={`h-10 bg-linear-to-br ${gradient}`} />
                   <span className="block bg-white/10 py-1.5">{name}</span>
@@ -377,7 +341,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
               ))}
             </div>
           </div>
-
           <div>
             <label htmlFor="edit-name" className={fieldLabel}>
               Plan name
@@ -390,7 +353,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
               className="glass-input w-full rounded-xl px-4 py-3"
             />
           </div>
-
           <div>
             <label htmlFor="edit-destination" className={fieldLabel}>
               Destination
@@ -401,20 +363,20 @@ function EditPlanModal({ plan, onClose, onSave }) {
               invalid={!!errors.destination}
               onChange={(text) => {
                 update("destination", text);
-                setForm((c) => ({ ...c, location: null }));
+                setForm((c) => ({ ...c, location: null, image: null }));
               }}
               onSelect={(loc) => {
                 setForm((c) => ({
                   ...c,
                   destination: loc.label,
                   location: loc,
+                  image: loc.image || null,
                 }));
                 setErrors((e) => ({ ...e, destination: undefined }));
               }}
             />
             <FieldError>{errors.destination}</FieldError>
           </div>
-
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label htmlFor="edit-start" className={fieldLabel}>
@@ -446,7 +408,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
               <FieldError>{errors.endDate}</FieldError>
             </div>
           </div>
-
           <div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium text-white/80">
@@ -494,7 +455,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
               ))}
             </div>
           </div>
-
           <div>
             <label htmlFor="edit-notes" className={fieldLabel}>
               Notes
@@ -508,7 +468,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
               className="glass-input w-full resize-y rounded-xl px-4 py-3"
             />
           </div>
-
           <div>
             <label htmlFor="edit-budget" className={fieldLabel}>
               Total budget
@@ -536,7 +495,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
                 : `Spent so far: ${formatMoney(spent)}. Spending is tracked in the Budget tab.`}
             </p>
           </div>
-
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-medium text-white/80">
@@ -565,7 +523,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
                 </button>
               </div>
             </div>
-
             <div className="rounded-2xl border border-white/20 bg-white/5 p-4">
               <BudgetBar spent={allocated} budget={total} />
               <p
@@ -575,7 +532,6 @@ function EditPlanModal({ plan, onClose, onSave }) {
                   ? `${formatMoney(-unallocated)} over your total budget`
                   : `${formatMoney(unallocated)} unallocated`}
               </p>
-
               <div className="mt-4 flex flex-col gap-3">
                 {form.allocations.length === 0 && (
                   <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
@@ -628,11 +584,11 @@ function EditPlanModal({ plan, onClose, onSave }) {
             </div>
             <FieldError>{errors.allocation}</FieldError>
           </div>
-
           <div className="flex items-center justify-between pt-2">
             <button type="button" onClick={onClose} className={ghostBtn}>
               Cancel
             </button>
+            <FieldError>{errors.submit}</FieldError>
             <button type="submit" className={primaryBtn}>
               Save changes
             </button>
@@ -642,25 +598,26 @@ function EditPlanModal({ plan, onClose, onSave }) {
     </div>
   );
 }
-
 /* ------------------------------------------------------------------ */
 /* Cards and details                                                  */
 /* ------------------------------------------------------------------ */
-
 function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
   const status = getStatus(plan);
   const ready = canComplete(plan);
-
   return (
     <article
-      className={`glass overflow-hidden rounded-3xl transition duration-200 hover:-translate-y-1 ${
-        status === "Completed" ? "opacity-90" : ""
-      }`}
+      className={`glass overflow-hidden rounded-3xl transition duration-200 hover:-translate-y-1 ${status === "Completed" ? "opacity-90" : ""
+        }`}
     >
       <div
-        className={`h-48 bg-linear-to-br ${plan.color} ${status === "Completed" ? "saturate-50" : ""}`}
+        className={`h-48 bg-cover bg-center ${status === "Completed" ? "saturate-50" : ""
+          }`}
+        style={{
+          backgroundImage: plan.image
+            ? `linear-gradient(to top, rgba(0,0,0,0.25), transparent), url("${plan.image}")`
+            : "linear-gradient(135deg, #2dd4bf, #6366f1)",
+        }}
       />
-
       <div className="p-5">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
@@ -670,14 +627,16 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
               {formatDateRange(plan.startDate, plan.endDate)}
             </p>
           </div>
-
           <StatusBadge status={status} />
         </div>
-
-        <BudgetBar spent={plan.spent} budget={plan.budget} />
-
+        <BudgetBar
+          spent={(plan.budgetAllocations ?? []).reduce(
+            (total, item) => total + Number(item.amount || 0),
+            0
+          )}
+          budget={plan.budget}
+        />
         <p className="mt-3 text-xs text-white/55">{getCountdown(plan)}</p>
-
         <div className="mt-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-4">
             <button
@@ -687,7 +646,6 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
             >
               View plan
             </button>
-
             {status !== "Completed" && (
               <button
                 type="button"
@@ -699,7 +657,6 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
               </button>
             )}
           </div>
-
           {ready && (
             <button
               type="button"
@@ -709,7 +666,6 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
               ✓ Mark completed
             </button>
           )}
-
           <button
             type="button"
             onClick={onDelete}
@@ -722,21 +678,20 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
     </article>
   );
 }
-
 function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
-
   const status = getStatus(plan);
   const ready = canComplete(plan);
   const duration = daysBetween(plan.startDate, plan.endDate) + 1;
-  const remaining = plan.budget - plan.spent;
-
+  const allocated = (plan.budgetAllocations ?? []).reduce(
+    (sum, item) => sum + Number(item.amount || 0), 0
+  );
+  const remaining = plan.budget - allocated;
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
@@ -752,9 +707,11 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
         className="glass max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl"
       >
         {/* Header */}
-        <div className={`relative h-40 bg-linear-to-br ${plan.color}`}>
+        <div
+          className={`relative h-40 bg-cover bg-center bg-linear-to-br ${plan.color}`}
+          style={plan.image ? { backgroundImage: `url("${plan.image}")` } : undefined}
+        >
           <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/50 to-transparent" />
-
           <button
             type="button"
             onClick={onClose}
@@ -763,18 +720,15 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
           >
             ×
           </button>
-
           <div className="absolute bottom-4 left-6">
             <StatusBadge status={status} />
           </div>
         </div>
-
         <div className="p-6">
           <h2 id="plan-title" className="text-2xl font-bold">
             {plan.title}
           </h2>
           <p className="mt-1 text-white/70">{plan.destination}</p>
-
           {/* Quick facts */}
           <div className="mt-5 grid grid-cols-3 gap-3 text-center">
             <div className="rounded-2xl bg-white/10 px-2 py-3">
@@ -800,12 +754,10 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
               <p className="mt-1 text-sm font-medium">{getCountdown(plan)}</p>
             </div>
           </div>
-
           {/* Progress */}
           <div className="mt-6">
             <StatusStepper status={status} />
           </div>
-
           {/* Budget */}
           <div className="mt-6 rounded-2xl bg-white/10 p-4">
             <div className="mb-3 flex items-baseline justify-between">
@@ -818,8 +770,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                   : `${formatMoney(remaining)} left`}
               </span>
             </div>
-            <BudgetBar spent={plan.spent} budget={plan.budget} />
-
+            <BudgetBar spent={allocated} budget={plan.budget} />
             {plan.budgetAllocations?.length > 0 && (
               <ul className="mt-4 flex flex-col gap-1.5 border-t border-white/15 pt-3 text-xs text-white/70">
                 {plan.budgetAllocations.map((a) => (
@@ -831,7 +782,6 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
               </ul>
             )}
           </div>
-
           {/* Actions */}
           <div className="mt-6">
             {status === "Completed" ? (
@@ -844,15 +794,13 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                   type="button"
                   disabled={!ready}
                   onClick={onComplete}
-                  className={`h-11 w-full rounded-xl font-semibold transition ${
-                    ready
-                      ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] hover:scale-105 active:scale-95"
-                      : "cursor-not-allowed border border-white/15 bg-white/5 text-white/40"
-                  }`}
+                  className={`h-11 w-full rounded-xl font-semibold transition ${ready
+                    ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] hover:scale-105 active:scale-95"
+                    : "cursor-not-allowed border border-white/15 bg-white/5 text-white/40"
+                    }`}
                 >
                   ✓ Mark as completed
                 </button>
-
                 {!ready && (
                   <p className="mt-2 text-center text-xs text-white/50">
                     Available once the trip ends (after{" "}
@@ -861,7 +809,6 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                 )}
               </>
             )}
-
             <div className="mt-4 flex items-center justify-between">
               <button
                 type="button"
@@ -870,7 +817,6 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
               >
                 Close
               </button>
-
               {status !== "Completed" && (
                 <button
                   type="button"
@@ -880,12 +826,9 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                   ✎ Edit plan
                 </button>
               )}
-
               <button
                 type="button"
-                onClick={() =>
-                  confirmDelete ? onDelete() : setConfirmDelete(true)
-                }
+                onClick={onDelete}
                 onBlur={() => setConfirmDelete(false)}
                 className="text-sm text-red-200/70 transition hover:text-red-200"
               >
@@ -898,58 +841,199 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
     </div>
   );
 }
-
 /* ------------------------------------------------------------------ */
 /* Page                                                               */
 /* ------------------------------------------------------------------ */
-
 export default function MyPlansPage() {
-  const [plans, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
-
+  const [planToDelete, setPlanToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const safePlans = Array.isArray(plans) ? plans : [];
   const selectedPlan = safePlans.find((plan) => plan.id === selectedId) ?? null;
   const editingPlan = safePlans.find((plan) => plan.id === editingId) ?? null;
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPlans() {
+      try {
+        const response = await fetch("/api/plans", {
+          cache: "no-store",
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            result.error?.message ||
+            "Failed to load plans."
+          );
+        }
+        if (!Array.isArray(result.data)) {
+          throw new Error("Invalid plans response.");
+        }
+        const normalized = result.data.map((plan) => ({
+          ...plan,
+          status: plan.completedAt ? "Completed" : undefined,
+          template: plan.templateType ?? "Blank",
+          color:
+            COVERS[plan.templateType] ?? COVERS.Blank,
+        }));
+        if (!cancelled) {
+          setPlans(normalized);
+
+          // Dashboard View Trip: open the matching My Plans details modal.
+          const tripId = new URLSearchParams(window.location.search).get("trip");
+          if (tripId) {
+            const matchingPlan = normalized.find(
+              (plan) => String(plan.id) === tripId
+            );
+            if (matchingPlan) {
+              setFilter("All");
+              setSelectedId(matchingPlan.id);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Loading plans failed:", error);
+        if (!cancelled) {
+          setLoadError(error.message);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadPlans();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredPlans = useMemo(() => {
     if (filter === "All") return safePlans;
     return safePlans.filter((plan) => getStatus(plan) === filter);
   }, [safePlans, filter]);
 
-  function deletePlan(id) {
-    setPlans((current) => current.filter((plan) => plan.id !== id));
-    setSelectedId(null);
+
+  async function deletePlan(id) {
+    if (deleting) return;
+
+    setDeleting(true);
+
+    try {
+      const response = await fetch(`/api/plans/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(
+          result?.error?.message || "Failed to delete plan."
+        );
+      }
+
+      setPlans((current) =>
+        current.filter((plan) => plan.id !== id)
+      );
+
+      setSelectedId(null);
+      setEditingId(null);
+      setPlanToDelete(null);
+    } catch (error) {
+      console.error("Delete plan failed:", error);
+      alert(error.message || "Unable to delete plan.");
+    } finally {
+      setDeleting(false);
+    }
   }
 
-  function completePlan(id) {
-    setPlans((current) =>
-      current.map((plan) =>
-        plan.id === id && canComplete(plan)
-          ? { ...plan, status: "Completed", completedAt: todayString() }
-          : plan,
-      ),
-    );
+  async function completePlan(id) {
+    try {
+      const response = await fetch(`/api/plans/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          markCompleted: true,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          result.error?.message || "Failed to complete plan."
+        );
+      }
+      const saved = result.data;
+      setPlans((current) =>
+        current.map((plan) =>
+          plan.id === id
+            ? {
+              ...plan,
+              ...saved,
+              status: "Completed",
+            }
+            : plan
+        )
+      );
+      setSelectedId(null);
+    } catch (error) {
+      console.error("Complete plan failed:", error);
+      alert(error.message || "Unable to complete plan.");
+    }
   }
-
   function startEdit(id) {
     setSelectedId(null); // close the details popup if it was open
     setEditingId(id);
   }
-
-  function updatePlan(updated) {
+  async function updatePlan(updated) {
+    const response = await fetch(`/api/plans/${updated.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: updated.title,
+        destination: updated.destination,
+        image: updated.image,
+        startDate: updated.startDate,
+        endDate: updated.endDate,
+        notes: updated.notes,
+        budget: Number(updated.budget),
+        templateType: updated.template,
+        activities: updated.activities,
+        budgetAllocations: updated.budgetAllocations,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        result.error?.message || "Failed to update plan."
+      );
+    }
+    const saved = result.data;
     setPlans((current) =>
-      current.map((plan) => (plan.id === updated.id ? updated : plan)),
+      current.map((plan) =>
+        plan.id === saved.id
+          ? {
+            ...saved,
+            status: saved.completedAt ? "Completed" : undefined,
+            template: saved.templateType ?? "Blank",
+            color: COVERS[saved.templateType] ?? COVERS.Blank,
+          }
+          : plan
+      )
     );
     setEditingId(null);
   }
-
   return (
     <Background>
       <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
         <Navbar />
-
         <main className="flex flex-1 flex-col">
           <Link
             href="/Main/HOME"
@@ -957,13 +1041,11 @@ export default function MyPlansPage() {
           >
             ← Back
           </Link>
-
           <section className="mb-8 flex items-end justify-between">
             <div>
               <p className="mb-1 text-sm text-white/60">Your adventures</p>
               <h1 className="text-4xl font-bold">My plans</h1>
             </div>
-
             <Link
               href="/newplan"
               className="rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-3 text-sm font-semibold shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95"
@@ -971,25 +1053,30 @@ export default function MyPlansPage() {
               + New plan
             </Link>
           </section>
-
           <div className="mb-7 flex flex-wrap gap-2">
             {FILTERS.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setFilter(tab)}
-                className={`rounded-full border px-4 py-2 text-sm transition ${
-                  filter === tab
-                    ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                    : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
-                }`}
+                className={`rounded-full border px-4 py-2 text-sm transition ${filter === tab
+                  ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+                  : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
+                  }`}
               >
                 {tab}
               </button>
             ))}
           </div>
-
-          {filteredPlans.length > 0 ? (
+          {loading ? (
+            <p className="text-white/70">
+              Loading your plans...
+            </p>
+          ) : loadError ? (
+            <p className="text-red-300">
+              {loadError}
+            </p>
+          ) : filteredPlans.length > 0 ? (
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {filteredPlans.map((plan) => (
                 <PlanCard
@@ -998,7 +1085,7 @@ export default function MyPlansPage() {
                   onView={() => setSelectedId(plan.id)}
                   onEdit={() => startEdit(plan.id)}
                   onComplete={() => completePlan(plan.id)}
-                  onDelete={() => deletePlan(plan.id)}
+                  onDelete={() => setPlanToDelete(plan)}
                 />
               ))}
             </section>
@@ -1010,7 +1097,6 @@ export default function MyPlansPage() {
                   ? "Create your first plan"
                   : `No ${filter.toLowerCase()} plans`}
               </h2>
-
               <Link
                 href="/newplan"
                 className="mt-6 inline-block rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-5 py-3 font-semibold shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95"
@@ -1020,17 +1106,15 @@ export default function MyPlansPage() {
             </section>
           )}
         </main>
-
         {selectedPlan && (
           <PlanDetails
             plan={selectedPlan}
             onClose={() => setSelectedId(null)}
             onEdit={() => startEdit(selectedPlan.id)}
             onComplete={() => completePlan(selectedPlan.id)}
-            onDelete={() => deletePlan(selectedPlan.id)}
+            onDelete={() => setPlanToDelete(selectedPlan)}
           />
         )}
-
         {editingPlan && (
           <EditPlanModal
             plan={editingPlan}
@@ -1038,6 +1122,69 @@ export default function MyPlansPage() {
             onSave={updatePlan}
           />
         )}
+
+
+        {planToDelete && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onMouseDown={(e) => {
+              if (!deleting && e.target === e.currentTarget) {
+                setPlanToDelete(null);
+              }
+            }}
+          >
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="delete-plan-title"
+              aria-describedby="delete-plan-description"
+              className="glass-dark w-full max-w-sm rounded-3xl border border-white/20 p-6 text-center shadow-2xl"
+            >
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/15 text-2xl">
+                🗑️
+              </div>
+
+              <h2
+                id="delete-plan-title"
+                className="text-xl font-bold text-white"
+              >
+                Delete this plan?
+              </h2>
+
+              <p
+                id="delete-plan-description"
+                className="mt-3 text-sm leading-relaxed text-white/65"
+              >
+                Are you sure you want to delete{" "}
+                <strong className="text-white">
+                  {planToDelete.title}
+                </strong>
+                ? This action cannot be undone.
+              </p>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPlanToDelete(null)}
+                  disabled={deleting}
+                  className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => deletePlan(planToDelete.id)}
+                  disabled={deleting}
+                  className="flex-1 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-500 disabled:opacity-50"
+                >
+                  {deleting ? "Deleting..." : "Delete Plan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </Background>
   );
