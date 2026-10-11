@@ -420,7 +420,7 @@ export default function DashboardClient({ name }) {
                 </span>
               </h1>
               <p className="mt-0.5 text-sky-300">
-                Ready for your next adventure?
+                Ready for your next na adventure gala?
               </p>
             </div>
           </div>
@@ -435,7 +435,7 @@ export default function DashboardClient({ name }) {
         {/* HERO: NEXT TRIP */}
         {loading ? (
           <section className={`${PANEL} p-8`}>
-            Loading your next trip...
+            Loading your next na gala...
           </section>
         ) : error ? (
           <section className={`${PANEL} p-8 text-red-200`}>{error}</section>
@@ -454,10 +454,10 @@ export default function DashboardClient({ name }) {
               <div>
                 <p className="flex flex-wrap items-center gap-2 text-sm font-semibold tracking-wider text-indigo-200">
                   <Icon name="pin" className="h-5 w-5" />
-                  YOUR NEXT TRIP
+                  YOUR NEXT NA GALA
                   {isDemo && (
                     <span className="rounded-full border border-indigo-300/40 bg-indigo-500/30 px-2.5 py-0.5 text-[10px] font-medium tracking-normal text-indigo-100">
-                      Sample trip
+                      Sample Gala
                     </span>
                   )}
                 </p>
@@ -607,7 +607,7 @@ export default function DashboardClient({ name }) {
           <Card
             title="Trip Budget Planner"
             subtitle={nextTrip?.title || "No trip selected"}
-            icon={<Icon name="wallet" className="h-6 w-6" />}
+            icon={<Icon name="Wallet" className="h-6 w-6" />}
             boxedIcon
             glow="from-indigo-500/20"
           >
