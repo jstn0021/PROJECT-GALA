@@ -83,9 +83,8 @@ export function CardImage({
           onError={(e) => {
             e.currentTarget.style.display = "none";
           }}
-          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${
-            dim ? "saturate-50" : ""
-          }`}
+          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${dim ? "saturate-50" : ""
+            }`}
         />
       )}
       <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-black/30" />
@@ -138,6 +137,33 @@ const ICONS = {
   edit: <path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4zM13.5 6.5l4 4" />,
   arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+  arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+
+  mountain: (
+    <>
+      <path d="M3 20l6.5-11 4 6.5 2.5-4L21 20z" />
+      <path d="M7.8 12.5l1.7-1.2 1.4 1.4" />
+    </>
+  ),
+  wallet: (
+    <>
+      <path d="M4 7.5A2.5 2.5 0 016.5 5H18a1 1 0 011 1v2" />
+      <path d="M4 7.5V17a2 2 0 002 2h13a1 1 0 001-1V9a1 1 0 00-1-1H6.5A2.5 2.5 0 014 7.5z" />
+      <circle cx="16.5" cy="13.5" r="1.2" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
 };
 
 export function Icon({ name, className = "h-5 w-5" }) {
