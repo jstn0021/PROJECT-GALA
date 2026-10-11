@@ -39,6 +39,11 @@ const ghostBtn =
 const smallBtn =
   "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
 
+// ✅ Idagdag ang mga ito na kulang sa orihinal mong code:
+const label = "block text-sm font-medium text-white/80 mb-1";
+const primaryBtn =
+  "rounded-full bg-white px-6 py-2.5 font-medium text-slate-900 transition hover:bg-white/90";
+
 const peso = (n) =>
   new Intl.NumberFormat("en-PH", {
     style: "currency",
@@ -58,19 +63,19 @@ function FieldError({ id, children }) {
 export default function EditPlanModal({ plan, onClose, onSave }) {
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
-    title: plan.title ?? "",
-    destination: plan.destination ?? "",
-    location: plan.location ?? null,
-    startDate: plan.startDate ?? "",
-    endDate: plan.endDate ?? "",
-    activities: plan.activities?.length ? [...plan.activities] : [],
-    notes: plan.notes ?? "",
-    budget: plan.budget ? String(plan.budget) : "",
-    template: plan.template ?? "Blank",
+    title: plan?.title ?? "",
+    destination: plan?.destination ?? "",
+    location: plan?.location ?? null,
+    startDate: plan?.startDate ?? "",
+    endDate: plan?.endDate ?? "",
+    activities: plan?.activities?.length ? [...plan.activities] : [],
+    notes: plan?.notes ?? "",
+    budget: plan?.budget ? String(plan.budget) : "",
+    template: plan?.template ?? "Blank",
   });
 
   const option = TEMPLATE_OPTIONS[form.template] ?? TEMPLATE_OPTIONS.Blank;
-  const spent = plan.spent ?? 0;
+  const spent = plan?.spent ?? 0;
   const budgetNumber = Number(form.budget) || 0;
 
   useEffect(() => {
@@ -114,7 +119,7 @@ export default function EditPlanModal({ plan, onClose, onSave }) {
     if (Object.keys(found).length > 0) return;
 
     onSave({
-      ...plan, // keeps id, spent, status, completedAt, etc.
+      ...plan,
       title: form.title.trim() || form.destination.trim(),
       destination: form.destination.trim(),
       location: form.location,

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const PROTECTED = [
-  /*"/dashboard",
+  "/dashboard",
   "/my-plans",
   "/bucket-list",
   "/journal",
@@ -11,7 +11,6 @@ const PROTECTED = [
   "/profile",
   "/activity",
   "/admin",
-  "/profile"*/
 ];
 
 const isUnder = (pathname, base) =>

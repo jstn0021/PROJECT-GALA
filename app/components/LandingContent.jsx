@@ -1,8 +1,8 @@
 import Link from "next/link";
+import LandingSearchBar from "app/components/LandingSearchBar";
 
 export const BRAND = "PROJECT-GALA";
 
-// slot = susi sa site_images (puwedeng palitan ng superadmin sa /admin/images)
 const DESTINATIONS = [
   {
     name: "Baguio",
@@ -60,8 +60,6 @@ const FEATURES = [
 const goldBtn =
   "rounded-full bg-amber-400 px-5 py-2 font-semibold text-slate-900 transition hover:bg-amber-300";
 
-// Presentational lang (walang session / server logic) kaya magagamit sa landing
-// at bilang naka-blur na backdrop ng login/signup pages.
 function initials(name) {
   const w = name.trim().split(/\s+/);
   return (
@@ -69,6 +67,8 @@ function initials(name) {
   ).toUpperCase();
 }
 
+// Presentational lang (walang session / server logic) kaya magagamit sa landing
+// at bilang naka-blur na backdrop ng login/signup pages.
 export default function LandingContent({ images = {}, credits = [] }) {
   return (
     <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
@@ -121,32 +121,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
           travel memories, all in one place.
         </p>
 
-        <form
-          action="/explore"
-          className="glass-input mt-8 flex max-w-xl items-center gap-2 rounded-full p-1.5"
-        >
-          <span className="pl-4" aria-hidden="true">
-            📍
-          </span>
-          <input
-            name="q"
-            placeholder="Where do you want to go?"
-            className="min-w-0 flex-1 bg-transparent px-2 py-2 text-white placeholder:text-white/70 focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="rounded-full bg-slate-900/70 px-6 py-2.5 font-medium transition hover:bg-slate-900"
-          >
-            Search
-          </button>
-        </form>
-
-        <Link
-          href="/signup"
-          className="mt-5 inline-block rounded-full bg-slate-900/70 px-6 py-2.5 font-medium transition hover:bg-slate-900"
-        >
-          Explore destinations
-        </Link>
+        <LandingSearchBar />
       </section>
 
       {/* Featured destinations */}
@@ -230,6 +205,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
           </Link>
         </div>
       </section>
+
       {/* Credits */}
       {credits.length > 0 && (
         <section id="credits" className="pb-4">
@@ -248,9 +224,9 @@ export default function LandingContent({ images = {}, credits = [] }) {
                   style={
                     c.photoUrl
                       ? {
-                          backgroundImage: `url('${c.photoUrl}')`,
-                          backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
-                        }
+                        backgroundImage: `url('${c.photoUrl}')`,
+                        backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
+                      }
                       : undefined
                   }
                 >
