@@ -4,23 +4,6 @@ import { listBucketItems, createBucketItem } from "../../../lib/tripsStore";
 
 export const dynamic = "force-dynamic";
 
-// Helper para ma-bypass ang Auth sa local development/testing
-async function getAuthenticatedUser() {
-  try {
-    const user = await getCurrentUser();
-    if (user) return user;
-  } catch (err) {
-    console.warn("Auth check failed, using mock dev user");
-  }
-
-  // MOCK DEV USER: Ito ang gagamitin kapag walang nakalogin
-  return {
-    id: "dev-user-id-123",
-    email: "dev@projectgala.ph",
-    name: "Developer",
-  };
-}
-
 // Nililinis at chine-check ang pangalan ng place
 function cleanName(value) {
   const name = typeof value === "string" ? value.trim() : "";
@@ -29,41 +12,25 @@ function cleanName(value) {
   return { name };
 }
 
-function cleanText(value, max) {
-  if (typeof value !== "string") return null;
-  const v = value.trim();
-  return v && v.length <= max ? v : null;
-}
-
-// Tinatanggap lang ang http(s) link o path sa /public
-function cleanImage(value) {
-  const v = cleanText(value, 500);
-  if (!v) return null;
-  if (v.startsWith("/") && !v.startsWith("//")) return v;
-  return /^https?:\/\//i.test(v) ? v : null;
-}
-
 // GET /api/bucket-list: listahan ng places ng user
 export async function GET() {
   try {
-    const user = await getAuthenticatedUser();
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
 
     const places = await listBucketItems(user.id);
     return NextResponse.json({ places });
   } catch (error) {
     console.error("GET /api/bucket-list failed:", error);
-    return NextResponse.json(
-      { error: error?.message || "Something went wrong", code: error?.code },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
-// POST /api/bucket-list: magdagdag ng place.
-// Body: { "name": "Kyoto", "image": "https://...", "location": "Japan" }
+// POST /api/bucket-list: magdagdag ng place. Body: { "name": "Kyoto" }
 export async function POST(request) {
   try {
-    const user = await getAuthenticatedUser();
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
 
     let body;
     try {
@@ -73,25 +40,20 @@ export async function POST(request) {
     }
 
     const { name, error } = cleanName(body?.name);
-    if (error)
-      return NextResponse.json({ errors: { name: error } }, { status: 400 });
+    if (error) return NextResponse.json({ errors: { name: error } }, { status: 400 });
 
     const place = await createBucketItem(user.id, name, {
-      image: cleanImage(body?.image),
-      location: cleanText(body?.location, 200),
+      image: typeof body.image === "string" ? body.image : null,
+      location: typeof body.location === "string" ? body.location : null,
     });
+
     return NextResponse.json(place, { status: 201 });
-  } catch (error) {
-    if (error?.code === "DUPLICATE") {
-      return NextResponse.json(
-        { errors: { name: "That place is already on your list." } },
-        { status: 409 },
-      );
+  }
+  catch (error) {
+    if (error.code === "DUPLICATE") {
+      return NextResponse.json({ errors: { name: "That place is already on your list." } }, { status: 409 });
     }
     console.error("POST /api/bucket-list failed:", error);
-    return NextResponse.json(
-      { error: error?.message || "Something went wrong", code: error?.code },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

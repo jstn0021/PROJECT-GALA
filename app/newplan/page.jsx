@@ -6,10 +6,18 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  useStoredState,
-  PLANS_KEY,
-  SEED_PLANS,
-} from "@/app/components/usePlanStore";
+  PANEL,
+  CARD,
+  GRID,
+  PAGE_WRAP,
+  PageHeader,
+  CardImage,
+  primaryBtn,
+  ghostBtn,
+  smallBtn,
+  fieldLabel as label,
+  Icon,
+} from "@/app/components/ui";
 
 /* ------------------------------------------------------------------ */
 /* Templates                                                          */
@@ -18,7 +26,7 @@ const TEMPLATES = {
   Blank: {
     description: "Start empty",
     image: "/new-plan/blank.jpg",
-    gradient: "",
+    gradient: "from-teal-300 to-indigo-500",
     activities: [],
     notes: "",
     budgetCategories: [],
@@ -69,18 +77,6 @@ const TEMPLATES = {
   },
 };
 
-const DEFAULT_GRADIENT = "from-teal-300 to-indigo-500";
-
-// Mga reusable na class
-const primaryBtn =
-  "rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-3 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
-
-const ghostBtn =
-  "glass-dark rounded-full px-5 py-2.5 text-white/90 transition hover:bg-white/10";
-const smallBtn =
-  "glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10";
-const label = "mb-2 block text-sm font-medium text-white/80";
-
 const peso = (n) =>
   new Intl.NumberFormat("en-PH", {
     style: "currency",
@@ -100,7 +96,7 @@ function StepIndicator({ step }) {
     <span
       className={`rounded-full border px-4 py-1 text-sm ${
         step === n
-          ? "border-white/60 bg-white/25 text-white"
+          ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
           : "border-white/20 bg-white/5 text-white/60"
       }`}
     >
@@ -108,10 +104,7 @@ function StepIndicator({ step }) {
     </span>
   );
   return (
-    <div
-      className="mt-6 flex items-center gap-3"
-      aria-label={`Step ${step} of 2`}
-    >
+    <div className="flex items-center gap-3" aria-label={`Step ${step} of 2`}>
       {item(1)}
       <div className="h-px w-10 bg-white/30" />
       {item(2)}
@@ -119,34 +112,32 @@ function StepIndicator({ step }) {
   );
 }
 
+// Kapareho ng Explore card: 16/11 image + p-5 content
 function TemplateCard({ name, template, selected, onSelect }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={() => onSelect(name)}
-      className={`glass overflow-hidden rounded-3xl text-left transition hover:-translate-y-1 hover:bg-white/10 ${
+      className={`${CARD} text-left ${
         selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
       }`}
     >
-      <div
-        className={`relative h-32 overflow-hidden ${
-          template.gradient
-            ? `bg-gradient-to-br ${template.gradient}`
-            : "border-b border-dashed border-white/30 bg-white/5"
-        }`}
-      >
-        {template.image && (
-          <img
-            src={template.image}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+      <CardImage src={template.image} alt="" gradient={template.gradient}>
+        {selected && (
+          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-indigo-500 px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/50">
+            <Icon name="check" className="h-3.5 w-3.5" />
+            Selected
+          </span>
         )}
-      </div>
-      <div className="p-4">
-        <strong className="block text-lg font-semibold">{name}</strong>
-        <span className="text-sm text-white/70">{template.description}</span>
+      </CardImage>
+      <div className="flex flex-1 flex-col p-5">
+        <strong className="block text-xl font-bold tracking-tight transition group-hover:text-indigo-300">
+          {name}
+        </strong>
+        <span className="mt-1 text-xs text-white/70">
+          {template.description}
+        </span>
       </div>
     </button>
   );
@@ -154,7 +145,7 @@ function TemplateCard({ name, template, selected, onSelect }) {
 
 function PreviewSection({ title, items }) {
   return (
-    <div className="glass rounded-3xl p-5">
+    <div className={`${PANEL} p-5`}>
       <h3 className="mb-3 font-semibold">{title}</h3>
       <div className="flex flex-col gap-2">
         {items.length > 0 ? (
@@ -213,15 +204,11 @@ function BudgetAllocation({
             type="button"
             onClick={onSplit}
             disabled={total <= 0 || rows.length === 0}
-            className="rounded-xl border border-white/30 bg-white/10 px-3 py-1.5 text-sm transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            className={`${smallBtn} disabled:cursor-not-allowed disabled:opacity-40`}
           >
             Split evenly
           </button>
-          <button
-            type="button"
-            onClick={onAdd}
-            className="glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
-          >
+          <button type="button" onClick={onAdd} className={smallBtn}>
             + Add category
           </button>
         </div>
@@ -303,7 +290,7 @@ function BudgetAllocation({
                   aria-label={`Remove ${row.name || "category"}`}
                   className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
                 >
-                  ×
+                  <Icon name="close" className="h-4 w-4" />
                 </button>
               </div>
             );
@@ -321,7 +308,6 @@ function BudgetAllocation({
 /* ------------------------------------------------------------------ */
 export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const router = useRouter();
-  const [, setPlans] = useStoredState(PLANS_KEY, SEED_PLANS);
 
   const [step, setStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState("Blank");
@@ -330,6 +316,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
   const [form, setForm] = useState({
     destination: initialDestination,
     location: null,
+    image: null,
     startDate: "",
     endDate: "",
     activities: [],
@@ -448,11 +435,12 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
     return next;
   }
 
-  function savePlan(event) {
+  async function savePlan(event) {
     event.preventDefault();
 
     const found = validate();
     setErrors(found);
+
     if (Object.keys(found).length > 0) return;
 
     const budgetAllocations = form.allocations
@@ -462,30 +450,53 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
         amount: Number(a.amount) || 0,
       }));
 
-    const newPlan = {
-      id: Date.now(),
-      title: form.destination.trim() || "New plan",
-      location: form.location,
+    const payload = {
+      title: form.destination.trim(),
       destination: form.destination.trim(),
+      image: form.image,
       startDate: form.startDate,
       endDate: form.endDate,
       activities: form.activities.filter((a) => a.trim() !== ""),
       notes: form.notes,
       budget: totalBudget,
-      spent: 0,
-      // Same shape as before (array of names), so other pages keep working
-      budgetCategories: budgetAllocations.map((a) => a.category),
-      // New: how much of the budget goes to each category
+      templateType: selectedTemplate,
       budgetAllocations,
-      template: selectedTemplate,
-      color: template.gradient || DEFAULT_GRADIENT,
     };
 
-    if (onSave) {
-      onSave(newPlan);
-    } else {
-      setPlans((cur) => [newPlan, ...cur]);
-      router.push("/my-plans");
+    try {
+      const response = await fetch("/api/plans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Create plan failed:", result);
+
+        setErrors((prev) => ({
+          ...prev,
+          submit:
+            result.message || result.error?.message || "Failed to save plan.",
+        }));
+        return;
+      }
+
+      if (onSave) {
+        await onSave(result);
+      } else {
+        router.push("/my-plans");
+      }
+    } catch (error) {
+      console.error("Failed to save plan:", error);
+
+      setErrors((prev) => ({
+        ...prev,
+        submit: "Unable to save plan. Please try again.",
+      }));
     }
   }
 
@@ -496,32 +507,30 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
   return (
     <Background>
-      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 md:px-8 md:py-6 xl:px-12">
+      <div className={PAGE_WRAP}>
         <Navbar />
 
-        <main className="flex flex-1 flex-col">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-                New plan
-              </h1>
-              <p className="mt-2 text-white/70">
-                {step === 1
-                  ? "Step 1 of 2: choose a template"
-                  : "Step 2 of 2: plan details"}
-              </p>
-            </div>
-            <button type="button" onClick={handleCancel} className={ghostBtn}>
-              Cancel
-            </button>
-          </div>
+        <main className="flex flex-1 flex-col gap-6">
+          <PageHeader
+            title="New Plan"
+            subtitle={
+              step === 1
+                ? "Step 1 of 2: choose a template"
+                : "Step 2 of 2: plan details"
+            }
+            action={
+              <button type="button" onClick={handleCancel} className={ghostBtn}>
+                Cancel
+              </button>
+            }
+          />
 
           <StepIndicator step={step} />
 
           {/* ---------------- STEP 1 ---------------- */}
           {step === 1 && (
-            <section className="mt-8">
-              <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+            <section className="flex flex-col gap-6">
+              <div className={GRID}>
                 {Object.entries(TEMPLATES).map(([name, t]) => (
                   <TemplateCard
                     key={name}
@@ -533,12 +542,12 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 ))}
               </div>
 
-              <p className="mt-6 text-white/70">
+              <p className="text-white/70">
                 The selected template pre-fills these. Everything stays
                 editable.
               </p>
 
-              <div className="mt-4 grid gap-5 md:grid-cols-3">
+              <div className="grid gap-5 md:grid-cols-3">
                 <PreviewSection
                   title="Activities"
                   items={template.activities.slice(0, 3)}
@@ -553,7 +562,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 />
               </div>
 
-              <div className="mt-8 flex justify-end">
+              <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={() => setStep(2)}
@@ -570,7 +579,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
             <form
               onSubmit={savePlan}
               noValidate
-              className="glass mt-8 flex w-full flex-col gap-6 rounded-3xl p-6 md:p-8"
+              className={`${PANEL} flex w-full flex-col gap-6 p-6 md:p-8`}
             >
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <span className="text-white/70">Template</span>
@@ -580,13 +589,13 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="underline underline-offset-4 text-white/80 hover:text-white"
+                  className="text-white/80 underline underline-offset-4 hover:text-white"
                 >
                   Change
                 </button>
               </div>
 
-              <div>
+              <div className="relative z-30">
                 <label htmlFor="destination" className={label}>
                   Destination
                 </label>
@@ -595,16 +604,25 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                   value={form.destination}
                   invalid={!!errors.destination}
                   onChange={(text) => {
-                    updateForm("destination", text);
-                    setForm((c) => ({ ...c, location: null }));
+                    setForm((c) => ({
+                      ...c,
+                      destination: text,
+                      location: null,
+                      image: null,
+                    }));
                   }}
                   onSelect={(loc) => {
                     setForm((c) => ({
                       ...c,
                       destination: loc.label,
                       location: loc,
+                      image: loc.image || null,
                     }));
-                    setErrors((e) => ({ ...e, destination: undefined }));
+
+                    setErrors((e) => ({
+                      ...e,
+                      destination: undefined,
+                    }));
                   }}
                 />
                 <FieldError id="destination-error">
@@ -660,7 +678,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                   <button
                     type="button"
                     onClick={addActivity}
-                    className="glass-dark rounded-full px-3 py-1.5 text-sm transition hover:bg-white/10"
+                    className={smallBtn}
                   >
                     + Add activity
                   </button>
@@ -687,7 +705,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                         aria-label="Remove activity"
                         className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
                       >
-                        ×
+                        <Icon name="close" className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
@@ -743,13 +761,20 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                 onSplit={splitAllocationsEvenly}
               />
 
+              {errors.submit && (
+                <p className="text-sm text-red-300">{errors.submit}</p>
+              )}
+
               <div className="flex items-center justify-between pt-2">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
                   className={ghostBtn}
                 >
-                  ← Back
+                  <span className="inline-flex items-center gap-2">
+                    <Icon name="arrowLeft" className="h-4 w-4" />
+                    Back
+                  </span>
                 </button>
                 <button type="submit" className={primaryBtn}>
                   Save plan

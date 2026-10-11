@@ -2,20 +2,21 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ProfileMenu from "@/app/components/Profile";
 import { Logo } from "@/app/components/AuthCard";
+import { Icon } from "@/app/components/ui";
 
 const baseLinks = [
-  { label: "Dashboard", icon: "🏠", href: "/dashboard" },
-  { label: "My Plans", icon: "📅", href: "/my-plans" },
-  { label: "New Plan", icon: "✈️", href: "/newplan" },
-  { label: "Bucket List", icon: "🔖", href: "/bucket-list" },
-  { label: "Journal", icon: "📓", href: "/journal" },
-  { label: "Explore", icon: "🧭", href: "/explore" },
+  { label: "Dashboard", icon: "home", href: "/dashboard" },
+  { label: "My Plans", icon: "calendar", href: "/my-plans" },
+  { label: "New Plan", icon: "plane", href: "/newplan" },
+  { label: "Bucket List", icon: "bookmark", href: "/bucket-list" },
+  { label: "Journal", icon: "book", href: "/journal" },
+  { label: "Explore", icon: "compass", href: "/explore" },
 ];
 
-const adminLink = { label: "Admin", icon: "🛡️", href: "/admin" };
+const adminLink = { label: "Admin", icon: "shield", href: "/admin" };
 
 // Mga role na may access sa Admin tab
 const ADMIN_ROLES = ["admin", "superadmin"];
@@ -26,6 +27,7 @@ function isActive(pathname, link) {
 }
 
 export default function Navbar() {
+  const router = useRouter();
   const pathname = usePathname() ?? "";
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState({
@@ -34,6 +36,15 @@ export default function Navbar() {
     avatarUrl: null,
     reminders: true,
   });
+
+  // Walang back button sa Dashboard (ito na ang home)
+  const showBack = pathname !== "/dashboard";
+
+  function goBack() {
+    // Kung wala nang babalikan (hal. direct link), balik sa dashboard
+    if (window.history.length > 1) router.back();
+    else router.push("/dashboard");
+  }
 
   useEffect(() => {
     let alive = true;
@@ -62,6 +73,18 @@ export default function Navbar() {
 
   return (
     <header className="glass-dark relative z-40 flex w-full items-center gap-4 rounded-full px-6 py-3">
+      {showBack && (
+        <button
+          type="button"
+          onClick={goBack}
+          aria-label="Go back"
+          title="Back"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/25 bg-white/10 transition hover:bg-white/20 active:scale-95"
+        >
+          <Icon name="arrowLeft" className="h-4 w-4" />
+        </button>
+      )}
+
       <Link href="/dashboard" aria-label="Dashboard">
         <Logo />
       </Link>
@@ -81,7 +104,7 @@ export default function Navbar() {
                   : "text-white/80"
               }`}
             >
-              <span>{l.icon}</span>
+              <Icon name={l.icon} className="h-4 w-4 shrink-0" />
               <span className="hidden md:inline">{l.label}</span>
             </Link>
           );

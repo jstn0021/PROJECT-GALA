@@ -6,10 +6,11 @@ import LandingContent from "app/components/LandingContent";
 export function Background({ children }) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0b1f33] via-[#12476b] to-[#1b6f7a]">
-      {}
+      {/* Mas blurred na ang map para kapareho ng dashboard.
+          Pwedeng baguhin ang blur-[10px] / blur-[3px] kung gusto mo pang dagdagan o bawasan. */}
       <div className="pointer-events-none fixed inset-0 animate-map-drift">
         <div
-          className="absolute inset-0 opacity-60 blur-[3px]"
+          className="absolute inset-0 scale-110 opacity-60 blur-[10px]"
           style={{
             backgroundImage: "url(/world-map.svg)",
             backgroundSize: "cover",
@@ -18,7 +19,7 @@ export function Background({ children }) {
           }}
         />
         <div
-          className="absolute inset-0 opacity-90"
+          className="absolute inset-0 scale-110 opacity-90 blur-[3px]"
           style={{
             backgroundImage: "url(/world-routes.svg)",
             backgroundSize: "cover",

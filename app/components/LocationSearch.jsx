@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "@/app/components/ui";
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * HELPERS
@@ -156,7 +157,7 @@ export default function LocationSearch({
           aria-hidden="true"
           className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60"
         >
-          📍
+          <Icon name="pin" className="h-4 w-4" />
         </span>
         <input
           id={id}

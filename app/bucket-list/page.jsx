@@ -4,6 +4,19 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
+import LocationSearch from "@/app/components/LocationSearch";
+import {
+  PANEL,
+  CARD,
+  GRID,
+  PAGE_WRAP,
+  PageHeader,
+  CardImage,
+  primaryBtn,
+  gradientBtn,
+  cardAction,
+  Icon,
+} from "@/app/components/ui";
 
 // Color names from the API -> card gradients (full class names so Tailwind keeps them)
 const GRADIENTS = {
@@ -13,14 +26,12 @@ const GRADIENTS = {
   green: "from-emerald-300 to-teal-500",
 };
 
-const primaryBtn =
-  "rounded-full bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-3 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95 disabled:opacity-60";
-
 export default function BucketListPage() {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
+  const [selectedPlace, setSelectedPlace] = useState(null);
   const [adding, setAdding] = useState(false);
 
   async function load() {
@@ -53,7 +64,11 @@ export default function BucketListPage() {
       const res = await fetch("/api/bucket-list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: value }),
+        body: JSON.stringify({
+          name: value,
+          image: selectedPlace?.image || null,
+          location: selectedPlace?.location || selectedPlace?.label || null,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 409) {
@@ -67,6 +82,7 @@ export default function BucketListPage() {
       }
       setPlaces((p) => [...p, data]);
       setName("");
+      setSelectedPlace(null);
     } catch (err) {
       setError(err.message || "Couldn't add that place.");
     } finally {
@@ -115,37 +131,42 @@ export default function BucketListPage() {
 
   return (
     <Background>
-      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
+      <div className={PAGE_WRAP}>
         <Navbar />
 
         <main className="flex flex-1 flex-col gap-6">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-              Bucket List
-            </h1>
-            <p className="mt-2 text-white/70">
-              {loading
+          <PageHeader
+            title="Bucket List"
+            subtitle={
+              loading
                 ? "Loading your places..."
-                : `${doneCount} of ${places.length} places done`}
-            </p>
-          </div>
+                : `${doneCount} of ${places.length} places done`
+            }
+          />
 
           <form
             onSubmit={addPlace}
-            className="glass-input flex max-w-2xl items-center gap-2 rounded-full p-1.5"
+            className="glass-input relative z-50 flex w-full max-w-2xl items-center gap-2 rounded-full p-1.5"
           >
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Add a place (e.g. Kyoto)"
-              maxLength={150}
-              aria-label="Place name"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-white placeholder:text-white/60 focus:outline-none"
-            />
+            <div className="relative min-w-0 flex-1">
+              <LocationSearch
+                value={name}
+                onChange={(text) => {
+                  setName(text);
+                  setSelectedPlace(null);
+                }}
+                onSelect={(place) => {
+                  setName(place.label || place.name);
+                  setSelectedPlace(place);
+                }}
+                placeholder="Search Philippine destinations..."
+              />
+            </div>
+
             <button
               type="submit"
-              disabled={adding || !name.trim()}
-              className={primaryBtn}
+              disabled={adding || !selectedPlace || !name.trim()}
+              className={`${primaryBtn} disabled:opacity-60`}
             >
               {adding ? "Adding..." : "Add"}
             </button>
@@ -158,17 +179,18 @@ export default function BucketListPage() {
           )}
 
           {loading ? (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="glass-dark h-36 animate-pulse rounded-3xl"
-                />
+            <div className={GRID}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className={`${PANEL} h-[380px] animate-pulse`} />
               ))}
             </div>
           ) : places.length === 0 ? (
-            <div className="glass-dark mx-auto my-8 flex max-w-lg flex-col items-center rounded-3xl p-10 text-center">
-              <span className="text-5xl">🔖</span>
+            <div
+              className={`${PANEL} mx-auto my-8 flex max-w-lg flex-col items-center p-10 text-center`}
+            >
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+                <Icon name="bookmark" className="h-8 w-8" />
+              </span>
               <h2 className="mt-4 text-2xl font-bold">No places yet</h2>
               <p className="mt-2 text-sm text-white/70">
                 Add one above, or save places you like from Explore.
@@ -178,74 +200,73 @@ export default function BucketListPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className={GRID}>
               {places.map((place) => (
-                <article
-                  key={place.id}
-                  className="glass-dark flex flex-col overflow-hidden rounded-3xl"
-                >
-                  <div
-                    className={`relative h-44 bg-linear-to-br ${
-                      GRADIENTS[place.color] ?? GRADIENTS.green
-                    }`}
+                <article key={place.id} className={CARD}>
+                  <CardImage
+                    src={place.image}
+                    alt={place.name}
+                    gradient={GRADIENTS[place.color] ?? GRADIENTS.green}
+                    dim={place.completed}
                   >
-                    {place.image && (
-                      <img
-                        src={place.image}
-                        alt={place.name}
-                        loading="lazy"
-                        onError={(e) => {
-                          // Broken link: hide it so the gradient shows instead
-                          e.currentTarget.style.display = "none";
-                        }}
-                        className={`absolute inset-0 h-full w-full object-cover ${
-                          place.completed ? "saturate-50" : ""
-                        }`}
-                      />
+                    {place.completed && (
+                      <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md">
+                        <Icon name="check" className="h-3.5 w-3.5" />
+                        Done
+                      </span>
                     )}
-                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/70 via-transparent to-black/20" />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-4 p-5">
-                    <div>
-                      <h3
-                        className={`text-xl font-bold tracking-tight ${
-                          place.completed ? "text-white/50 line-through" : ""
-                        }`}
-                      >
-                        {place.name}
-                      </h3>
-                      {place.location && (
-                        <p className="mt-1 truncate text-xs font-medium text-sky-300">
-                          📍 {place.location}
-                        </p>
-                      )}
-                    </div>
-                    <div className="mt-auto flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleDone(place)}
-                        className={`flex-1 rounded-full border px-3 py-2 text-sm transition ${
-                          place.completed
-                            ? "border-indigo-300 bg-indigo-500/40"
-                            : "border-white/25 bg-white/10 hover:bg-white/20"
-                        }`}
-                      >
-                        {place.completed ? "✓ Done" : "Mark as done"}
-                      </button>
-                      <Link
-                        href={`/newplan?destination=${encodeURIComponent(place.name)}`}
-                        className="rounded-full border border-white/25 bg-white/10 px-3 py-2 text-sm transition hover:bg-white/20"
-                      >
-                        Plan
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => removePlace(place)}
-                        aria-label={`Remove ${place.name}`}
-                        className="h-9 w-9 rounded-full border border-white/25 bg-white/10 transition hover:bg-white/20"
-                      >
-                        ×
-                      </button>
+                  </CardImage>
+
+                  <div className="flex flex-1 flex-col p-5">
+                    <h3
+                      className={`text-xl font-bold tracking-tight transition group-hover:text-indigo-300 ${
+                        place.completed ? "text-white/50 line-through" : ""
+                      }`}
+                    >
+                      {place.name}
+                    </h3>
+                    {place.location && (
+                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
+                        <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{place.location}</span>
+                      </p>
+                    )}
+
+                    <div className="mt-auto pt-4">
+                      <div className="flex items-center gap-2 border-t border-white/10 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleDone(place)}
+                          className={`flex-1 ${cardAction} ${
+                            place.completed
+                              ? "border-indigo-300 bg-indigo-500/40"
+                              : ""
+                          }`}
+                        >
+                          {place.completed ? (
+                            <span className="inline-flex items-center justify-center gap-1">
+                              <Icon name="check" className="h-3.5 w-3.5" />
+                              Done
+                            </span>
+                          ) : (
+                            "Mark as done"
+                          )}
+                        </button>
+                        <Link
+                          href={`/newplan?destination=${encodeURIComponent(place.name)}`}
+                          className={`flex-1 rounded-full py-2 text-center text-xs ${gradientBtn}`}
+                        >
+                          Plan trip
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => removePlace(place)}
+                          aria-label={`Remove ${place.name}`}
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/20 bg-white/5 transition hover:bg-red-500/30"
+                        >
+                          <Icon name="trash" className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </article>

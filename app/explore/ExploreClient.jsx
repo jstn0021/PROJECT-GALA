@@ -5,45 +5,47 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
+import {
+  PANEL,
+  MODAL,
+  CARD,
+  GRID,
+  PAGE_WRAP,
+  gradientBtn,
+  Icon,
+} from "@/app/components/ui";
 
 // Preset quick-search suggestions for rapid user discovery
 const QUICK_SUGGESTIONS = [
-  { label: "🏝️ Boracay", query: "Boracay" },
-  { label: "🌊 El Nido", query: "El Nido" },
-  { label: "🍓 Baguio", query: "Baguio" },
-  { label: "🏄 Siargao", query: "Siargao" },
-  { label: "🌋 Batanes", query: "Batanes" },
-  { label: "🍫 Bohol", query: "Chocolate Hills" },
-  { label: "🌸 Kyoto", query: "Kyoto" },
-  { label: "🗼 Tokyo", query: "Tokyo" },
-  { label: "🏖️ Bali", query: "Bali" },
+  { label: "Boracay", query: "Boracay" },
+  { label: "El Nido", query: "El Nido" },
+  { label: "Baguio", query: "Baguio" },
+  { label: "Siargao", query: "Siargao" },
+  { label: "Batanes", query: "Batanes" },
+  { label: "Bohol", query: "Chocolate Hills" },
+  { label: "Camiguin", query: "Camiguin" },
+  { label: "Mayon", query: "Mayon Volcano" },
+  { label: "Vigan", query: "Vigan" },
 ];
 
 const CATEGORIES = [
   { id: "all", label: "All" },
-  { id: "beaches", label: "🏝️ Beaches & Islands" },
-  { id: "mountains", label: "⛰️ Mountains & Nature" },
-  { id: "heritage", label: "🏛️ Heritage & Culture" },
-  { id: "cities", label: "🌆 Cities & Food" },
+  { id: "beaches", label: "Beaches & Islands" },
+  { id: "mountains", label: "Mountains & Nature" },
+  { id: "heritage", label: "Heritage & Culture" },
+  { id: "cities", label: "Cities & Food" },
 ];
 
 // Freemium search limit for guests
 const GUEST_SEARCH_LIMIT = 3;
 const GUEST_SEARCH_KEY = "gala_guest_search_count";
 
-const primaryBtn =
-  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] transition hover:scale-105 active:scale-95";
-
-export default function ExploreClient({
-  initialIsLoggedIn = false,
-  user = null,
-}) {
+export default function ExploreClient({ initialIsLoggedIn = false }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || searchParams.get("query") || "";
 
   const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
-  const [currentUser, setCurrentUser] = useState(user);
   const [guestSearchCount, setGuestSearchCount] = useState(0);
 
   // Auth restriction modal state
@@ -76,7 +78,6 @@ export default function ExploreClient({
           const data = await res.json();
           if (typeof data.isLoggedIn === "boolean") {
             setIsLoggedIn(data.isLoggedIn);
-            setCurrentUser(data.user);
           }
         }
       } catch (err) {
@@ -97,7 +98,6 @@ export default function ExploreClient({
     }
   }, []);
 
-  // Load existing bucket list from localStorage to know what's already saved
   // Load saved places from the API (name -> id), so Explore matches the Bucket List page
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -270,7 +270,41 @@ export default function ExploreClient({
     }, 450);
   }
 
-  // Explicit submit button or Enter key
+  // UI handlers used by the search bar, category chips, and shuffle button.
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    performSearch(searchQuery);
+  }
+
+  function handleClearSearch() {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery("");
+    setActiveCategory("all");
+    loadFeaturedPlaces("all", false);
+  }
+
+  function handleSelectSuggestion(chip) {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery(chip.query);
+    performSearch(chip.query);
+  }
+
+  function handleCategoryChange(category) {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery("");
+    setActiveCategory(category);
+    loadFeaturedPlaces(category, false);
+  }
+
+  async function handleShufflePlaces() {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    setSearchQuery("");
+    setIsShuffling(true);
+    await loadFeaturedPlaces(activeCategory, true);
+  }
+
+  // Toggle destination via the existing Bucket List API.
   async function handleSaveToBucketList(place, e) {
     e?.stopPropagation();
 
@@ -304,11 +338,15 @@ export default function ExploreClient({
         const res = await fetch("/api/bucket-list", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: place.name }),
+          body: JSON.stringify({
+            name: place.name,
+            image: place.image || null,
+            location: place.location || null,
+          }),
         });
 
         if (res.status === 409) {
-          // Already on the list: resync so the heart shows as saved
+          // Already on the list: resync so the bookmark shows as saved
           const list = await fetch("/api/bucket-list", { cache: "no-store" })
             .then((r) => r.json())
             .catch(() => ({ places: [] }));
@@ -324,7 +362,7 @@ export default function ExploreClient({
 
         const created = await res.json();
         setSavedBucketMap((prev) => ({ ...prev, [placeKey]: created.id }));
-        showToast(`${place.name} saved to your Bucket List! 🔖`);
+        showToast(`${place.name} saved to your Bucket List.`);
       }
     } catch (err) {
       console.error("Failed to update bucket list:", err);
@@ -350,21 +388,22 @@ export default function ExploreClient({
 
   return (
     <Background>
-      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
+      <div className={PAGE_WRAP}>
         {/* NAV */}
         <Navbar />
 
         {/* HEADER + SEARCH */}
         <section className="px-2 py-4 text-center">
           <span className="glass-dark inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold tracking-wider text-indigo-200">
-            🧭 DREAM · PLAN · GALA
+            <Icon name="compass" className="h-4 w-4" />
+            DREAM · PLAN · GALA
           </span>
           <h1 className="mt-4 text-5xl font-extrabold tracking-tight drop-shadow-lg md:text-7xl">
             Find your <span className="text-indigo-300">Next na Gala</span>
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sky-300 drop-shadow md:text-lg">
-            Search popular spots and hidden gems in the Philippines and around
-            the world, powered by real-time OpenStreetMap search.
+            Search popular spots and hidden gems in the Philippines and enjoy
+            your trip
           </p>
 
           {/* Search bar */}
@@ -372,8 +411,8 @@ export default function ExploreClient({
             onSubmit={handleSearchSubmit}
             className="glass-input mx-auto mt-6 flex max-w-3xl items-center gap-2 rounded-full p-1.5 text-left transition focus-within:shadow-[0_0_28px_rgba(99,102,241,0.45)]"
           >
-            <span className="pl-4" aria-hidden="true">
-              📍
+            <span className="pl-4 text-white/70" aria-hidden="true">
+              <Icon name="pin" className="h-5 w-5" />
             </span>
             <input
               ref={searchInputRef}
@@ -392,14 +431,14 @@ export default function ExploreClient({
                 aria-label="Clear search"
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-white/70 transition hover:bg-white/30 hover:text-white"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
             )}
 
             <button
               type="submit"
               disabled={isSearching}
-              className={`flex shrink-0 items-center gap-2 rounded-full px-6 py-2.5 disabled:opacity-70 ${primaryBtn}`}
+              className={`flex shrink-0 items-center gap-2 rounded-full px-6 py-2.5 disabled:opacity-70 ${gradientBtn}`}
             >
               {isSearching ? (
                 <span className="flex items-center gap-2">
@@ -407,7 +446,10 @@ export default function ExploreClient({
                   <span className="hidden sm:inline">Searching...</span>
                 </span>
               ) : (
-                <span>Search</span>
+                <>
+                  <Icon name="search" className="h-4 w-4" />
+                  <span>Search</span>
+                </>
               )}
             </button>
           </form>
@@ -462,9 +504,10 @@ export default function ExploreClient({
             <button
               type="button"
               onClick={handleClearSearch}
-              className="whitespace-nowrap rounded-full px-4 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
             >
-              ✕ Back to featured
+              <Icon name="close" className="h-3.5 w-3.5" />
+              Back to featured
             </button>
           )}
 
@@ -475,7 +518,10 @@ export default function ExploreClient({
             className="flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-indigo-100 transition hover:bg-white/10 active:scale-95"
             title="Show a different set of random destinations"
           >
-            <span className={isShuffling ? "animate-spin" : ""}>🎲</span>
+            <Icon
+              name="shuffle"
+              className={`h-4 w-4 ${isShuffling ? "animate-spin" : ""}`}
+            />
             <span>Surprise me</span>
           </button>
         </section>
@@ -485,7 +531,10 @@ export default function ExploreClient({
           <div className="flex flex-wrap items-center gap-2 font-medium">
             {searchQuery ? (
               <>
-                <span className="text-indigo-300">🔍 Search results</span>
+                <span className="flex items-center gap-1.5 text-indigo-300">
+                  <Icon name="search" className="h-4 w-4" />
+                  Search results
+                </span>
                 <span className="text-white/60">for</span>
                 <span className="font-semibold text-white">
                   "{searchQuery}"
@@ -496,8 +545,9 @@ export default function ExploreClient({
               </>
             ) : (
               <>
-                <span className="text-indigo-300">
-                  ✨ Featured & random destinations
+                <span className="flex items-center gap-1.5 text-indigo-300">
+                  <Icon name="sparkle" className="h-4 w-4" />
+                  Featured & random destinations
                 </span>
                 <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs text-white/80">
                   {places.length} {places.length === 1 ? "place" : "places"}
@@ -523,24 +573,19 @@ export default function ExploreClient({
         <main className="flex-1">
           {isLoading || isSearching ? (
             /* Loading skeleton */
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className={GRID}>
               {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="glass-dark flex h-[380px] animate-pulse flex-col overflow-hidden rounded-3xl p-3"
-                >
-                  <div className="h-48 w-full rounded-2xl bg-white/10" />
-                  <div className="mt-4 h-6 w-3/4 rounded-lg bg-white/15" />
-                  <div className="mt-2 h-4 w-1/2 rounded-md bg-white/10" />
-                  <div className="mt-3 h-10 w-full rounded-md bg-white/5" />
-                  <div className="mt-auto h-9 w-full rounded-xl bg-white/10" />
-                </div>
+                <div key={i} className={`${PANEL} h-[380px] animate-pulse`} />
               ))}
             </div>
           ) : places.length === 0 ? (
             /* Empty state */
-            <div className="glass-dark mx-auto my-12 flex max-w-lg flex-col items-center rounded-3xl p-10 text-center">
-              <span className="text-6xl">🔍🍃</span>
+            <div
+              className={`${PANEL} mx-auto my-12 flex max-w-lg flex-col items-center p-10 text-center`}
+            >
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+                <Icon name="search" className="h-8 w-8" />
+              </span>
               <h3 className="mt-4 text-2xl font-bold">No places found</h3>
               <p className="mt-2 text-sm text-white/70">
                 No matching destinations for "<strong>{searchQuery}</strong>".
@@ -549,14 +594,14 @@ export default function ExploreClient({
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className={`mt-6 rounded-full px-6 py-2.5 ${primaryBtn}`}
+                className={`mt-6 rounded-full px-6 py-2.5 ${gradientBtn}`}
               >
                 View featured places
               </button>
             </div>
           ) : (
             /* Destination cards */
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className={GRID}>
               {places.map((place) => {
                 const isSaved = !!savedBucketMap[place.name?.toLowerCase()];
 
@@ -564,7 +609,7 @@ export default function ExploreClient({
                   <article
                     key={place.id}
                     onClick={() => setSelectedPlace(place)}
-                    className="group glass-dark relative flex cursor-pointer flex-col overflow-hidden rounded-3xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.45)]"
+                    className={`${CARD} cursor-pointer`}
                   >
                     {/* Image */}
                     <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-900">
@@ -583,7 +628,7 @@ export default function ExploreClient({
 
                       <div className="absolute inset-x-3 top-3 flex items-center justify-between">
                         <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md">
-                          <span>⭐</span>
+                          <Icon name="star" filled className="h-3.5 w-3.5" />
                           <span>{place.rating || "4.8"}</span>
                         </span>
 
@@ -608,7 +653,11 @@ export default function ExploreClient({
                               : "border-white/30 bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
                           }`}
                         >
-                          {isSaved ? "🔖" : "🤍"}
+                          <Icon
+                            name="bookmark"
+                            filled={isSaved}
+                            className="h-4 w-4"
+                          />
                         </button>
                       </div>
 
@@ -628,7 +677,7 @@ export default function ExploreClient({
                       </h3>
 
                       <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
-                        <span>📍</span>
+                        <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
                         <span className="truncate">{place.location}</span>
                       </p>
 
@@ -666,7 +715,7 @@ export default function ExploreClient({
                           <button
                             type="button"
                             onClick={(e) => handlePlanTrip(place, e)}
-                            className={`flex-1 rounded-full py-2 text-center text-xs ${primaryBtn}`}
+                            className={`flex-1 rounded-full py-2 text-center text-xs ${gradientBtn}`}
                           >
                             Plan trip
                           </button>
@@ -693,7 +742,7 @@ export default function ExploreClient({
               role="dialog"
               aria-modal="true"
               aria-labelledby="modal-place-title"
-              className="glass-dark max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl p-0 shadow-2xl"
+              className={`${MODAL} max-h-[90vh] w-full max-w-2xl overflow-y-auto p-0`}
             >
               {/* Hero image */}
               <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
@@ -712,9 +761,9 @@ export default function ExploreClient({
                   type="button"
                   onClick={() => setSelectedPlace(null)}
                   aria-label="Close"
-                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-lg text-white/90 backdrop-blur-md transition hover:bg-black/90 hover:text-white"
+                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/90 backdrop-blur-md transition hover:bg-black/90 hover:text-white"
                 >
-                  ✕
+                  <Icon name="close" className="h-5 w-5" />
                 </button>
 
                 <div className="absolute bottom-4 left-6 right-6">
@@ -722,8 +771,9 @@ export default function ExploreClient({
                     <span className="rounded-full bg-indigo-500/80 px-3 py-1 text-xs font-semibold text-white">
                       {selectedPlace.category || "Destination"}
                     </span>
-                    <span className="rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-amber-300">
-                      ⭐ {selectedPlace.rating || "4.8"}
+                    <span className="flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-amber-300">
+                      <Icon name="star" filled className="h-3.5 w-3.5" />
+                      {selectedPlace.rating || "4.8"}
                     </span>
                   </div>
                   <h2
@@ -733,7 +783,7 @@ export default function ExploreClient({
                     {selectedPlace.name}
                   </h2>
                   <p className="flex items-center gap-1.5 text-sm text-sky-300">
-                    <span>📍</span>
+                    <Icon name="pin" className="h-4 w-4 shrink-0" />
                     <span>{selectedPlace.location}</span>
                   </p>
                 </div>
@@ -762,7 +812,10 @@ export default function ExploreClient({
                             key={hIdx}
                             className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-white/90"
                           >
-                            <span className="text-indigo-300">✓</span>
+                            <Icon
+                              name="check"
+                              className="h-4 w-4 shrink-0 text-indigo-300"
+                            />
                             <span>{h}</span>
                           </li>
                         ))}
@@ -772,8 +825,9 @@ export default function ExploreClient({
 
                 {selectedPlace.bestTimeToVisit && (
                   <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                    <span className="font-semibold text-indigo-200">
-                      🗓️ Best time to visit
+                    <span className="flex items-center gap-2 font-semibold text-indigo-200">
+                      <Icon name="calendar" className="h-4 w-4" />
+                      Best time to visit
                     </span>
                     <p className="mt-1 text-white/80">
                       {selectedPlace.bestTimeToVisit}
@@ -794,23 +848,31 @@ export default function ExploreClient({
                   <button
                     type="button"
                     onClick={(e) => handleSaveToBucketList(selectedPlace, e)}
-                    className={`rounded-full px-5 py-2.5 font-medium transition ${
+                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 font-medium transition ${
                       savedBucketMap[selectedPlace.name?.toLowerCase()]
                         ? "border border-indigo-300 bg-indigo-500/40 text-white"
                         : "border border-white/25 bg-white/10 text-white hover:bg-white/20"
                     }`}
                   >
+                    <Icon
+                      name="bookmark"
+                      filled={
+                        !!savedBucketMap[selectedPlace.name?.toLowerCase()]
+                      }
+                      className="h-4 w-4"
+                    />
                     {savedBucketMap[selectedPlace.name?.toLowerCase()]
-                      ? "Remove from Bucket List 🔖"
-                      : "Save to Bucket List 🔖"}
+                      ? "Remove from Bucket List"
+                      : "Save to Bucket List"}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handlePlanTrip(selectedPlace)}
-                    className={`rounded-full px-6 py-2.5 ${primaryBtn}`}
+                    className={`flex items-center gap-2 rounded-full px-6 py-2.5 ${gradientBtn}`}
                   >
-                    Plan your trip ✈️
+                    Plan your trip
+                    <Icon name="plane" className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -831,7 +893,7 @@ export default function ExploreClient({
               role="dialog"
               aria-modal="true"
               aria-labelledby="auth-modal-title"
-              className="glass-dark relative w-full max-w-md rounded-3xl p-8 text-center shadow-2xl"
+              className={`${MODAL} relative w-full max-w-md p-8 text-center`}
             >
               <button
                 type="button"
@@ -839,11 +901,14 @@ export default function ExploreClient({
                 aria-label="Close"
                 className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/25 hover:text-white"
               >
-                ✕
+                <Icon name="close" className="h-4 w-4" />
               </button>
 
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/30 text-3xl shadow-[0_0_24px_rgba(99,102,241,0.5)]">
-                {isSearchLimit ? "🔍" : "🔖"}
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+                <Icon
+                  name={isSearchLimit ? "search" : "bookmark"}
+                  className="h-8 w-8"
+                />
               </div>
 
               <h2
@@ -876,7 +941,7 @@ export default function ExploreClient({
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
                   href="/signup"
-                  className={`rounded-full px-6 py-2.5 text-center ${primaryBtn}`}
+                  className={`rounded-full px-6 py-2.5 text-center ${gradientBtn}`}
                 >
                   Sign up
                 </Link>
@@ -903,7 +968,7 @@ export default function ExploreClient({
         {toastMessage && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
             <div className="glass-dark flex items-center gap-3 rounded-full border border-indigo-300/40 bg-slate-950/90 px-6 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur-xl">
-              <span>✨</span>
+              <Icon name="check" className="h-4 w-4 text-teal-300" />
               <span>{toastMessage}</span>
             </div>
           </div>

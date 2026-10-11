@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Icon } from "@/app/components/ui";
 
 const MAX_FREE_SEARCHES = 3;
 
@@ -53,7 +54,9 @@ export default function LandingSearchBar() {
         onSubmit={handleSearch}
         className="glass-input mt-8 flex w-full max-w-xl items-center gap-2 rounded-full p-1.5"
       >
-        <span className="pl-4 text-xl" aria-hidden="true">🔍</span>
+        <span className="pl-4 text-white/70" aria-hidden="true">
+          <Icon name="search" className="h-5 w-5" />
+        </span>
         <input
           id="landing-search-input"
           name="q"
@@ -77,17 +80,18 @@ export default function LandingSearchBar() {
       {/* ── Guest limit indicator ────────────────────────────────────────────── */}
       <p className="mt-2 text-xs text-white/60">
         Free Guest Searches:{" "}
-        <strong className="text-amber-300">{remainingSearches}</strong>{" "}
-        of {MAX_FREE_SEARCHES} remaining
+        <strong className="text-amber-300">{remainingSearches}</strong> of{" "}
+        {MAX_FREE_SEARCHES} remaining
       </p>
 
       {/* ── Explore link ────────────────────────────────────────────────────── */}
       <div className="mt-5 text-center">
         <Link
           href="/signup"
-          className="inline-block rounded-full bg-slate-900/70 px-6 py-2.5 font-medium text-white transition hover:bg-slate-900"
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900/70 px-6 py-2.5 font-medium text-white transition hover:bg-slate-900"
         >
           Explore destinations
+          <Icon name="arrow" className="h-4 w-4" />
         </Link>
       </div>
 
@@ -102,7 +106,7 @@ export default function LandingSearchBar() {
           {isLoading ? (
             <div className="flex justify-center py-6">
               <span className="text-teal-300 animate-pulse text-sm">
-                Searching Philippine destinations… 🧭
+                Searching Philippine destinations…
               </span>
             </div>
           ) : previewResults.length === 0 ? (
@@ -130,8 +134,11 @@ export default function LandingSearchBar() {
                     <h4 className="mt-2 font-bold text-white text-base">
                       {place.name}
                     </h4>
-                    <p className="text-xs text-teal-200">
-                      📍 {place.location || "Philippines"}
+                    <p className="flex items-center gap-1 text-xs text-teal-200">
+                      <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">
+                        {place.location || "Philippines"}
+                      </span>
                     </p>
                   </div>
 
@@ -141,7 +148,8 @@ export default function LandingSearchBar() {
                     onClick={() => setShowModal(true)}
                     className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-teal-500/30 border border-teal-300/40 py-2 text-xs font-semibold text-teal-100 transition hover:bg-teal-500/50"
                   >
-                    <span>🔒 View full details · Log in</span>
+                    <Icon name="lock" className="h-3.5 w-3.5" />
+                    <span>View full details · Log in</span>
                   </button>
                 </div>
               ))}
@@ -165,9 +173,17 @@ export default function LandingSearchBar() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
           <div className="glass relative z-10 w-full max-w-sm rounded-3xl px-8 py-8 text-center shadow-2xl border border-white/20">
-            <div className="mb-4 text-5xl" aria-hidden="true">🔒</div>
+            <div
+              className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]"
+              aria-hidden="true"
+            >
+              <Icon name="lock" className="h-8 w-8" />
+            </div>
 
-            <h2 id="search-limit-title" className="text-xl font-bold text-white">
+            <h2
+              id="search-limit-title"
+              className="text-xl font-bold text-white"
+            >
               Search limit reached
             </h2>
 

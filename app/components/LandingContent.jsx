@@ -122,13 +122,6 @@ export default function LandingContent({ images = {}, credits = [] }) {
         </p>
 
         <LandingSearchBar />
-
-        <Link
-          href="/signup"
-          className="mt-5 block w-max mx-auto text-center rounded-full bg-slate-900/70 px-6 py-2.5 font-medium transition hover:bg-slate-900"
-        >
-          Explore destinations
-        </Link>
       </section>
 
       {/* Featured destinations */}
@@ -231,9 +224,9 @@ export default function LandingContent({ images = {}, credits = [] }) {
                   style={
                     c.photoUrl
                       ? {
-                          backgroundImage: `url('${c.photoUrl}')`,
-                          backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
-                        }
+                        backgroundImage: `url('${c.photoUrl}')`,
+                        backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
+                      }
                       : undefined
                   }
                 >
