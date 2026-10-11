@@ -22,7 +22,6 @@ function Icon({ d, className = "h-5 w-5" }) {
 }
 
 const ICONS = {
-  bell: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
   logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
 };
 
@@ -46,36 +45,13 @@ function Avatar({ photo, name, size = 40 }) {
   );
 }
 
-function Switch({ checked, onChange, label }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full border transition ${
-        checked
-          ? "border-teal-200/60 bg-teal-500/70"
-          : "border-white/30 bg-white/15"
-      }`}
-    >
-      <span
-        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-          checked ? "translate-x-5" : ""
-        }`}
-      />
-    </button>
-  );
-}
-
 const rowBase =
   "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-white/10";
 const iconBubble =
   "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10";
 
 export default function ProfileMenu({
-  user = { name: "Traveler", email: "", avatarUrl: null, reminders: true },
+  user = { name: "Traveler", email: "", avatarUrl: null },
   profileHref = "/profile",
   onLogout, // optional: palitan ang default na logout
 }) {
@@ -84,12 +60,6 @@ export default function ProfileMenu({
   const triggerRef = useRef(null);
 
   const [open, setOpen] = useState(false);
-  const [reminders, setReminders] = useState(user.reminders ?? true);
-
-  // Sumusunod sa value mula sa database kapag dumating na ang /api/me
-  useEffect(() => {
-    setReminders(user.reminders ?? true);
-  }, [user.reminders]);
 
   const photo = user.avatarUrl;
   const displayName = user.name || "Traveler";
@@ -114,20 +84,6 @@ export default function ProfileMenu({
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
-
-  async function toggleReminders(next) {
-    setReminders(next);
-    try {
-      const res = await fetch("/api/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reminders: next }),
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      setReminders(!next); // ibalik kung pumalya
-    }
-  }
 
   async function handleLogout() {
     setOpen(false);
@@ -182,30 +138,6 @@ export default function ProfileMenu({
             >
               Manage your account
             </Link>
-          </div>
-
-          <div className="my-1 h-px bg-white/15" />
-
-          {/* Settings */}
-          <div className="flex flex-col py-1">
-            <div className={rowBase}>
-              <span className={iconBubble}>
-                <Icon d={ICONS.bell} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">
-                  Trip reminders
-                </span>
-                <span className="block text-xs text-white/60">
-                  Notify me before a trip starts
-                </span>
-              </span>
-              <Switch
-                checked={!!reminders}
-                onChange={toggleReminders}
-                label="Trip reminders"
-              />
-            </div>
           </div>
 
           <div className="my-1 h-px bg-white/15" />

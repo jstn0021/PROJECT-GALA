@@ -80,9 +80,6 @@ export default function LandingContent({ images = {}, credits = [] }) {
             <a href="#destinations" className="hover:text-white">
               Destinations
             </a>
-            <a href="#how" className="hover:text-white">
-              How it works
-            </a>
           </nav>
         </div>
         <div className="flex items-center gap-4 text-sm">
@@ -158,7 +155,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
       </section>
 
       {/* What can you do */}
-      <section id="how">
+      <section>
         <h2 className="mb-3 px-1 text-lg font-semibold">
           What can you do with an account?
         </h2>

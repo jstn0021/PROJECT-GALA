@@ -66,29 +66,6 @@ function Avatar({ photo, name, size = 88 }) {
   );
 }
 
-function Switch({ checked, onChange, label }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full border transition ${
-        checked
-          ? "border-teal-200/60 bg-teal-500/70"
-          : "border-white/30 bg-white/15"
-      }`}
-    >
-      <span
-        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-          checked ? "translate-x-5" : ""
-        }`}
-      />
-    </button>
-  );
-}
-
 function Field({ label, hint, children }) {
   return (
     <label className="block">
@@ -140,7 +117,6 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [form, setForm] = useState(EMPTY);
-  const [reminders, setReminders] = useState(true);
   const [savedId, setSavedId] = useState("");
   const [saveError, setSaveError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -156,7 +132,6 @@ export default function ProfilePage() {
         setEmail(d.email ?? "");
         setName(d.name ?? "");
         setPhoto(d.avatarUrl ?? null);
-        setReminders(d.reminders ?? true);
         setForm({ birthday: d.birthday ?? "", style: d.travelStyle ?? "" });
         setLoaded(true);
       })
@@ -223,15 +198,6 @@ export default function ProfilePage() {
       refreshNav();
     } catch {
       setPhotoError("Couldn't remove the photo.");
-    }
-  }
-
-  async function toggleReminders(next) {
-    setReminders(next);
-    try {
-      await patchMe({ reminders: next });
-    } catch {
-      setReminders(!next);
     }
   }
 
@@ -398,20 +364,6 @@ export default function ProfilePage() {
                     );
                   })}
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl glass-dark px-4 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">Trip reminders</p>
-                  <p className="text-xs text-white/60">
-                    Notify me before a trip starts.
-                  </p>
-                </div>
-                <Switch
-                  checked={!!reminders}
-                  onChange={toggleReminders}
-                  label="Trip reminders"
-                />
               </div>
             </Section>
 
