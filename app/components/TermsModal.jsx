@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const bullet = "list-disc space-y-2 pl-6 marker:text-amber-300";
+const bullet = "list-disc space-y-2 pl-6 marker:text-white";
 
 const SECTIONS = [
   {
@@ -137,7 +137,7 @@ const SECTIONS = [
         Questions about these Terms or your data:{" "}
         <a
           href="mailto:project.gala.101126@gmail.com"
-          className="font-medium text-amber-200 underline underline-offset-4 hover:text-amber-100"
+          className="font-medium text-white underline underline-offset-4 hover:text-white/70"
         >
           project.gala.101126@gmail.com
         </a>
@@ -178,15 +178,15 @@ export default function TermsModal({ open, onClose, onAgree }) {
         aria-modal="true"
         aria-labelledby="terms-title"
         onClick={(e) => e.stopPropagation()}
-        className="glass-dark flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl text-white"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-slate-900 text-white shadow-none! ring-0!"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-white/15 px-6 py-5">
           <div>
-            <h2 id="terms-title" className="text-xl font-bold sm:text-2xl">
+            <h2 id="terms-title" className="text-lg font-bold sm:text-xl">
               Terms and Agreement
             </h2>
-            <p className="mt-1 text-xs text-white/60">
+            <p className="mt-1 text-xs text-white">
               Effective Date: October 11, 2026
             </p>
           </div>
@@ -195,21 +195,21 @@ export default function TermsModal({ open, onClose, onAgree }) {
             ref={closeRef}
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full bg-white/10 px-3 py-1 text-lg leading-none text-white/80 transition hover:bg-white/20 hover:text-white"
+            className="rounded-full bg-white/10 px-3 py-1 text-lg leading-none text-white outline-none transition hover:bg-white/20 focus:outline-none focus:ring-0"
           >
             &times;
           </button>
         </div>
 
         {/* Scrollable content */}
-        <div className="space-y-6 overflow-y-auto px-6 py-5 text-sm leading-7 text-white/80">
+        <div className="space-y-6 overflow-y-auto px-6 py-5 text-[13px] leading-6 text-white">
           <p>
             By creating an account or using GALA, you agree to these Terms and
             Agreement. If you do not agree, please do not use the app.
           </p>
           {SECTIONS.map((s) => (
             <section key={s.title}>
-              <h3 className="mb-2 text-base font-bold text-white">
+              <h3 className="mb-2 text-sm font-bold text-white">
                 {s.title}
               </h3>
               {s.body}
@@ -222,7 +222,7 @@ export default function TermsModal({ open, onClose, onAgree }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/40 bg-white/15 px-5 py-2 text-sm font-semibold transition hover:bg-white/25"
+            className="rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
           >
             Close
           </button>
@@ -230,7 +230,7 @@ export default function TermsModal({ open, onClose, onAgree }) {
             <button
               type="button"
               onClick={onAgree}
-              className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-300"
+              className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-black transition hover:bg-amber-300"
             >
               I agree
             </button>

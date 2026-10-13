@@ -6,18 +6,26 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  PANEL,
-  CARD,
   GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
-  primaryBtn,
-  ghostBtn,
-  smallBtn,
   fieldLabel as label,
   Icon,
 } from "@/app/components/ui";
+
+/* New Plan-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
+   kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
+const gradientBtn =
+  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white transition hover:scale-105 active:scale-95";
+const primaryBtn = `rounded-full px-6 py-3 ${gradientBtn}`;
+const ghostBtn =
+  "rounded-full border border-sky-300/30 bg-indigo-500/15 px-5 py-2.5 text-white transition hover:bg-indigo-500/30 active:scale-95";
+const smallBtn =
+  "rounded-full border border-sky-300/30 bg-indigo-500/15 px-3 py-1.5 text-sm text-white transition hover:bg-indigo-500/30 active:scale-95";
 
 /* ------------------------------------------------------------------ */
 /* Templates                                                          */
@@ -96,7 +104,7 @@ function StepIndicator({ step }) {
     <span
       className={`rounded-full border px-4 py-1 text-sm ${
         step === n
-          ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+          ? "border-indigo-300/60 bg-indigo-500/40 text-white"
           : "border-white/20 bg-white/5 text-white/60"
       }`}
     >
@@ -125,7 +133,7 @@ function TemplateCard({ name, template, selected, onSelect }) {
     >
       <CardImage src={template.image} alt="" gradient={template.gradient}>
         {selected && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-indigo-500 px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/50">
+          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-indigo-500 px-2.5 py-1 text-xs font-semibold text-white">
             <Icon name="check" className="h-3.5 w-3.5" />
             Selected
           </span>

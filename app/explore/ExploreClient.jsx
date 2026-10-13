@@ -5,15 +5,16 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
-import {
-  PANEL,
-  MODAL,
-  CARD,
-  GRID,
-  PAGE_WRAP,
-  gradientBtn,
-  Icon,
-} from "@/app/components/ui";
+import { GRID, PAGE_WRAP, Icon } from "@/app/components/ui";
+
+/* Explore-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
+   kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
+const MODAL = `${PANEL} bg-[#0e1450]`;
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
+const gradientBtn =
+  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white transition hover:scale-105 active:scale-95";
 
 // Preset quick-search suggestions for rapid user discovery
 const QUICK_SUGGESTIONS = [
@@ -37,7 +38,7 @@ const CATEGORIES = [
 ];
 
 // Freemium search limit for guests
-const GUEST_SEARCH_LIMIT = 3;
+const GUEST_SEARCH_LIMIT = 10;
 const GUEST_SEARCH_KEY = "gala_guest_search_count";
 
 export default function ExploreClient({ initialIsLoggedIn = false }) {
@@ -394,7 +395,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
 
         {/* HEADER + SEARCH */}
         <section className="px-2 py-4 text-center">
-          <span className="glass-dark inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold tracking-wider text-indigo-200">
+          <span className="glass-dark inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold tracking-wider text-indigo-200 shadow-none!">
             <Icon name="compass" className="h-4 w-4" />
             DREAM · PLAN · GALA
           </span>
@@ -409,7 +410,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
           {/* Search bar */}
           <form
             onSubmit={handleSearchSubmit}
-            className="glass-input mx-auto mt-6 flex max-w-3xl items-center gap-2 rounded-full p-1.5 text-left transition focus-within:shadow-[0_0_28px_rgba(99,102,241,0.45)]"
+            className="glass-input mx-auto mt-6 flex max-w-3xl items-center gap-2 rounded-full p-1.5 text-left transition"
           >
             <span className="pl-4 text-white/70" aria-hidden="true">
               <Icon name="pin" className="h-5 w-5" />
@@ -469,7 +470,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                       key={chip.query}
                       type="button"
                       onClick={() => handleSelectSuggestion(chip)}
-                      className="glass-dark rounded-full px-3 py-1 font-medium text-white/90 transition hover:bg-indigo-500/30 hover:text-white"
+                      className="glass-dark rounded-full px-3 py-1 font-medium text-white/90 shadow-none! transition hover:bg-indigo-500/30 hover:text-white"
                     >
                       {chip.label}
                     </button>
@@ -481,7 +482,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
         </section>
 
         {/* CATEGORIES + SHUFFLE */}
-        <section className="glass-dark mx-auto flex w-full max-w-fit items-center gap-1 overflow-x-auto rounded-full px-3 py-2 lg:gap-2">
+        <section className="glass-dark mx-auto flex w-full max-w-fit items-center gap-1 overflow-x-auto rounded-full px-3 py-2 shadow-none! lg:gap-2">
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.id && !searchQuery;
             return (
@@ -491,7 +492,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                 onClick={() => handleCategoryChange(cat.id)}
                 className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${
                   isActive
-                    ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+                    ? "bg-indigo-500/40 font-semibold"
                     : "text-white/80"
                 }`}
               >
@@ -583,7 +584,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
             <div
               className={`${PANEL} mx-auto my-12 flex max-w-lg flex-col items-center p-10 text-center`}
             >
-              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200">
                 <Icon name="search" className="h-8 w-8" />
               </span>
               <h3 className="mt-4 text-2xl font-bold">No places found</h3>
@@ -649,7 +650,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                           }
                           className={`flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-90 ${
                             isSaved
-                              ? "border-indigo-300 bg-indigo-500 text-white shadow-lg shadow-indigo-500/50"
+                              ? "border-indigo-300 bg-indigo-500 text-white"
                               : "border-white/30 bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
                           }`}
                         >
@@ -904,7 +905,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                 <Icon name="close" className="h-4 w-4" />
               </button>
 
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/30 text-indigo-200">
                 <Icon
                   name={isSearchLimit ? "search" : "bookmark"}
                   className="h-8 w-8"
@@ -967,7 +968,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
         {/* TOAST */}
         {toastMessage && (
           <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-            <div className="glass-dark flex items-center gap-3 rounded-full border border-indigo-300/40 bg-slate-950/90 px-6 py-3 text-sm font-medium text-white shadow-2xl backdrop-blur-xl">
+            <div className="glass-dark flex items-center gap-3 rounded-full border border-indigo-300/40 bg-slate-950/90 px-6 py-3 text-sm font-medium text-white shadow-none! backdrop-blur-xl">
               <Icon name="check" className="h-4 w-4 text-teal-300" />
               <span>{toastMessage}</span>
             </div>

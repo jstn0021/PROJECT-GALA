@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/app/components/ui";
 
-const MAX_FREE_SEARCHES = 3;
+const MAX_FREE_SEARCHES = 10;
 
 export default function LandingSearchBar() {
   const [query, setQuery] = useState("");

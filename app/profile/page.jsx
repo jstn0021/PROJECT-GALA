@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LogoutButton from "@/app/components/LogoutButton";
 
@@ -42,9 +43,12 @@ async function resizeToSquare(file, size = 192) {
   return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
 }
 
+/* Original na kulay, pero solid lang (walang gradient, walang glow) */
 const inputClass = "glass-input w-full rounded-xl px-4 py-2.5 text-sm";
 const ghostButton =
   "rounded-full border border-white/35 bg-white/10 px-5 py-2 text-sm font-medium transition hover:bg-white/20";
+const panel = "rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl";
+const row = "rounded-2xl border border-indigo-300/30 bg-[#1c2564]/50";
 
 function Avatar({ photo, name, size = 88 }) {
   const initial = (name?.trim()[0] || "T").toUpperCase();
@@ -59,7 +63,7 @@ function Avatar({ photo, name, size = 88 }) {
     <span
       aria-hidden
       style={{ width: size, height: size, fontSize: size * 0.42 }}
-      className="grid place-items-center rounded-full bg-linear-to-br from-teal-300 to-indigo-500 font-semibold text-white"
+      className="grid place-items-center rounded-full bg-teal-500 font-semibold text-white"
     >
       {initial}
     </span>
@@ -78,7 +82,7 @@ function Field({ label, hint, children }) {
 
 function Section({ title, subtitle, children, onSave, saved, error }) {
   return (
-    <section className="glass flex flex-col gap-5 rounded-3xl p-6">
+    <section className={`${panel} flex flex-col gap-5 p-6`}>
       <div>
         <h2 className="text-xl font-semibold">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-white/65">{subtitle}</p>}
@@ -89,7 +93,7 @@ function Section({ title, subtitle, children, onSave, saved, error }) {
           <button
             type="button"
             onClick={onSave}
-            className="rounded-full bg-teal-500 px-6 py-2.5 text-sm font-semibold shadow-[0_0_18px_rgba(20,184,166,0.45)] transition hover:bg-teal-400 active:scale-95"
+            className="rounded-full bg-teal-500 px-6 py-2.5 text-sm font-semibold transition hover:bg-teal-400 active:scale-95"
           >
             Save changes
           </button>
@@ -210,22 +214,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main
-      className="relative isolate min-h-screen w-full overflow-hidden px-4 py-6 md:px-8"
-      style={{
-        background:
-          "radial-gradient(ellipse at top left, rgba(194,125,40,0.75), transparent 45%), radial-gradient(ellipse at bottom right, rgba(168,85,190,0.55), transparent 50%), linear-gradient(180deg, #0b3a66 0%, #0a5a82 70%, #0b7a93 100%)",
-      }}
-    >
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="animate-float absolute -left-24 top-24 h-80 w-80 rounded-full bg-amber-400/30 blur-3xl" />
-        <div className="animate-float-slow absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-fuchsia-500/25 blur-3xl" />
-        <div className="animate-float absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-teal-300/25 blur-3xl" />
-      </div>
-
+    <Background>
+      <main className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
       <Navbar key={navKey} />
 
-      <div className="mx-auto mt-10 w-full max-w-6xl pb-16">
+      <div className="mx-auto w-full max-w-6xl pb-16">
         <button
           type="button"
           onClick={() => router.back()}
@@ -354,7 +347,7 @@ export default function ProfilePage() {
                         onClick={() => chooseStyle(s)}
                         className={`cursor-pointer rounded-full border px-4 py-2 text-sm transition active:scale-95 ${
                           on
-                            ? "border-teal-100 bg-teal-500 font-semibold shadow-[0_0_14px_rgba(20,184,166,0.55)]"
+                            ? "border-teal-100 bg-teal-500 font-semibold"
                             : "border-white/30 bg-white/10 hover:bg-white/20"
                         }`}
                       >
@@ -371,7 +364,9 @@ export default function ProfilePage() {
               title="Account"
               subtitle="Password, sign out, and account removal."
             >
-              <div className="flex items-center justify-between gap-3 rounded-2xl glass-dark px-4 py-3">
+              <div
+                className={`flex items-center justify-between gap-3 px-4 py-3 ${row}`}
+              >
                 <div>
                   <p className="text-sm font-medium">Password</p>
                   <p className="text-xs text-white/60">
@@ -383,7 +378,9 @@ export default function ProfilePage() {
                 </Link>
               </div>
 
-              <div className="flex items-center justify-between gap-3 rounded-2xl glass-dark px-4 py-3">
+              <div
+                className={`flex items-center justify-between gap-3 px-4 py-3 ${row}`}
+              >
                 <div>
                   <p className="text-sm font-medium">Sign out</p>
                   <p className="text-xs text-white/60">
@@ -452,6 +449,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </main>
+      </main>
+    </Background>
   );
 }

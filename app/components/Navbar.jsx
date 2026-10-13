@@ -72,7 +72,8 @@ export default function Navbar() {
   const links = isAdmin ? [...baseLinks, adminLink] : baseLinks;
 
   return (
-    <header className="glass-dark relative z-40 flex w-full items-center gap-4 rounded-full px-6 py-3">
+    // shadow-none! para patayin ang glow na galing sa .glass-dark (globals.css)
+    <header className="glass-dark relative z-40 flex w-full items-center gap-4 rounded-full px-6 py-3 shadow-none!">
       {showBack && (
         <button
           type="button"
@@ -99,9 +100,7 @@ export default function Navbar() {
               aria-current={active ? "page" : undefined}
               aria-label={l.label}
               className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-sm transition hover:bg-white/10 lg:px-4 ${
-                active
-                  ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                  : "text-white/80"
+                active ? "bg-indigo-500/40 font-semibold" : "text-white/80"
               }`}
             >
               <Icon name={l.icon} className="h-4 w-4 shrink-0" />

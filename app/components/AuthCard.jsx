@@ -29,9 +29,6 @@ export function Background({ children }) {
         />
       </div>
 
-      <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-orange-400/50 blur-3xl animate-float" />
-      <div className="pointer-events-none absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-pink-500/40 blur-3xl animate-float-slow" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-cyan-400/40 blur-3xl animate-float" />
       <div className="relative z-10">{children}</div>
     </div>
   );
@@ -67,7 +64,7 @@ export function SubmitButton({ children, ...props }) {
   return (
     <button
       {...props}
-      className="h-11 w-full rounded-xl bg-linear-to-r from-orange-400 to-pink-500 font-semibold text-white shadow-lg shadow-pink-500/30 transition hover:scale-[1.02] hover:shadow-pink-500/50 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+      className="h-11 w-full rounded-xl bg-linear-to-r from-orange-400 to-pink-500 font-semibold text-white transition hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
     >
       {children}
     </button>

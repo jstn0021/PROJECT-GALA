@@ -5,20 +5,28 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  PANEL,
-  MODAL,
-  CARD,
   GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
-  primaryBtn,
-  ghostBtn,
-  smallBtn,
   cardAction,
   fieldLabel,
   Icon,
 } from "@/app/components/ui";
+
+/* My Plans-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
+   kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
+const MODAL = `${PANEL} bg-[#0e1450]`;
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
+const gradientBtn =
+  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white transition hover:scale-105 active:scale-95";
+const primaryBtn = `rounded-full px-6 py-3 ${gradientBtn}`;
+const ghostBtn =
+  "rounded-full border border-sky-300/30 bg-indigo-500/15 px-5 py-2.5 text-white transition hover:bg-indigo-500/30 active:scale-95";
+const smallBtn =
+  "rounded-full border border-sky-300/30 bg-indigo-500/15 px-3 py-1.5 text-sm text-white transition hover:bg-indigo-500/30 active:scale-95";
 
 const FILTERS = ["All", "Upcoming", "Ongoing", "Completed"];
 const STEPS = ["Upcoming", "Ongoing", "Completed"];
@@ -861,7 +869,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                   onClick={onComplete}
                   className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl font-semibold transition ${
                     ready
-                      ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] hover:scale-105 active:scale-95"
+                      ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white hover:scale-105 active:scale-95"
                       : "cursor-not-allowed border border-white/15 bg-white/5 text-white/40"
                   }`}
                 >
@@ -1124,7 +1132,7 @@ export default function MyPlansPage() {
                 onClick={() => setFilter(tab)}
                 className={`rounded-full border px-4 py-2 text-sm transition ${
                   filter === tab
-                    ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
+                    ? "border-indigo-300/60 bg-indigo-500/40 text-white"
                     : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
                 }`}
               >

@@ -8,56 +8,26 @@ const DESTINATIONS = [
     name: "Baguio",
     slot: "baguio",
     file: "/destinations/baguio.jpg",
-    grad: "from-emerald-700 to-indigo-900",
   },
   {
     name: "El Nido",
     slot: "elnido",
     file: "/destinations/elnido.jpg",
-    grad: "from-teal-500 to-cyan-900",
   },
   {
     name: "Siargao",
     slot: "siargao",
     file: "/destinations/siargao.webp",
-    grad: "from-lime-400 to-teal-700",
   },
   {
     name: "Cebu",
     slot: "cebu",
     file: "/destinations/cebu.jpg",
-    grad: "from-sky-400 to-indigo-800",
   },
 ];
 
-const FEATURES = [
-  {
-    title: "Plan trips",
-    text: "Create and organize your itineraries with ease.",
-    grad: "from-rose-400 to-orange-300",
-    icon: "🗓️",
-  },
-  {
-    title: "Budget",
-    text: "Keep track of your travel expenses.",
-    grad: "from-emerald-400 to-teal-600",
-    icon: "📊",
-  },
-  {
-    title: "Bucket list",
-    text: "Save places you want to visit someday.",
-    grad: "from-indigo-400 to-violet-600",
-    icon: "🔖",
-  },
-  {
-    title: "Journal",
-    text: "Write and keep your travel memories.",
-    grad: "from-teal-300 to-emerald-600",
-    icon: "📝",
-  },
-];
-
-const goldBtn =
+// Sign up button style (header + CTA) - amber pill
+const authBtn =
   "rounded-full bg-amber-400 px-5 py-2 font-semibold text-slate-900 transition hover:bg-amber-300";
 
 function initials(name) {
@@ -86,7 +56,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
           <Link href="/login" className="text-white/85 hover:text-white">
             Log in
           </Link>
-          <Link href="/signup" className={goldBtn}>
+          <Link href="/signup" className={authBtn}>
             Sign up
           </Link>
         </div>
@@ -94,10 +64,10 @@ export default function LandingContent({ images = {}, credits = [] }) {
 
       {/* Hero */}
       <section
-        className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-indigo-500 via-teal-500 to-amber-300 px-6 py-12 sm:px-12 sm:py-16 xl:py-24"
+        className="relative overflow-hidden rounded-[2rem] bg-teal-700 px-6 py-12 sm:px-12 sm:py-16 xl:py-24"
         style={{
           backgroundImage:
-            "linear-gradient(90deg, rgba(79,70,229,.85) 0%, rgba(20,184,166,.45) 55%, rgba(0,0,0,.05) 100%), url('" +
+            "linear-gradient(90deg, rgba(15,118,110,.8) 0%, rgba(15,118,110,.35) 55%, rgba(0,0,0,.05) 100%), url('" +
             (images.hero ?? "/destinations/baguio.jpg") +
             "')",
           backgroundSize: "cover",
@@ -108,10 +78,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
           EXPLORE · PLAN · REMEMBER
         </p>
         <h1 className="mt-4 max-w-xl text-5xl font-extrabold leading-[1.05] sm:text-6xl">
-          Plan your next{" "}
-          <span className="bg-linear-to-r from-cyan-200 via-lime-200 to-amber-200 bg-clip-text text-transparent">
-            adventure
-          </span>
+          Plan your next <span className="text-amber-300">adventure</span>
         </h1>
         <p className="mt-4 max-w-md text-white/90">
           Discover amazing destinations, organize your trips, and keep your
@@ -137,7 +104,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
             <Link
               key={d.name}
               href="/signup"
-              className={`group relative flex aspect-[16/10] items-end overflow-hidden rounded-2xl bg-linear-to-br ${d.grad} border border-white/20 transition hover:-translate-y-1`}
+              className="group relative flex aspect-[16/10] items-end overflow-hidden rounded-2xl bg-linear-to-br from-teal-600 to-slate-800 border border-white/20 transition hover:-translate-y-1"
               style={{
                 backgroundImage: `url('${images[d.slot] ?? d.file}')`,
                 backgroundSize: "cover",
@@ -154,34 +121,8 @@ export default function LandingContent({ images = {}, credits = [] }) {
         </div>
       </section>
 
-      {/* What can you do */}
-      <section>
-        <h2 className="mb-3 px-1 text-lg font-semibold">
-          What can you do with an account?
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <Link
-              key={f.title}
-              href="/signup"
-              className="glass flex items-center gap-4 rounded-2xl p-4 transition hover:-translate-y-1"
-            >
-              <span
-                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br ${f.grad} text-2xl`}
-              >
-                {f.icon}
-              </span>
-              <span>
-                <span className="block font-semibold">{f.title}</span>
-                <span className="block text-xs text-white/70">{f.text}</span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* CTA */}
-      <section className="flex flex-col items-start justify-between gap-5 rounded-[2rem] bg-linear-to-r from-indigo-500 via-teal-500 to-amber-300 px-8 py-8 sm:flex-row sm:items-center">
+      <section className="flex flex-col items-start justify-between gap-5 rounded-[2rem] bg-teal-700 px-8 py-8 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-2xl font-bold sm:text-3xl">
             Start planning your first trip
@@ -191,7 +132,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
           </p>
         </div>
         <div className="flex gap-3">
-          <Link href="/signup" className={goldBtn}>
+          <Link href="/signup" className={authBtn}>
             Sign up
           </Link>
           <Link
@@ -217,13 +158,13 @@ export default function LandingContent({ images = {}, credits = [] }) {
                 className="glass overflow-hidden rounded-3xl transition hover:-translate-y-1"
               >
                 <div
-                  className="flex aspect-[4/3] items-center justify-center bg-linear-to-br from-indigo-500 via-teal-500 to-amber-300 bg-cover bg-center text-7xl font-extrabold text-white/90"
+                  className="flex aspect-[4/3] items-center justify-center bg-teal-700 bg-cover bg-center text-7xl font-extrabold text-white/90"
                   style={
                     c.photoUrl
                       ? {
-                        backgroundImage: `url('${c.photoUrl}')`,
-                        backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
-                      }
+                          backgroundImage: `url('${c.photoUrl}')`,
+                          backgroundPosition: `${c.photoX ?? 50}% ${c.photoY ?? 50}%`,
+                        }
                       : undefined
                   }
                 >

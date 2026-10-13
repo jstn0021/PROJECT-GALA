@@ -6,17 +6,22 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  PANEL,
-  CARD,
   GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
-  primaryBtn,
-  gradientBtn,
   cardAction,
   Icon,
 } from "@/app/components/ui";
+
+/* Bucket List-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
+   kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
+const gradientBtn =
+  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white transition hover:scale-105 active:scale-95";
+const primaryBtn = `rounded-full px-6 py-3 ${gradientBtn}`;
 
 // Color names from the API -> card gradients (full class names so Tailwind keeps them)
 const GRADIENTS = {
@@ -188,7 +193,7 @@ export default function BucketListPage() {
             <div
               className={`${PANEL} mx-auto my-8 flex max-w-lg flex-col items-center p-10 text-center`}
             >
-              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200">
                 <Icon name="bookmark" className="h-8 w-8" />
               </span>
               <h2 className="mt-4 text-2xl font-bold">No places yet</h2>

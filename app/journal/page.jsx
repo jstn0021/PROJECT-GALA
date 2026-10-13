@@ -5,15 +5,19 @@ import { listMedia, addMedia, deleteMedia } from "@/lib/client/plans";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import {
-  PANEL,
-  MODAL,
-  CARD,
   GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
   Icon,
 } from "@/app/components/ui";
+
+/* Journal-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
+   kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
+const MODAL = `${PANEL} bg-[#0e1450]`;
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
 
 function isPlanCompleted(plan) {
   return Boolean(plan?.completedAt);
