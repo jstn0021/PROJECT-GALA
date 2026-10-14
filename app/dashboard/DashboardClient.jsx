@@ -112,6 +112,23 @@ const ACTIVITY_ICON_MAP = {
   "👁️": "eye",
   "👁": "eye",
 };
+function getActivityIcon(a) {
+  // 1. Kilalang emoji/pangalan
+  if (ACTIVITY_ICON_MAP[a.icon]) return ACTIVITY_ICON_MAP[a.icon];
+
+  // 2. Hulaan base sa title
+  const t = (a.title || "").toLowerCase();
+  if (t.includes("updated") || t.includes("edited")) return "edit";
+  if (t.includes("created")) return "plane";
+  if (t.includes("bucket") || t.includes("saved")) return "bookmark";
+  if (t.includes("budget")) return "wallet";
+  if (t.includes("viewed")) return "eye";
+  if (t.includes("completed")) return "check";
+
+  return a.icon || "clock";
+}
+
+
 
 const DEFAULT_BUCKET = { done: 3, total: 10 };
 
@@ -184,9 +201,8 @@ function Card({
 
       <div className="relative z-10 flex flex-1 flex-col">
         <div
-          className={`mb-4 flex items-center justify-between ${
-            divider ? "border-b border-white/10 pb-4" : ""
-          }`}
+          className={`mb-4 flex items-center justify-between ${divider ? "border-b border-white/10 pb-4" : ""
+            }`}
         >
           <div className="flex items-center gap-3">
             {boxedIcon ? (
@@ -370,10 +386,10 @@ export default function DashboardClient({ name }) {
     totalPlaces <= 3
       ? displayedPlaces
       : [
-          displayedPlaces[startIndex % totalPlaces],
-          displayedPlaces[(startIndex + 1) % totalPlaces],
-          displayedPlaces[(startIndex + 2) % totalPlaces],
-        ];
+        displayedPlaces[startIndex % totalPlaces],
+        displayedPlaces[(startIndex + 1) % totalPlaces],
+        displayedPlaces[(startIndex + 2) % totalPlaces],
+      ];
 
   function nextPlaces() {
     if (totalPlaces <= 3) return;
@@ -387,8 +403,8 @@ export default function DashboardClient({ name }) {
 
   // Recent Activity + Bucket List Progress (DB, may static fallback sa demo mode)
   const realActivities = dashboard?.recentActivity ?? [];
-  const activities =
-    realActivities.length === 0 && isDemo ? DEFAULT_ACTIVITIES : realActivities;
+  const usingSampleActivities = isDemo && realActivities.length === 0;
+  const activities = usingSampleActivities ? DEFAULT_ACTIVITIES : realActivities;
 
   const realBucketTotal = dashboard?.bucketList?.total ?? 0;
   const useDefaultBucket = isDemo && realBucketTotal === 0;
@@ -409,7 +425,7 @@ export default function DashboardClient({ name }) {
         {/* WELCOME */}
         <section className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div className="flex items-center gap-4">
-            <span className="text-violet-300 drop-shadow-[0_0_12px_rgba(167,139,250,0.8)]">
+            <span className="text-violet-300">
               <Icon name="mountain" className="h-12 w-12" />
             </span>
             <div>
@@ -426,7 +442,7 @@ export default function DashboardClient({ name }) {
           </div>
           <button
             onClick={() => go("/newplan")}
-            className="flex items-center gap-2 rounded-full border border-indigo-300/60 bg-linear-to-r from-indigo-500 to-violet-500 px-7 py-3 font-semibold shadow-[0_0_26px_rgba(99,102,241,0.65)] transition hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 rounded-full border border-indigo-300/60 bg-linear-to-r from-indigo-500 to-violet-500 px-7 py-3 font-semibold transition hover:scale-105 active:scale-95"
           >
             <Icon name="plus" className="h-5 w-5" /> New Plan
           </button>
@@ -441,7 +457,7 @@ export default function DashboardClient({ name }) {
           <section className={`${PANEL} p-8 text-red-200`}>{error}</section>
         ) : nextTrip ? (
           <section
-            className="relative overflow-hidden rounded-3xl border border-sky-400/60 shadow-[0_0_30px_rgba(56,189,248,0.4),0_0_60px_rgba(99,102,241,0.3)]"
+            className="relative overflow-hidden rounded-3xl border border-sky-400/60"
             style={{
               backgroundImage: nextTrip.image
                 ? `linear-gradient(90deg, rgba(14,20,92,0.95) 0%, rgba(14,20,92,0.75) 30%, rgba(14,20,92,0.1) 65%, rgba(14,20,92,0) 100%), url("${nextTrip.image}")`
@@ -484,9 +500,9 @@ export default function DashboardClient({ name }) {
                   onClick={() =>
                     go(isDemo ? "/newplan" : `/my-plans?trip=${nextTrip.id}`)
                   }
-                  className="mt-5 flex items-center gap-2 rounded-full border border-indigo-300/70 bg-indigo-900/40 px-6 py-2.5 text-sm font-semibold shadow-[0_0_16px_rgba(99,102,241,0.45)] backdrop-blur transition hover:bg-indigo-700/50"
+                  className="mt-5 flex items-center gap-2 rounded-full border border-indigo-300/70 bg-indigo-900/40 px-6 py-2.5 text-sm font-semibold backdrop-blur transition hover:bg-indigo-700/50"
                 >
-                  {isDemo ? "Plan your first trip" : "View Trip"}
+                  {isDemo ? "Plan your next trip" : "View Trip"}
                   <Icon name="arrow" className="h-4 w-4" />
                 </button>
               </div>
@@ -533,13 +549,12 @@ export default function DashboardClient({ name }) {
                 <button
                   key={`${d.id}-${index}`}
                   onClick={() => setSelectedDestination(d)}
-                  className="group relative min-h-64 overflow-hidden rounded-3xl border border-sky-300/50 text-left shadow-[0_0_16px_rgba(56,189,248,0.35)] transition duration-500 hover:shadow-[0_0_28px_rgba(56,189,248,0.65)]"
+                  className="group relative min-h-64 overflow-hidden rounded-3xl border border-sky-300/50 text-left transition duration-500 hover:shadow-[0_0_28px_rgba(56,189,248,0.65)]"
                 >
                   {/* gradient fallback (lalabas kapag walang image / hindi nag-load) */}
                   <div
-                    className={`absolute inset-0 bg-linear-to-br ${
-                      d.color || "from-cyan-400 to-indigo-600"
-                    } transition duration-300 group-hover:scale-110`}
+                    className={`absolute inset-0 bg-linear-to-br ${d.color || "from-cyan-400 to-indigo-600"
+                      } transition duration-300 group-hover:scale-110`}
                   />
                   {d.image && (
                     <div
@@ -559,11 +574,10 @@ export default function DashboardClient({ name }) {
                       <Icon
                         name="bookmark"
                         filled={d.bookmarked ?? hasSaved}
-                        className={`h-4 w-4 shrink-0 ${
-                          (d.bookmarked ?? hasSaved)
-                            ? "text-teal-300 drop-shadow-[0_0_6px_rgba(94,234,212,0.9)]"
-                            : "text-violet-300"
-                        }`}
+                        className={`h-4 w-4 shrink-0 ${(d.bookmarked ?? hasSaved)
+                          ? "text-teal-300"
+                          : "text-violet-300"
+                          }`}
                       />
                     </div>
                     <div className="truncate text-[11px] text-white/80">
@@ -603,23 +617,25 @@ export default function DashboardClient({ name }) {
             )}
           </Card>
 
-          {/* CARD 2: TRIP BUDGET PLANNER */}
           <Card
             title="Trip Budget Planner"
             subtitle={nextTrip?.title || "No trip selected"}
-            icon={<Icon name="Wallet" className="h-6 w-6" />}
-            boxedIcon
-            glow="from-indigo-500/20"
+            icon={<Icon name="wallet" className="h-6 w-6" />}
           >
-            <div className="rounded-2xl border border-sky-300/25 bg-[#0a1047]/60 p-4 shadow-[inset_0_0_20px_rgba(99,102,241,0.14)]">
+            <div className="rounded-2xl border border-sky-300/25 bg-[#0a1047]/60 p-4 ">
               <div className="text-sm text-white/75">Total Budget</div>
               <div className="mt-1 flex items-center gap-3">
                 <span className="text-3xl font-bold">
                   {peso(nextTrip?.budget ?? 0)}
                 </span>
-                <span className="rounded-full border border-sky-300/40 bg-[#1b2a7a]/80 px-3 py-0.5 text-xs shadow-[0_0_10px_rgba(99,102,241,0.4)]">
+                <span className="rounded-full border border-sky-300/40 bg-[#1b2a7a]/80 px-3 py-0.5 text-xs ">
                   Planned
                 </span>
+                {isDemo && (
+                  <span className="rounded-full border border-indigo-300/40 bg-indigo-500/30 px-2.5 py-0.5 text-[10px] font-medium tracking-normal text-indigo-100">
+                    Sample Budget
+                  </span>
+                )}
               </div>
 
               <div className="mt-3 flex items-center gap-3">
@@ -657,7 +673,6 @@ export default function DashboardClient({ name }) {
             title="Bucket List Progress"
             icon={<Icon name="bookmark" className="h-6 w-6" />}
             divider
-            glow="from-violet-500/20"
             backdrop={
               <div
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
@@ -684,8 +699,15 @@ export default function DashboardClient({ name }) {
             }
           >
             <div className="py-2">
+              <div className="flex justify-start">
+                {useDefaultBucket && (
+                  <span className="rounded-full border border-indigo-300/40 bg-indigo-500/30 px-2.5 py-0.5 text-[10px] font-medium tracking-normal text-indigo-100">
+                    Sample Bucketlist Progress
+                  </span>
+                )}
+              </div>
               <Ring percent={bucketPercent}>
-                <span className="mb-0.5 text-violet-300 drop-shadow-[0_0_8px_rgba(167,139,250,0.9)]">
+                <span className="mb-0.5 text-violet-300">
                   <Icon name="mountain" className="h-6 w-6" />
                 </span>
                 <div className="text-2xl font-bold">
@@ -707,27 +729,29 @@ export default function DashboardClient({ name }) {
             </div>
             <button
               onClick={() => go("/bucket-list")}
-              className="mx-auto mt-5 flex items-center gap-2 rounded-full border border-violet-300/60 bg-linear-to-r from-violet-500/80 to-indigo-500/80 px-5 py-2 text-sm font-medium shadow-[0_0_18px_rgba(139,92,246,0.7)] transition hover:scale-105 hover:shadow-[0_0_26px_rgba(139,92,246,0.9)] active:scale-95"
+              className="mx-auto mt-5 flex items-center gap-2 rounded-full border border-violet-300/60 bg-linear-to-r from-violet-500/80 to-indigo-500/80 px-5 py-2 text-sm font-medium transition hover:scale-105"
             >
               View Bucket List
               <Icon name="arrow" className="h-4 w-4" />
             </button>
           </Card>
 
-          {/* CARD 4: RECENT ACTIVITY */}
           <Card
             title="Recent Activity"
             icon={<Icon name="clock" className="h-6 w-6" />}
-            glow="from-sky-400/15"
           >
+            <div className="flex justify-start">
+              {usingSampleActivities && (
+                <span className="rounded-full border border-indigo-300/40 bg-indigo-500/30 px-2.5 py-0.5 text-[10px] font-medium tracking-normal text-indigo-100">
+                  Sample Recent Activity
+                </span>
+              )}
+            </div>
             <ul className="flex flex-col divide-y divide-white/10">
               {activities.map((a) => (
                 <li key={a.id} className="flex items-center gap-3 py-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-sky-300/40 bg-indigo-500/25 text-indigo-100 shadow-[0_0_14px_rgba(99,102,241,0.6)]">
-                    <Icon
-                      name={ACTIVITY_ICON_MAP[a.icon] ?? a.icon}
-                      className="h-5 w-5"
-                    />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-sky-300/40 bg-indigo-500/25 text-indigo-100 ">
+                    <Icon name={getActivityIcon(a)} className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">
@@ -760,7 +784,7 @@ export default function DashboardClient({ name }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="destination-modal-title"
-            className={`${PANEL} max-h-[90vh] w-full max-w-xl overflow-y-auto border-sky-300/40 bg-[#0e1450] shadow-2xl`}
+            className={`${PANEL} max-h-[90vh] w-full max-w-xl overflow-y-auto border-sky-300/40 bg-[#0e1450]`}
           >
             {/* Destination image */}
             <div
@@ -810,7 +834,7 @@ export default function DashboardClient({ name }) {
                 <button
                   type="button"
                   onClick={() => setSelectedDestination(null)}
-                  className="rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(99,102,241,0.5)] transition hover:scale-105"
+                  className="rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white transition hover:scale-105"
                 >
                   Close
                 </button>
