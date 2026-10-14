@@ -402,7 +402,7 @@ export default function DashboardClient({ name }) {
       <Navbar />
 
       {/* MAIN FRAME */}
-      <div className="flex flex-col gap-5 rounded-[2rem] border border-indigo-400/30 bg-linear-to-br from-[#1b1f72]/45 via-[#10175a]/45 to-[#0b2f4d]/40 p-4 backdrop-blur-xl md:p-6">
+      <div className="flex flex-col gap-5 p-4 md:p-6">
         {/* WELCOME */}
         <section className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div className="flex items-center gap-4">
@@ -606,7 +606,7 @@ export default function DashboardClient({ name }) {
             icon={<Icon name="Wallet" className="h-6 w-6" />}
             boxedIcon
           >
-            <div className="rounded-2xl border border-sky-300/25 bg-[#0a1047]/60 p-4">
+            <div>
               <div className="text-sm text-white/75">Total Budget</div>
               <div className="mt-1 flex items-center gap-3">
                 <span className="text-3xl font-bold">

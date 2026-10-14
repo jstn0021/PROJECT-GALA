@@ -151,7 +151,7 @@ export default function BucketListPage() {
 
           <form
             onSubmit={addPlace}
-            className="glass-input relative z-50 flex w-full max-w-2xl items-center gap-2 rounded-full p-1.5"
+            className="flex w-full max-w-2xl items-center gap-2 rounded-full p-1.5"
           >
             <div className="relative min-w-0 flex-1">
               <LocationSearch

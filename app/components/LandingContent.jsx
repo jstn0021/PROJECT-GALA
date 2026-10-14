@@ -122,7 +122,7 @@ export default function LandingContent({ images = {}, credits = [] }) {
       </section>
 
       {/* CTA */}
-      <section className="flex flex-col items-start justify-between gap-5 rounded-[2rem] bg-teal-700 px-8 py-8 sm:flex-row sm:items-center">
+      <section className="flex flex-col items-start justify-between gap-5 rounded-[2rem] bg-sky-700/70 px-8 py-8 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-2xl font-bold sm:text-3xl">
             Start planning your first trip

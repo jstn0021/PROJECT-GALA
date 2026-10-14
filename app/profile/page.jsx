@@ -47,7 +47,7 @@ async function resizeToSquare(file, size = 192) {
 const inputClass = "glass-input w-full rounded-xl px-4 py-2.5 text-sm";
 const ghostButton =
   "rounded-full border border-white/35 bg-white/10 px-5 py-2 text-sm font-medium transition hover:bg-white/20";
-const panel = "rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl";
+const panel = "rounded-3xl border border-white/20 bg-white/25 backdrop-blur-xl";
 const row = "rounded-2xl border border-indigo-300/30 bg-[#1c2564]/50";
 
 function Avatar({ photo, name, size = 88 }) {
@@ -63,7 +63,7 @@ function Avatar({ photo, name, size = 88 }) {
     <span
       aria-hidden
       style={{ width: size, height: size, fontSize: size * 0.42 }}
-      className="grid place-items-center rounded-full bg-teal-500 font-semibold text-white"
+      className="grid place-items-center rounded-full bg-linear-to-br from-cyan-400 via-sky-500 to-violet-500 font-semibold text-white"
     >
       {initial}
     </span>
