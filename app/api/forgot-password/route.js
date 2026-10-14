@@ -16,7 +16,13 @@ export async function POST(req) {
       user.resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       await user.save();
 
-      const baseUrl = process.env.APP_URL || "http://localhost:3000";
+      const baseUrl = (
+        process.env.APP_URL ||
+        req.headers.get("origin") ||
+        (process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000")
+      ).replace(/\/$/, "");
       const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
       try {
