@@ -25,6 +25,7 @@ const ICONS = {
   logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
 };
 
+// Kapareho ng avatar sa Profile page: solid teal na may cream na initial
 function Avatar({ photo, name, size = 40 }) {
   const initial = (name?.trim()[0] || "?").toUpperCase();
   return photo ? (
@@ -38,7 +39,7 @@ function Avatar({ photo, name, size = 40 }) {
     <span
       aria-hidden
       style={{ width: size, height: size, fontSize: size * 0.42 }}
-      className="grid place-items-center rounded-full bg-linear-to-br from-teal-300 to-indigo-500 font-semibold text-white"
+      className="grid place-items-center rounded-full bg-gala-teal font-semibold text-gala-text"
     >
       {initial}
     </span>
@@ -46,9 +47,9 @@ function Avatar({ photo, name, size = 40 }) {
 }
 
 const rowBase =
-  "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-white/10";
+  "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-gala-raised";
 const iconBubble =
-  "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10";
+  "grid h-9 w-9 shrink-0 place-items-center rounded-full border border-gala-line bg-gala-raised";
 
 export default function ProfileMenu({
   user = { name: "Traveler", email: "", avatarUrl: null },
@@ -107,7 +108,7 @@ export default function ProfileMenu({
         aria-label="Account menu"
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="rounded-full border border-white/40 p-0.5 transition hover:border-white/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+        className="rounded-full border border-gala-accent/60 p-0.5 transition hover:border-gala-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gala-accent"
       >
         <Avatar photo={photo} name={displayName} size={36} />
       </button>
@@ -116,31 +117,31 @@ export default function ProfileMenu({
         <div
           role="dialog"
           aria-label="Account"
-          className="absolute right-0 top-full z-50 mt-3 w-88 max-w-[calc(100vw-2rem)] rounded-3xl border border-white/25 bg-linear-to-br from-[#16265a] to-[#0a1230] p-3 text-white shadow-2xl shadow-black/60"
+          className="absolute right-0 top-full z-50 mt-3 w-88 max-w-[calc(100vw-2rem)] rounded-3xl border border-gala-line bg-gala-surface p-3 text-gala-text shadow-lift"
         >
           {/* Profile header */}
           <div className="flex flex-col items-center px-3 pb-3 pt-4 text-center">
-            <div className="rounded-full border border-white/40 p-1">
+            <div className="rounded-full border border-gala-accent/60 p-1">
               <Avatar photo={photo} name={displayName} size={80} />
             </div>
 
-            <p className="mt-3 max-w-full truncate text-lg font-semibold">
+            <p className="mt-3 max-w-full truncate text-lg font-semibold text-gala-text">
               {displayName}
             </p>
-            <p className="max-w-full truncate text-sm text-white/65">
+            <p className="max-w-full truncate text-sm text-gala-muted">
               {user.email}
             </p>
 
             <Link
               href={profileHref}
               onClick={() => setOpen(false)}
-              className="mt-4 rounded-full border border-white/35 bg-white/10 px-5 py-2 text-sm font-medium transition hover:bg-white/20"
+              className="mt-4 rounded-full border border-gala-line bg-gala-raised/60 px-5 py-2 text-sm font-medium text-gala-text transition hover:bg-gala-raised active:scale-95"
             >
               Manage your account
             </Link>
           </div>
 
-          <div className="my-1 h-px bg-white/15" />
+          <div className="my-1 h-px bg-gala-line" />
 
           <button
             type="button"

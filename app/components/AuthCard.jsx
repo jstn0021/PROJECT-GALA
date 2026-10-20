@@ -5,31 +5,52 @@ import LandingContent from "app/components/LandingContent";
 
 export function Background({ children }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0b1f33] via-[#12476b] to-[#1b6f7a]">
-      {/* Mas blurred na ang map para kapareho ng dashboard.
-          Pwedeng baguhin ang blur-[10px] / blur-[3px] kung gusto mo pang dagdagan o bawasan. */}
+    <div className="relative min-h-screen overflow-hidden bg-linear-to-b from-[#12324A] via-[#1B5F78] to-[#2F8F9A]">
+      {/* Map layers: same drift animation, recolored to the artwork's palette.
+          Ang blur ay nasa loob ng `filter` dahil ino-override ng inline filter
+          ang Tailwind blur classes. Palitan ang blur(10px) / blur(3px) kung
+          gusto mo pang dagdagan o bawasan. */}
       <div className="pointer-events-none fixed inset-0 animate-map-drift">
+        {/* Landmasses: deep teal-navy */}
         <div
-          className="absolute inset-0 scale-110 opacity-60 blur-[10px]"
+          className="absolute inset-0 scale-110 opacity-55"
           style={{
             backgroundImage: "url(/world-map.svg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+            filter:
+              "blur(10px) grayscale(1) sepia(1) hue-rotate(150deg) saturate(1.5) brightness(0.95)",
           }}
         />
+        {/* Routes: pale cream, like the chevrons in the artwork */}
         <div
-          className="absolute inset-0 scale-110 opacity-90 blur-[3px]"
+          className="absolute inset-0 scale-110 opacity-70"
           style={{
             backgroundImage: "url(/world-routes.svg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
+            filter:
+              "blur(3px) grayscale(1) sepia(0.7) saturate(0.9) brightness(0.95)",
           }}
         />
       </div>
 
-      <div className="relative z-10">{children}</div>
+      {/* Static color wash: olive haze top-left, teal water rising from the bottom,
+          and a dark fade at the top so the sky reads as night */}
+      <div
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background: [
+            "radial-gradient(800px 480px at 8% -5%, rgb(165 174 92 / 0.18), transparent 60%)",
+            "radial-gradient(1200px 600px at 50% 112%, rgb(94 190 200 / 0.35), transparent 65%)",
+            "linear-gradient(180deg, rgb(8 13 23 / 0.25) 0%, transparent 30%)",
+          ].join(", "),
+        }}
+      />
+
+      <div className="relative z-10 text-gala-text">{children}</div>
     </div>
   );
 }
@@ -37,7 +58,7 @@ export function Background({ children }) {
 export function Logo({ size = "md" }) {
   return (
     <span
-      className={`font-bold tracking-tight ${
+      className={`font-bold tracking-tight text-gala-text ${
         size === "lg" ? "text-4xl sm:text-5xl" : "text-2xl"
       }`}
     >
@@ -49,7 +70,7 @@ export function Logo({ size = "md" }) {
 export function Field({ label, error, ...props }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-white/80">
+      <span className="mb-1.5 block text-sm font-medium text-gala-text/80">
         {label}
       </span>
       <input
@@ -64,7 +85,7 @@ export function SubmitButton({ children, ...props }) {
   return (
     <button
       {...props}
-      className="h-11 w-full rounded-xl bg-linear-to-r from-orange-400 to-pink-500 font-semibold text-white transition hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+      className="h-11 w-full rounded-xl bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-[1.02] hover:brightness-110 hover:shadow-accent-lift active:scale-95 active:shadow-none disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-accent"
     >
       {children}
     </button>
@@ -105,30 +126,37 @@ export default function AuthCard({
         <div className="origin-center scale-105 blur-md">
           <LandingContent images={images} />
         </div>
-        <div className="absolute inset-0 bg-slate-950/55" />
+        <div className="absolute inset-0 bg-gala-bg/40" />
       </div>
 
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <div className="glass w-full max-w-md rounded-3xl p-8">
+        {/* Kapareho na ng Dashboard panels, hindi na umaasa sa .glass ng globals.css */}
+        <div className="w-full max-w-md rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 p-8 text-gala-text shadow-lift backdrop-blur-md">
           {/* Brand, centered at top of the card */}
           <div className="text-center">
             <Logo size="lg" />
           </div>
 
-          <h2 className="mt-6 text-center text-2xl font-semibold tracking-tight">
+          <h2 className="mt-6 text-center text-2xl font-semibold tracking-tight text-gala-text">
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-1 text-center text-white/70">{subtitle}</p>
+            <p className="mt-1 text-center text-gala-aqua">{subtitle}</p>
           )}
 
           {error && (
-            <p className="mt-4 rounded-xl border border-red-300/40 bg-red-500/20 px-4 py-2 text-sm text-red-100">
+            <p
+              role="alert"
+              className="mt-4 rounded-xl border border-red-300/40 bg-red-500/20 px-4 py-2 text-sm text-red-100"
+            >
               {error}
             </p>
           )}
           {success && (
-            <p className="mt-4 rounded-xl border border-green-300/40 bg-green-500/20 px-4 py-2 text-sm text-green-100">
+            <p
+              role="status"
+              className="mt-4 rounded-xl border border-gala-accent/40 bg-gala-accent/15 px-4 py-2 text-sm text-gala-accent"
+            >
               {success}
             </p>
           )}

@@ -10,17 +10,15 @@ import Link from "next/link";
 export default function TermsAgreement({ checked, onChange, error }) {
   return (
     <div className="space-y-3">
-      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/90">
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-gala-text/90">
         <input
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           aria-invalid={error ? "true" : "false"}
-          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-amber-400"
+          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-gala-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gala-accent"
         />
-        <span>
-          I have read and agree to the GALA Terms and Agreement.
-        </span>
+        <span>I have read and agree to the GALA Terms and Agreement.</span>
       </label>
 
       {error && (
@@ -34,7 +32,7 @@ export default function TermsAgreement({ checked, onChange, error }) {
         href="/terms"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex w-full items-center justify-center rounded-full border border-white/40 bg-white/15 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/25"
+        className="flex w-full items-center justify-center rounded-full border border-gala-line bg-gala-raised/60 px-5 py-2 text-sm font-semibold text-gala-text transition hover:bg-gala-raised active:scale-95"
       >
         Read Terms and Agreement
       </Link>

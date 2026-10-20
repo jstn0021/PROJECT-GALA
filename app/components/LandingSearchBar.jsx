@@ -6,6 +6,17 @@ import { Icon } from "@/app/components/ui";
 
 const MAX_FREE_SEARCHES = 10;
 
+/* Kapareho na ng Dashboard, My Plans, New Plan, Profile, Journal at Landing ang
+   panels, buttons at shadows. Hindi na umaasa sa .glass / .glass-input ng globals.css. */
+const PANEL =
+  "rounded-2xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 backdrop-blur-md shadow-card";
+const MODAL =
+  "rounded-3xl border border-gala-line bg-gala-surface shadow-lift";
+const primaryBtn =
+  "rounded-full bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95";
+const ghostBtn =
+  "rounded-full border border-gala-line bg-gala-raised/60 font-semibold text-gala-text transition hover:bg-gala-raised active:scale-95";
+
 export default function LandingSearchBar() {
   const [query, setQuery] = useState("");
   const [searchCount, setSearchCount] = useState(0);
@@ -52,9 +63,9 @@ export default function LandingSearchBar() {
       <form
         id="landing-search-form"
         onSubmit={handleSearch}
-        className="glass-input mt-8 flex w-full max-w-xl items-center gap-2 rounded-full p-1.5"
+        className="mt-8 flex w-full max-w-xl items-center gap-2 rounded-full border border-gala-line bg-gala-surface/85 p-1.5 shadow-card backdrop-blur-md transition focus-within:border-gala-accent focus-within:ring-4 focus-within:ring-gala-accent/20"
       >
-        <span className="pl-4 text-white/70" aria-hidden="true">
+        <span className="pl-4 text-gala-aqua" aria-hidden="true">
           <Icon name="search" className="h-5 w-5" />
         </span>
         <input
@@ -65,22 +76,22 @@ export default function LandingSearchBar() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Where do you want to go in the Philippines?"
           aria-label="Search for a Philippine destination"
-          className="min-w-0 flex-1 bg-transparent px-2 py-2 text-white placeholder:text-white/70 focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent px-2 py-2 text-gala-text placeholder:text-gala-muted focus:outline-none"
         />
         <button
           id="landing-search-btn"
           type="submit"
           disabled={isLoading}
-          className="rounded-full bg-slate-900/70 px-6 py-2.5 font-medium text-white transition hover:bg-slate-900 active:scale-95 disabled:opacity-50"
+          className={`${primaryBtn} px-6 py-2.5 disabled:opacity-50`}
         >
           {isLoading ? "Searching…" : "Search"}
         </button>
       </form>
 
       {/* ── Guest limit indicator ────────────────────────────────────────────── */}
-      <p className="mt-2 text-xs text-white/60">
+      <p className="mt-2 text-xs text-gala-muted">
         Free Guest Searches:{" "}
-        <strong className="text-amber-300">{remainingSearches}</strong> of{" "}
+        <strong className="text-gala-accent">{remainingSearches}</strong> of{" "}
         {MAX_FREE_SEARCHES} remaining
       </p>
 
@@ -88,7 +99,7 @@ export default function LandingSearchBar() {
       <div className="mt-5 text-center">
         <Link
           href="/signup"
-          className="inline-flex items-center gap-2 rounded-full bg-slate-900/70 px-6 py-2.5 font-medium text-white transition hover:bg-slate-900"
+          className={`${ghostBtn} inline-flex items-center gap-2 px-6 py-2.5`}
         >
           Explore destinations
           <Icon name="arrow" className="h-4 w-4" />
@@ -98,30 +109,30 @@ export default function LandingSearchBar() {
       {/* ── Preview results grid ─────────────────────────────────────────────── */}
       {searchedKeyword && (
         <div className="mt-6 w-full animate-fadeIn">
-          <p className="text-sm text-white/80 mb-3 text-center">
+          <p className="mb-3 text-center text-sm text-gala-text/80">
             Results for{" "}
-            <strong className="text-teal-300">"{searchedKeyword}"</strong>:
+            <strong className="text-gala-accent">"{searchedKeyword}"</strong>:
           </p>
 
           {isLoading ? (
             <div className="flex justify-center py-6">
-              <span className="text-teal-300 animate-pulse text-sm">
+              <span className="animate-pulse text-sm text-gala-aqua">
                 Searching Philippine destinations…
               </span>
             </div>
           ) : previewResults.length === 0 ? (
-            <p className="text-xs text-white/50 text-center py-4">
+            <p className="py-4 text-center text-xs text-gala-muted">
               No locations found. Try a city, province, or landmark name.
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               {previewResults.map((place, idx) => (
                 <div
                   key={place.id ?? idx}
-                  className="glass relative overflow-hidden rounded-2xl border border-white/20 p-3 flex flex-col justify-between"
+                  className={`${PANEL} relative flex flex-col justify-between overflow-hidden p-3 transition duration-300 hover:-translate-y-1 hover:shadow-lift`}
                 >
                   <div>
-                    <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-800">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-gala-line bg-gala-raised">
                       <img
                         src={place.image || "/destinations/elnido.jpg"}
                         alt={place.name}
@@ -131,10 +142,10 @@ export default function LandingSearchBar() {
                         }}
                       />
                     </div>
-                    <h4 className="mt-2 font-bold text-white text-base">
+                    <h4 className="mt-2 text-base font-bold text-gala-text">
                       {place.name}
                     </h4>
-                    <p className="flex items-center gap-1 text-xs text-teal-200">
+                    <p className="flex items-center gap-1 text-xs text-gala-aqua">
                       <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">
                         {place.location || "Philippines"}
@@ -146,7 +157,7 @@ export default function LandingSearchBar() {
                   <button
                     type="button"
                     onClick={() => setShowModal(true)}
-                    className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-teal-500/30 border border-teal-300/40 py-2 text-xs font-semibold text-teal-100 transition hover:bg-teal-500/50"
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-gala-accent/50 bg-gala-accent/15 py-2 text-xs font-semibold text-gala-accent transition hover:bg-gala-accent/25"
                   >
                     <Icon name="lock" className="h-3.5 w-3.5" />
                     <span>View full details · Log in</span>
@@ -170,11 +181,13 @@ export default function LandingSearchBar() {
             if (e.target === e.currentTarget) setShowModal(false);
           }}
         >
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
-          <div className="glass relative z-10 w-full max-w-sm rounded-3xl px-8 py-8 text-center shadow-2xl border border-white/20">
+          <div
+            className={`${MODAL} relative z-10 w-full max-w-sm px-8 py-8 text-center text-gala-text`}
+          >
             <div
-              className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]"
+              className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl border border-gala-line bg-gala-raised text-gala-accent shadow-card"
               aria-hidden="true"
             >
               <Icon name="lock" className="h-8 w-8" />
@@ -182,14 +195,14 @@ export default function LandingSearchBar() {
 
             <h2
               id="search-limit-title"
-              className="text-xl font-bold text-white"
+              className="text-xl font-bold text-gala-text"
             >
               Search limit reached
             </h2>
 
-            <p className="mt-2 text-sm leading-relaxed text-white/75">
+            <p className="mt-2 text-sm leading-relaxed text-gala-text/75">
               You have used all{" "}
-              <strong className="text-amber-300">{MAX_FREE_SEARCHES}</strong>{" "}
+              <strong className="text-gala-accent">{MAX_FREE_SEARCHES}</strong>{" "}
               free guest searches. Log in or sign up to explore without limits!
             </p>
 
@@ -197,14 +210,14 @@ export default function LandingSearchBar() {
               <a
                 id="search-limit-login-btn"
                 href="/login"
-                className="rounded-full bg-amber-400 px-6 py-2.5 font-semibold text-slate-900 transition hover:bg-amber-300"
+                className={`${primaryBtn} px-6 py-2.5`}
               >
                 Log in
               </a>
               <a
                 id="search-limit-signup-btn"
                 href="/signup"
-                className="rounded-full border border-white/40 bg-white/15 px-6 py-2.5 font-semibold text-white transition hover:bg-white/25"
+                className={`${ghostBtn} px-6 py-2.5`}
               >
                 Sign up — it is free
               </a>
@@ -214,7 +227,7 @@ export default function LandingSearchBar() {
               id="search-limit-dismiss-btn"
               type="button"
               onClick={() => setShowModal(false)}
-              className="mt-4 text-xs text-white/45 underline-offset-2 transition hover:text-white/70 hover:underline"
+              className="mt-4 text-xs text-gala-muted underline-offset-2 transition hover:text-gala-text hover:underline"
             >
               Maybe later
             </button>

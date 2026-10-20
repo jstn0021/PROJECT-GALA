@@ -160,6 +160,57 @@ svg {
   }
 }
 
+@theme {
+  --color-gala-bg: #0C1220;
+  --color-gala-surface: #131C2B;
+  --color-gala-raised: #1D2A3A;
+  --color-gala-line: #2E4150;
+  --color-gala-muted: #6F8089;
+  --color-gala-text: #E6E4D8;
+  --color-gala-aqua: #7C98A3;
+  --color-gala-accent: #A5AE5C;
+  --color-gala-teal: #2B6F7C;
+  --color-gala-gold: #C9AE72;
+
+  --shadow-card:
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 10px 24px -6px rgb(0 0 0 / 0.55),
+    0 24px 48px -12px rgb(0 0 0 / 0.6),
+    inset 0 1px 0 rgb(230 228 216 / 0.10);
+    
+  --shadow-lift:
+    0 2px 4px rgb(0 0 0 / 0.5),
+    0 16px 32px -8px rgb(0 0 0 / 0.65),
+    0 32px 64px -16px rgb(0 0 0 / 0.7),
+    inset 0 1px 0 rgb(230 228 216 / 0.16);
+
+  --shadow-accent:
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 6px 14px -4px rgb(0 0 0 / 0.6),
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    inset 0 -2px 0 rgb(0 0 0 / 0.18);
+
+  --shadow-accent-lift:
+    0 2px 4px rgb(0 0 0 / 0.5),
+    0 12px 22px -4px rgb(0 0 0 / 0.65),
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 -2px 0 rgb(0 0 0 / 0.18);
+
+    --shadow-btn:
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 6px 14px -4px rgb(0 0 0 / 0.6),
+    inset 0 1px 0 rgb(230 228 216 / 0.12);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 500px at 85% -5%, rgb(47 143 154 / 0.35), transparent 60%),
+    radial-gradient(700px 500px at 0% 100%, rgb(183 194 58 / 0.10), transparent 60%),
+    #12151B;
+  background-attachment: fixed;
+}
+
 /* Hide scrollbars */
 html,
 body,

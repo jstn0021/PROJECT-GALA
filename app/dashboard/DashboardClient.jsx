@@ -7,7 +7,7 @@ import { Icon } from "@/app/components/ui";
 // Dashboard-only na panel style (walang glow). Hindi ginagalaw ang PANEL sa ui.jsx
 // kaya hindi apektado ang ibang pages.
 const PANEL_FLAT =
-  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
+  "rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 backdrop-blur-md shadow-card";
 
 const peso = (n) => `₱${Number(n || 0).toLocaleString("en-PH")}`;
 function timeAgo(date) {
@@ -135,29 +135,29 @@ function MountainBackdrop() {
     >
       <defs>
         <radialGradient id="bucketSun" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#f9a8d4" stopOpacity="0.75" />
-          <stop offset="1" stopColor="#f9a8d4" stopOpacity="0" />
+          <stop offset="0" stopColor="#C9AE72" stopOpacity="0.75" />
+          <stop offset="1" stopColor="#C9AE72" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="bucketSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#6366f1" stopOpacity="0" />
-          <stop offset="1" stopColor="#a78bfa" stopOpacity="0.45" />
+          <stop offset="0" stopColor="#2B6F7C" stopOpacity="0" />
+          <stop offset="1" stopColor="#7C98A3" stopOpacity="0.45" />
         </linearGradient>
       </defs>
       <rect width="300" height="160" fill="url(#bucketSky)" />
       <circle cx="215" cy="98" r="46" fill="url(#bucketSun)" />
       <path
         d="M0 110 L40 85 L70 100 L110 70 L150 98 L190 75 L240 105 L300 80 L300 160 L0 160Z"
-        fill="#7c6be0"
+        fill="#4A5F6B"
         opacity="0.55"
       />
       <path
         d="M0 130 L50 105 L90 125 L140 95 L190 125 L235 108 L300 128 L300 160 L0 160Z"
-        fill="#4c3fb8"
+        fill="#2E4150"
         opacity="0.8"
       />
       <path
         d="M0 148 L60 128 L110 145 L170 125 L230 146 L300 132 L300 160 L0 160Z"
-        fill="#262280"
+        fill="#131C2B"
         opacity="0.95"
       />
     </svg>
@@ -185,28 +185,30 @@ function Card({
       <div className="relative z-10 flex flex-1 flex-col">
         <div
           className={`mb-4 flex items-center justify-between ${
-            divider ? "border-b border-white/10 pb-4" : ""
+            divider ? "border-b border-gala-line pb-4" : ""
           }`}
         >
           <div className="flex items-center gap-3">
             {boxedIcon ? (
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-indigo-300/50 bg-indigo-500/20 text-indigo-200">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-gala-line bg-gala-raised text-gala-accent">
                 {icon}
               </span>
             ) : (
-              <span className="text-indigo-300">{icon}</span>
+              <span className="text-gala-accent">{icon}</span>
             )}
             <div>
-              <h2 className="text-lg font-semibold leading-tight text-white">
+              <h2 className="text-lg font-semibold leading-tight text-gala-text">
                 {title}
               </h2>
-              {subtitle && <p className="text-sm text-white/65">{subtitle}</p>}
+              {subtitle && (
+                <p className="text-sm text-gala-aqua">{subtitle}</p>
+              )}
             </div>
           </div>
           {action && (
             <button
               onClick={onAction}
-              className="flex items-center gap-1 text-sm text-sky-300 transition hover:text-white"
+              className="flex items-center gap-1 text-sm text-gala-accent transition hover:text-gala-text"
             >
               {action}
               <Icon name="arrow" className="h-3.5 w-3.5" />
@@ -221,9 +223,9 @@ function Card({
 
 function Bar({ percent }) {
   return (
-    <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-gala-text/15">
       <div
-        className="h-full rounded-full bg-linear-to-r from-violet-400 via-blue-400 to-teal-300"
+        className="h-full rounded-full bg-linear-to-r from-gala-accent to-gala-teal"
         style={{ width: `${percent}%` }}
       />
     </div>
@@ -243,7 +245,7 @@ function Ring({ percent, children }) {
           cy="60"
           r={r}
           fill="none"
-          stroke="rgba(99,102,241,0.3)"
+          stroke="#1D2A3A"
           strokeWidth="6"
         />
         <circle
@@ -259,8 +261,8 @@ function Ring({ percent, children }) {
         />
         <defs>
           <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#a78bfa" />
-            <stop offset="1" stopColor="#5eead4" />
+            <stop offset="0" stopColor="#A5AE5C" />
+            <stop offset="1" stopColor="#2B6F7C" />
           </linearGradient>
         </defs>
       </svg>
@@ -325,11 +327,11 @@ export default function DashboardClient({ name }) {
   const budgetItems = (nextTrip?.budgetItems ?? []).map((item, index) => ({
     ...item,
     dot: [
-      "bg-violet-400",
-      "bg-blue-400",
-      "bg-orange-400",
-      "bg-fuchsia-400",
-      "bg-cyan-400",
+      "bg-gala-accent",
+      "bg-gala-teal",
+      "bg-gala-gold",
+      "bg-gala-aqua",
+      "bg-gala-muted",
     ][index % 5],
   }));
 
@@ -397,7 +399,7 @@ export default function DashboardClient({ name }) {
     bucketTotal > 0 ? Math.round((bucketDone / bucketTotal) * 100) : 0;
 
   return (
-    <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-white md:px-8 md:py-6 xl:px-12">
+    <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-gala-text md:px-8 md:py-6 xl:px-12">
       {/* NAV */}
       <Navbar />
 
@@ -405,25 +407,18 @@ export default function DashboardClient({ name }) {
       <div className="flex flex-col gap-5 p-4 md:p-6">
         {/* WELCOME */}
         <section className="flex flex-wrap items-center justify-between gap-4 px-2">
-          <div className="flex items-center gap-4">
-            <span className="text-violet-300">
-              <Icon name="mountain" className="h-12 w-12" />
-            </span>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Welcome back,{" "}
-                <span className="bg-linear-to-r from-indigo-300 to-violet-300 bg-clip-text text-transparent">
-                  {name}!
-                </span>
-              </h1>
-              <p className="mt-0.5 text-sky-300">
-                Ready for your next na adventure gala?
-              </p>
-            </div>
+          <div className="text-left">
+            <h1 className="text-4xl font-bold tracking-tight text-gala-text md:text-5xl">
+              Welcome back,{" "}
+              <span className="text-gala-accent">{name}!</span>
+            </h1>
+            <p className="mt-2 text-lg text-gala-aqua md:text-xl">
+              Ready for your next na adventure gala?
+            </p>
           </div>
           <button
             onClick={() => go("/newplan")}
-            className="flex items-center gap-2 rounded-full border border-indigo-300/60 bg-linear-to-r from-indigo-500 to-violet-500 px-7 py-3 font-semibold transition hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 rounded-full bg-gala-accent px-7 py-3 font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95"
           >
             <Icon name="plus" className="h-5 w-5" /> New Plan
           </button>
@@ -431,49 +426,49 @@ export default function DashboardClient({ name }) {
 
         {/* HERO: NEXT TRIP */}
         {loading ? (
-          <section className={`${PANEL_FLAT} p-8`}>
+          <section className={`${PANEL_FLAT} p-8 text-gala-text/80`}>
             Loading your next na gala...
           </section>
         ) : error ? (
           <section className={`${PANEL_FLAT} p-8 text-red-200`}>{error}</section>
         ) : nextTrip ? (
           <section
-            className="relative overflow-hidden rounded-3xl border border-sky-400/60"
+            className="relative overflow-hidden rounded-3xl border border-gala-line shadow-card"
             style={{
               backgroundImage: nextTrip.image
-                ? `linear-gradient(90deg, rgba(14,20,92,0.95) 0%, rgba(14,20,92,0.75) 30%, rgba(14,20,92,0.1) 65%, rgba(14,20,92,0) 100%), url("${nextTrip.image}")`
-                : "linear-gradient(120deg, #172554, #312e81, #134e4a)",
+                ? `linear-gradient(90deg, rgba(12,18,32,0.95) 0%, rgba(12,18,32,0.75) 30%, rgba(12,18,32,0.1) 65%, rgba(12,18,32,0) 100%), url("${nextTrip.image}")`
+                : "linear-gradient(120deg, #0C1220, #131C2B, #2B6F7C)",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
           >
             <div className="flex min-h-72 flex-col justify-between gap-6 p-6 md:p-8">
               <div>
-                <p className="flex flex-wrap items-center gap-2 text-sm font-semibold tracking-wider text-indigo-200">
+                <p className="flex flex-wrap items-center gap-2 text-sm font-semibold tracking-wider text-gala-aqua">
                   <Icon name="pin" className="h-5 w-5" />
                   YOUR NEXT NA GALA
                   {isDemo && (
-                    <span className="rounded-full border border-indigo-300/40 bg-indigo-500/30 px-2.5 py-0.5 text-[10px] font-medium tracking-normal text-indigo-100">
+                    <span className="rounded-full border border-gala-accent/50 bg-gala-accent/15 px-2.5 py-0.5 text-[10px] font-medium tracking-normal text-gala-accent">
                       Sample Gala
                     </span>
                   )}
                 </p>
-                <h2 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
+                <h2 className="mt-2 text-4xl font-bold tracking-tight text-gala-text md:text-5xl">
                   {nextTrip.title}
                 </h2>
-                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/90">
+                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gala-text/90">
                   <span className="flex items-center gap-2">
-                    <Icon name="calendar" className="h-5 w-5 text-indigo-200" />
+                    <Icon name="calendar" className="h-5 w-5 text-gala-aqua" />
                     {nextTrip.dates}
                   </span>
-                  <span className="hidden h-5 w-px bg-white/25 sm:block" />
+                  <span className="hidden h-5 w-px bg-gala-text/25 sm:block" />
                   <span className="flex items-center gap-2">
-                    <Icon name="pin" className="h-5 w-5 text-indigo-200" />
+                    <Icon name="pin" className="h-5 w-5 text-gala-aqua" />
                     {nextTrip.destinations} destinations
                   </span>
-                  <span className="hidden h-5 w-px bg-white/25 sm:block" />
+                  <span className="hidden h-5 w-px bg-gala-text/25 sm:block" />
                   <span className="flex items-center gap-2">
-                    <Icon name="clock" className="h-5 w-5 text-indigo-200" />
+                    <Icon name="clock" className="h-5 w-5 text-gala-aqua" />
                     {nextTrip.daysToGo} days to go
                   </span>
                 </div>
@@ -481,23 +476,25 @@ export default function DashboardClient({ name }) {
                   onClick={() =>
                     go(isDemo ? "/newplan" : `/my-plans?trip=${nextTrip.id}`)
                   }
-                  className="mt-5 flex items-center gap-2 rounded-full border border-indigo-300/70 bg-indigo-900/40 px-6 py-2.5 text-sm font-semibold backdrop-blur transition hover:bg-indigo-700/50"
+                  className="mt-5 flex items-center gap-2 rounded-full border border-gala-aqua bg-gala-bg/50 px-6 py-2.5 text-sm font-semibold text-gala-text backdrop-blur transition hover:bg-gala-raised"
                 >
                   {isDemo ? "Plan your first trip" : "View Trip"}
                   <Icon name="arrow" className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="flex max-w-xl items-start gap-3 border-t border-white/10 pt-4">
+              <div className="flex max-w-xl items-start gap-3 border-t border-gala-text/15 pt-4">
                 <Icon
                   name="wallet"
-                  className="mt-0.5 h-6 w-6 text-indigo-200"
+                  className="mt-0.5 h-6 w-6 text-gala-aqua"
                 />
                 <div className="flex-1">
-                  <div className="text-sm text-white/80">Budget Progress</div>
-                  <div className="mt-0.5 text-lg font-semibold">
+                  <div className="text-sm text-gala-text/80">
+                    Budget Progress
+                  </div>
+                  <div className="mt-0.5 text-lg font-semibold text-gala-text">
                     {peso(nextTrip.spent)}{" "}
-                    <span className="text-white/60">
+                    <span className="text-gala-muted">
                       / {peso(nextTrip.budget)}
                     </span>
                   </div>
@@ -505,7 +502,7 @@ export default function DashboardClient({ name }) {
                     <div className="flex-1">
                       <Bar percent={budgetPercent} />
                     </div>
-                    <span className="text-sm text-white/80">
+                    <span className="text-sm text-gala-text/80">
                       {budgetPercent}%
                     </span>
                   </div>
@@ -529,12 +526,12 @@ export default function DashboardClient({ name }) {
                 <button
                   key={`${d.id}-${index}`}
                   onClick={() => setSelectedDestination(d)}
-                  className="group relative min-h-64 overflow-hidden rounded-3xl border border-sky-300/50 text-left transition duration-500"
+                  className="group relative min-h-64 overflow-hidden rounded-3xl border border-gala-line text-left shadow-card transition duration-500 hover:shadow-lift"
                 >
                   {/* gradient fallback (lalabas kapag walang image / hindi nag-load) */}
                   <div
                     className={`absolute inset-0 bg-linear-to-br ${
-                      d.color || "from-cyan-400 to-indigo-600"
+                      d.color || "from-gala-teal to-gala-surface"
                     } transition duration-300 group-hover:scale-110`}
                   />
                   {d.image && (
@@ -547,9 +544,9 @@ export default function DashboardClient({ name }) {
                       }}
                     />
                   )}
-                  <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-[#0b1040]/90 via-[#0b1040]/50 to-transparent p-3 pt-10">
+                  <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-[#0C1220]/90 via-[#0C1220]/50 to-transparent p-3 pt-10">
                     <div className="flex items-center justify-between gap-1">
-                      <div className="truncate text-sm font-semibold">
+                      <div className="truncate text-sm font-semibold text-gala-text">
                         {d.name}
                       </div>
                       <Icon
@@ -557,12 +554,12 @@ export default function DashboardClient({ name }) {
                         filled={d.bookmarked ?? hasSaved}
                         className={`h-4 w-4 shrink-0 ${
                           (d.bookmarked ?? hasSaved)
-                            ? "text-teal-300"
-                            : "text-violet-300"
+                            ? "text-gala-accent"
+                            : "text-gala-aqua"
                         }`}
                       />
                     </div>
-                    <div className="truncate text-[11px] text-white/80">
+                    <div className="truncate text-[11px] text-gala-text/80">
                       {d.region || d.location || ""}
                     </div>
                   </div>
@@ -575,21 +572,21 @@ export default function DashboardClient({ name }) {
                 <button
                   type="button"
                   onClick={previousPlaces}
-                  className="flex items-center gap-1.5 rounded-full border border-sky-300/30 bg-indigo-500/15 px-4 py-2 text-sm text-white transition hover:bg-indigo-500/30 active:scale-95"
+                  className="flex items-center gap-1.5 rounded-full border border-gala-line bg-gala-raised/60 px-4 py-2 text-sm text-gala-text transition hover:bg-gala-raised active:scale-95"
                   aria-label="Previous destination"
                 >
                   <Icon name="arrowLeft" className="h-3.5 w-3.5" />
                   Prev
                 </button>
 
-                <span className="text-xs text-white/60">
+                <span className="text-xs text-gala-muted">
                   {startIndex + 1} of {totalPlaces}
                 </span>
 
                 <button
                   type="button"
                   onClick={nextPlaces}
-                  className="flex items-center gap-1.5 rounded-full border border-sky-300/30 bg-indigo-500/15 px-4 py-2 text-sm text-white transition hover:bg-indigo-500/30 active:scale-95"
+                  className="flex items-center gap-1.5 rounded-full border border-gala-line bg-gala-raised/60 px-4 py-2 text-sm text-gala-text transition hover:bg-gala-raised active:scale-95"
                   aria-label="Next destination"
                 >
                   Next
@@ -607,12 +604,12 @@ export default function DashboardClient({ name }) {
             boxedIcon
           >
             <div>
-              <div className="text-sm text-white/75">Total Budget</div>
+              <div className="text-sm text-gala-text/75">Total Budget</div>
               <div className="mt-1 flex items-center gap-3">
-                <span className="text-3xl font-bold">
+                <span className="text-3xl font-bold text-gala-text">
                   {peso(nextTrip?.budget ?? 0)}
                 </span>
-                <span className="rounded-full border border-sky-300/40 bg-[#1b2a7a]/80 px-3 py-0.5 text-xs">
+                <span className="rounded-full border border-gala-accent/60 bg-gala-accent/10 px-3 py-0.5 text-xs text-gala-accent">
                   Planned
                 </span>
               </div>
@@ -621,10 +618,12 @@ export default function DashboardClient({ name }) {
                 <div className="flex-1">
                   <Bar percent={budgetPercent} />
                 </div>
-                <span className="text-sm text-white/80">{budgetPercent}%</span>
+                <span className="text-sm text-gala-text/80">
+                  {budgetPercent}%
+                </span>
               </div>
 
-              <ul className="mt-4 divide-y divide-white/10 text-sm">
+              <ul className="mt-4 divide-y divide-gala-line text-sm text-gala-text/90">
                 {budgetItems.map((b) => {
                   const totalBudget = nextTrip?.budget ?? 0;
                   const itemPercent =
@@ -637,7 +636,7 @@ export default function DashboardClient({ name }) {
                       <span className={`h-3.5 w-3.5 rounded-full ${b.dot}`} />
                       <span className="flex-1">{b.label}</span>
                       <span className="w-16 text-right">{peso(b.amount)}</span>
-                      <span className="w-10 text-right text-white/60">
+                      <span className="w-10 text-right text-gala-muted">
                         {itemPercent}%
                       </span>
                     </li>
@@ -679,16 +678,16 @@ export default function DashboardClient({ name }) {
           >
             <div className="py-2">
               <Ring percent={bucketPercent}>
-                <span className="mb-0.5 text-violet-300">
+                <span className="mb-0.5 text-gala-accent">
                   <Icon name="mountain" className="h-6 w-6" />
                 </span>
-                <div className="text-2xl font-bold">
+                <div className="text-2xl font-bold text-gala-text">
                   {bucketDone}{" "}
-                  <span className="text-base font-normal text-white/70">
+                  <span className="text-base font-normal text-gala-text/75">
                     of {bucketTotal}
                   </span>
                 </div>
-                <div className="text-[11px] text-white/65">
+                <div className="text-[11px] text-gala-muted">
                   destinations completed
                 </div>
               </Ring>
@@ -697,11 +696,13 @@ export default function DashboardClient({ name }) {
               <div className="flex-1">
                 <Bar percent={bucketPercent} />
               </div>
-              <span className="text-sm text-white/80">{bucketPercent}%</span>
+              <span className="text-sm text-gala-text/80">
+                {bucketPercent}%
+              </span>
             </div>
             <button
               onClick={() => go("/bucket-list")}
-              className="mx-auto mt-5 flex items-center gap-2 rounded-full border border-violet-300/60 bg-linear-to-r from-violet-500/80 to-indigo-500/80 px-5 py-2 text-sm font-medium transition hover:scale-105 active:scale-95"
+              className="mx-auto mt-5 flex items-center gap-2 rounded-full bg-gala-accent px-5 py-2 text-sm font-semibold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95"
             >
               View Bucket List
               <Icon name="arrow" className="h-4 w-4" />
@@ -713,24 +714,24 @@ export default function DashboardClient({ name }) {
             title="Recent Activity"
             icon={<Icon name="clock" className="h-6 w-6" />}
           >
-            <ul className="flex flex-col divide-y divide-white/10">
+            <ul className="flex flex-col divide-y divide-gala-line">
               {activities.map((a) => (
                 <li key={a.id} className="flex items-center gap-3 py-3">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-sky-300/40 bg-indigo-500/25 text-indigo-100">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gala-line bg-gala-raised text-gala-accent">
                     <Icon
                       name={ACTIVITY_ICON_MAP[a.icon] ?? a.icon}
                       className="h-5 w-5"
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">
+                    <div className="truncate text-sm font-medium text-gala-text">
                       {a.title}
                     </div>
-                    <div className="truncate text-xs text-indigo-200/60">
+                    <div className="truncate text-xs text-gala-aqua">
                       {a.sub}
                     </div>
                   </div>
-                  <span className="shrink-0 text-xs text-white/55">
+                  <span className="shrink-0 text-xs text-gala-muted">
                     {a.createdAt ? timeAgo(a.createdAt) : (a.time ?? "")}
                   </span>
                 </li>
@@ -753,7 +754,7 @@ export default function DashboardClient({ name }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="destination-modal-title"
-            className={`${PANEL_FLAT} max-h-[90vh] w-full max-w-xl overflow-y-auto border-sky-300/40 bg-[#0e1450] shadow-2xl`}
+            className={`${PANEL_FLAT} max-h-[90vh] w-full max-w-xl overflow-y-auto border-gala-line bg-gala-surface shadow-lift`}
           >
             {/* Destination image */}
             <div
@@ -761,7 +762,7 @@ export default function DashboardClient({ name }) {
               style={{
                 backgroundImage: selectedDestination.image
                   ? `url("${selectedDestination.image}")`
-                  : "linear-gradient(135deg, #1d4ed8, #6d28d9)",
+                  : "linear-gradient(135deg, #2B6F7C, #131C2B)",
               }}
             >
               <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
@@ -770,7 +771,7 @@ export default function DashboardClient({ name }) {
                 type="button"
                 onClick={() => setSelectedDestination(null)}
                 aria-label="Close destination details"
-                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white transition hover:bg-black/70"
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-gala-text transition hover:bg-black/70"
               >
                 <Icon name="close" className="h-4 w-4" />
               </button>
@@ -778,7 +779,7 @@ export default function DashboardClient({ name }) {
               <div className="absolute bottom-5 left-6 right-6">
                 <h2
                   id="destination-modal-title"
-                  className="text-3xl font-bold text-white"
+                  className="text-3xl font-bold text-gala-text"
                 >
                   {selectedDestination.name}
                 </h2>
@@ -787,14 +788,14 @@ export default function DashboardClient({ name }) {
 
             {/* Destination details */}
             <div className="space-y-4 p-6">
-              <p className="flex items-center gap-2 text-sm text-indigo-200">
+              <p className="flex items-center gap-2 text-sm text-gala-aqua">
                 <Icon name="pin" className="h-4 w-4" />
                 {selectedDestination.region ||
                   selectedDestination.location ||
                   "Philippines"}
               </p>
 
-              <p className="text-sm leading-relaxed text-white/75">
+              <p className="text-sm leading-relaxed text-gala-text/75">
                 {selectedDestination.description ||
                   "Explore this destination and discover your next adventure."}
               </p>
@@ -803,7 +804,7 @@ export default function DashboardClient({ name }) {
                 <button
                   type="button"
                   onClick={() => setSelectedDestination(null)}
-                  className="rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 px-6 py-2.5 text-sm font-semibold text-white transition hover:scale-105"
+                  className="rounded-xl bg-gala-accent px-6 py-2.5 text-sm font-semibold text-gala-bg transition hover:scale-105 hover:brightness-110"
                 >
                   Close
                 </button>

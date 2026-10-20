@@ -12,12 +12,12 @@ import {
   Icon,
 } from "@/app/components/ui";
 
-/* Journal-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
-   kaya hindi apektado ang ibang pages. */
+/* Journal-only na styles. Kapareho na ng Dashboard, My Plans, New Plan at Profile
+   ang panels at shadows. Hindi ginagalaw ang ui.jsx, kaya hindi apektado ang ibang pages. */
 const PANEL =
-  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
-const MODAL = `${PANEL} bg-[#0e1450]`;
-const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
+  "rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 backdrop-blur-md shadow-card";
+const MODAL = `${PANEL} border-gala-line bg-gala-surface shadow-lift`;
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1 hover:shadow-lift`;
 
 function isPlanCompleted(plan) {
   return Boolean(plan?.completedAt);
@@ -128,7 +128,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
         // May media: ipakita ang photo. Wala pa: gamitin ang cover ng trip.
         src={hasMedia ? (isVideo ? null : currentMedia?.url) : entry.image}
         alt={entry.title}
-        gradient={entry.color || "from-cyan-500/20 to-indigo-600/30"}
+        gradient={entry.color || "from-gala-teal/30 to-gala-raised"}
       >
         {hasMedia && isVideo && (
           <video
@@ -144,9 +144,9 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
         )}
 
         {!hasMedia && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 p-4 text-center">
-            <Icon name="camera" className="h-8 w-8 text-white/80" />
-            <p className="mt-1 text-xs text-white/70">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gala-bg/40 p-4 text-center">
+            <Icon name="camera" className="h-8 w-8 text-gala-aqua" />
+            <p className="mt-1 text-xs text-gala-text/75">
               No photos or videos yet
             </p>
           </div>
@@ -154,7 +154,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
 
         {/* Indicator / Badge count (e.g., 3/10) */}
         {hasMedia && (
-          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gala-bg/70 px-2.5 py-1 text-[11px] font-medium text-gala-text backdrop-blur-md">
             <Icon name="camera" className="h-3 w-3" />
             {activeMediaIndex + 1} / {mediaList.length}
           </div>
@@ -163,7 +163,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
         {/* Dots navigation */}
         {mediaList.length > 1 && (
           <div className="absolute bottom-3 left-3 right-14 flex items-center justify-center">
-            <div className="flex max-w-full items-center gap-1.5 overflow-x-auto rounded-full bg-black/40 px-2 py-1.5 backdrop-blur-md">
+            <div className="flex max-w-full items-center gap-1.5 overflow-x-auto rounded-full bg-gala-bg/60 px-2 py-1.5 backdrop-blur-md">
               {mediaList.map((m, idx) => (
                 <button
                   key={m.id ?? idx}
@@ -175,8 +175,8 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
                   }}
                   className={`h-2 shrink-0 rounded-full transition-all ${
                     activeMediaIndex === idx
-                      ? "w-5 bg-teal-400"
-                      : "w-2 bg-white/50 hover:bg-white"
+                      ? "w-5 bg-gala-accent"
+                      : "w-2 bg-gala-text/50 hover:bg-gala-text"
                   }`}
                 />
               ))}
@@ -191,7 +191,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
             onClick={handleUploadClick}
             title={`Add photo/video (${mediaList.length}/${MAX_MEDIA})`}
             aria-label="Add photo or video"
-            className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-teal-500 text-slate-900 shadow-xl transition hover:scale-110 active:scale-95"
+            className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-gala-accent text-gala-bg shadow-accent transition hover:scale-110 hover:brightness-110 active:scale-95"
           >
             <Icon name="plus" className="h-5 w-5" />
           </button>
@@ -201,33 +201,33 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
       {/* CARD CONTENT */}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="text-xl font-bold tracking-tight text-white transition group-hover:text-indigo-300">
+          <h2 className="text-xl font-bold tracking-tight text-gala-text transition group-hover:text-gala-accent">
             {entry.title}
           </h2>
-          <span className="shrink-0 rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 py-0.5 text-[11px] text-teal-300">
+          <span className="shrink-0 rounded-full border border-gala-accent/40 bg-gala-accent/10 px-2.5 py-0.5 text-[11px] text-gala-accent">
             Completed
           </span>
         </div>
 
         {entry.destination && (
-          <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
+          <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-gala-aqua">
             <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{entry.destination}</span>
           </p>
         )}
 
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-white/50">
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-gala-muted">
           <Icon name="calendar" className="h-3.5 w-3.5 shrink-0" />
           {entry.dateLabel}
         </p>
 
         <div className="mt-2.5">
           {entry.noteExcerpt ? (
-            <p className="line-clamp-3 text-xs leading-relaxed text-white/75">
+            <p className="line-clamp-3 text-xs leading-relaxed text-gala-text/75">
               {entry.noteExcerpt}
             </p>
           ) : (
-            <p className="text-xs italic text-white/40">
+            <p className="text-xs italic text-gala-muted">
               No personal journal notes added yet.
             </p>
           )}
@@ -235,7 +235,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
 
         {/* GALLERY SUMMARY COUNTER */}
         <div className="mt-auto pt-4">
-          <div className="flex items-center justify-between border-t border-white/10 pt-3 text-xs text-white/50">
+          <div className="flex items-center justify-between border-t border-gala-line pt-3 text-xs text-gala-muted">
             <span>
               {mediaList.length === 0
                 ? "0 media items"
@@ -243,7 +243,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
                     mediaList.length === 1 ? "media item" : "media items"
                   } saved`}
             </span>
-            <span className="inline-flex items-center gap-1 text-teal-300 hover:underline">
+            <span className="inline-flex items-center gap-1 text-gala-accent hover:underline">
               View Journal
               <Icon name="arrow" className="h-3.5 w-3.5" />
             </span>
@@ -259,8 +259,8 @@ function JournalEmptyState() {
     <section
       className={`${PANEL} mx-auto my-8 max-w-lg px-8 py-16 text-center`}
     >
-      <p className="text-sm text-white/55">Nothing here yet.</p>
-      <h2 className="mt-2 text-2xl font-semibold">
+      <p className="text-sm text-gala-muted">Nothing here yet.</p>
+      <h2 className="mt-2 text-2xl font-semibold text-gala-text">
         Complete a trip to start your journal
       </h2>
     </section>
@@ -424,7 +424,7 @@ export default function Journal() {
 
   return (
     <Background>
-      <div className={PAGE_WRAP}>
+      <div className={`${PAGE_WRAP} text-gala-text`}>
         <Navbar />
 
         {selectedEntry && (
@@ -440,20 +440,20 @@ export default function Journal() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="journal-detail-title"
-              className={`${MODAL} max-h-[90vh] w-full max-w-3xl overflow-y-auto p-6 text-white`}
+              className={`${MODAL} max-h-[90vh] w-full max-w-3xl overflow-y-auto p-6 text-gala-text`}
             >
               <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  <h2 id="journal-detail-title" className="text-2xl font-bold">
+                  <h2 id="journal-detail-title" className="text-2xl font-bold text-gala-text">
                     {selectedEntry.title}
                   </h2>
 
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-white/70">
+                  <p className="mt-1 flex items-center gap-1.5 text-sm text-gala-aqua">
                     <Icon name="pin" className="h-4 w-4 shrink-0" />
                     {selectedEntry.destination}
                   </p>
 
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-white/50">
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-gala-muted">
                     <Icon name="calendar" className="h-3.5 w-3.5 shrink-0" />
                     {selectedEntry.dateLabel}
                   </p>
@@ -463,7 +463,7 @@ export default function Journal() {
                   type="button"
                   onClick={() => setSelectedEntry(null)}
                   aria-label="Close"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-gala-line bg-gala-raised/60 text-gala-text transition hover:bg-gala-raised"
                 >
                   <Icon name="close" className="h-4 w-4" />
                 </button>
@@ -473,7 +473,7 @@ export default function Journal() {
                 {(mediaByPlan[selectedEntry.id] ?? []).map((media) => (
                   <div
                     key={media.id}
-                    className="relative overflow-hidden rounded-xl bg-black/30"
+                    className="relative overflow-hidden rounded-xl border border-gala-line bg-gala-bg/50"
                   >
                     {media.mediaType === "video" ? (
                       <video
@@ -510,22 +510,22 @@ export default function Journal() {
               </div>
 
               {(mediaByPlan[selectedEntry.id] ?? []).length === 0 && (
-                <p className="text-sm text-white/50">
+                <p className="text-sm text-gala-muted">
                   No uploaded memories yet.
                 </p>
               )}
 
               <div className="mt-6">
-                <h3 className="mb-2 font-semibold">Trip Notes</h3>
-                <p className="whitespace-pre-wrap text-sm text-white/75">
+                <h3 className="mb-2 font-semibold text-gala-text">Trip Notes</h3>
+                <p className="whitespace-pre-wrap text-sm text-gala-text/75">
                   {selectedEntry.plan?.notes || "No notes added."}
                 </p>
               </div>
 
               {selectedEntry.plan?.activities?.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="mb-2 font-semibold">Planned Activities</h3>
-                  <ul className="list-inside list-disc space-y-1 text-sm text-white/75">
+                  <h3 className="mb-2 font-semibold text-gala-text">Planned Activities</h3>
+                  <ul className="list-inside list-disc space-y-1 text-sm text-gala-text/75 marker:text-gala-accent">
                     {selectedEntry.plan.activities.map((activity, index) => (
                       <li key={index}>{activity}</li>
                     ))}
@@ -545,7 +545,7 @@ export default function Journal() {
           {mediaError && <p className="text-sm text-red-300">{mediaError}</p>}
 
           {loading ? (
-            <p className="text-white/70">Loading your journal...</p>
+            <p className="text-gala-muted">Loading your journal...</p>
           ) : loadError ? (
             <p className="text-red-300">{loadError}</p>
           ) : journalEntries.length > 0 ? (
@@ -563,7 +563,7 @@ export default function Journal() {
             <JournalEmptyState />
           )}
 
-          <p className="mt-auto pt-4 text-center text-xs text-white/50">
+          <p className="mt-auto pt-4 text-center text-xs text-gala-muted">
             Journal entries are created automatically from completed plans.
           </p>
         </main>

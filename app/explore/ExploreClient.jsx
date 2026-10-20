@@ -5,16 +5,25 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
-import { GRID, PAGE_WRAP, Icon } from "@/app/components/ui";
+import { Icon } from "@/app/components/ui";
 
-/* Explore-only na styles (walang glow). Hindi ginagalaw ang ui.jsx,
-   kaya hindi apektado ang ibang pages. */
-const PANEL =
-  "rounded-3xl border border-sky-400/40 bg-linear-to-br from-[#161c6a]/75 via-[#10175a]/70 to-[#0b1448]/75 backdrop-blur-xl";
-const MODAL = `${PANEL} bg-[#0e1450]`;
-const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1`;
-const gradientBtn =
-  "bg-linear-to-r from-indigo-500 to-violet-500 font-semibold text-white transition hover:scale-105 active:scale-95";
+/* Explore styles, matched to the Dashboard look (gala-* tokens, flat panels).
+   Page background comes from <Background> (same as the other pages).
+   Every surface below shares SURFACE_BG.
+   Hindi ginagalaw ang ui.jsx kaya hindi apektado ang ibang pages. */
+const SURFACE_BG =
+  "bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90";
+const PANEL = `rounded-3xl border border-gala-aqua/30 ${SURFACE_BG} backdrop-blur-md shadow-card`;
+const MODAL = `${PANEL} border-gala-line bg-gala-surface shadow-lift`;
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:shadow-lift`;
+const GRID = "grid gap-4 sm:grid-cols-2 xl:grid-cols-4";
+
+const primaryBtn =
+  "bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95";
+const outlineBtn =
+  "border border-gala-aqua bg-gala-bg/50 font-semibold text-gala-text backdrop-blur transition hover:bg-gala-raised";
+const subtleBtn =
+  "border border-gala-line bg-gala-raised/60 text-gala-text transition hover:bg-gala-raised active:scale-95";
 
 // Preset quick-search suggestions for rapid user discovery
 const QUICK_SUGGESTIONS = [
@@ -150,6 +159,16 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [showAuthModal]);
+
+  // Close the place detail modal with the Escape key
+  useEffect(() => {
+    if (!selectedPlace) return;
+    function onKey(e) {
+      if (e.key === "Escape") setSelectedPlace(null);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [selectedPlace]);
 
   function closeAuthModal() {
     setShowAuthModal(false);
@@ -389,353 +408,360 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
 
   return (
     <Background>
-      <div className={PAGE_WRAP}>
+      <div className="flex min-h-screen w-full flex-col gap-5 px-4 py-4 text-gala-text md:px-8 md:py-6 xl:px-12">
         {/* NAV */}
         <Navbar />
 
-        {/* HEADER + SEARCH */}
-        <section className="px-2 py-4 text-center">
-          <span className="glass-dark inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold tracking-wider text-indigo-200 shadow-none!">
-            <Icon name="compass" className="h-4 w-4" />
-            DREAM · PLAN · GALA
-          </span>
-          <h1 className="mt-4 text-5xl font-extrabold tracking-tight drop-shadow-lg md:text-7xl">
-            Find your <span className="text-indigo-300">Next na Gala</span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sky-300 drop-shadow md:text-lg">
-            Search popular spots and hidden gems in the Philippines and enjoy
-            your trip
-          </p>
-
-          {/* Search bar */}
-          <form
-            onSubmit={handleSearchSubmit}
-            className="glass-input mx-auto mt-6 flex max-w-3xl items-center gap-2 rounded-full p-1.5 text-left transition"
-          >
-            <span className="pl-4 text-white/70" aria-hidden="true">
-              <Icon name="pin" className="h-5 w-5" />
+        <div className="flex flex-1 flex-col gap-5 p-4 md:p-6">
+          {/* HEADER + SEARCH */}
+          <section className="px-2 py-4 text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gala-text/40 bg-gala-text/10 px-5 py-2 text-sm font-semibold tracking-wider text-gala-text">
+              <Icon name="compass" className="h-4 w-4" />
+              DREAM · PLAN · GALA
             </span>
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchInputChange}
-              placeholder="Where to? (e.g. Batanes, Palawan, Boracay)"
-              className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-white placeholder:text-white/60 focus:outline-none"
-              aria-label="Search places and destinations"
-            />
+            <h1 className="mt-4 text-4xl font-bold tracking-tight text-gala-text md:text-5xl">
+              Find your <span className="text-gala-accent">Next na Gala</span>
+            </h1>
+            <p className="mx-auto mt-3 max-w-2xl text-lg text-gala-aqua md:text-xl">
+              Search popular spots and hidden gems in the Philippines and enjoy
+              your trip
+            </p>
+
+            {/* Search bar */}
+            <form
+              onSubmit={handleSearchSubmit}
+              className={`mx-auto mt-6 flex max-w-3xl items-center gap-2 rounded-full border border-gala-aqua/30 ${SURFACE_BG} p-1.5 text-left backdrop-blur-md transition focus-within:border-gala-accent focus-within:ring-4 focus-within:ring-gala-accent/15`}
+            >
+              <span className="pl-4 text-gala-aqua" aria-hidden="true">
+                <Icon name="pin" className="h-5 w-5" />
+              </span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                placeholder="Where to? (e.g. Batanes, Palawan, Boracay)"
+                className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-base text-gala-text placeholder:text-gala-muted focus:outline-none"
+                aria-label="Search places and destinations"
+              />
+
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="Clear search"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gala-raised text-gala-text/70 transition hover:text-gala-text"
+                >
+                  <Icon name="close" className="h-4 w-4" />
+                </button>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSearching}
+                className={`flex shrink-0 items-center gap-2 rounded-full px-6 py-2.5 disabled:opacity-70 ${primaryBtn}`}
+              >
+                {isSearching ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin motion-reduce:animate-none rounded-full border-2 border-gala-bg/30 border-t-gala-bg" />
+                    <span className="hidden sm:inline">Searching...</span>
+                  </span>
+                ) : (
+                  <>
+                    <Icon name="search" className="h-4 w-4" />
+                    <span>Search</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Quick suggestion chips */}
+            <div className="mt-4 flex flex-col items-center gap-2 text-xs sm:text-sm">
+              <span className="text-gala-muted">Popular:</span>
+
+              {[QUICK_SUGGESTIONS.slice(0, 5), QUICK_SUGGESTIONS.slice(5)].map(
+                (row, rowIdx) => (
+                  <div
+                    key={rowIdx}
+                    className="flex flex-wrap items-center justify-center gap-2"
+                  >
+                    {row.map((chip) => (
+                      <button
+                        key={chip.query}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(chip)}
+                        className={`rounded-full px-3 py-1 font-medium ${subtleBtn}`}
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+                ),
+              )}
+            </div>
+          </section>
+
+          {/* CATEGORIES + SHUFFLE */}
+          <section
+            className={`mx-auto flex w-full max-w-fit items-center gap-1 overflow-x-auto rounded-full border border-gala-aqua/30 ${SURFACE_BG} px-3 py-2 backdrop-blur-md lg:gap-2`}
+          >
+            {CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat.id && !searchQuery;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleCategoryChange(cat.id)}
+                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
+                    isActive
+                      ? "bg-gala-accent font-semibold text-gala-bg"
+                      : "text-gala-text/80 hover:bg-gala-raised"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
 
             {searchQuery && (
               <button
                 type="button"
                 onClick={handleClearSearch}
-                aria-label="Clear search"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-white/70 transition hover:bg-white/30 hover:text-white"
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm text-gala-text/80 transition hover:bg-gala-raised hover:text-gala-text"
               >
-                <Icon name="close" className="h-4 w-4" />
+                <Icon name="close" className="h-3.5 w-3.5" />
+                Back to featured
               </button>
             )}
 
-            <button
-              type="submit"
-              disabled={isSearching}
-              className={`flex shrink-0 items-center gap-2 rounded-full px-6 py-2.5 disabled:opacity-70 ${gradientBtn}`}
-            >
-              {isSearching ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  <span className="hidden sm:inline">Searching...</span>
-                </span>
-              ) : (
-                <>
-                  <Icon name="search" className="h-4 w-4" />
-                  <span>Search</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Quick suggestion chips */}
-          <div className="mt-4 flex flex-col items-center gap-2 text-xs sm:text-sm">
-            <span className="text-white/70">Popular:</span>
-
-            {[QUICK_SUGGESTIONS.slice(0, 5), QUICK_SUGGESTIONS.slice(5)].map(
-              (row, rowIdx) => (
-                <div
-                  key={rowIdx}
-                  className="flex flex-wrap items-center justify-center gap-2"
-                >
-                  {row.map((chip) => (
-                    <button
-                      key={chip.query}
-                      type="button"
-                      onClick={() => handleSelectSuggestion(chip)}
-                      className="glass-dark rounded-full px-3 py-1 font-medium text-white/90 shadow-none! transition hover:bg-indigo-500/30 hover:text-white"
-                    >
-                      {chip.label}
-                    </button>
-                  ))}
-                </div>
-              ),
-            )}
-          </div>
-        </section>
-
-        {/* CATEGORIES + SHUFFLE */}
-        <section className="glass-dark mx-auto flex w-full max-w-fit items-center gap-1 overflow-x-auto rounded-full px-3 py-2 shadow-none! lg:gap-2">
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat.id && !searchQuery;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => handleCategoryChange(cat.id)}
-                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition hover:bg-white/10 ${
-                  isActive
-                    ? "bg-indigo-500/40 font-semibold"
-                    : "text-white/80"
-                }`}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-
-          {searchQuery && (
             <button
               type="button"
-              onClick={handleClearSearch}
-              className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm text-white/80 transition hover:bg-white/10 hover:text-white"
+              onClick={handleShufflePlaces}
+              disabled={isShuffling}
+              className="flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-gala-accent transition hover:bg-gala-raised active:scale-95"
+              title="Show a different set of random destinations"
             >
-              <Icon name="close" className="h-3.5 w-3.5" />
-              Back to featured
+              <Icon
+                name="shuffle"
+                className={`h-4 w-4 ${isShuffling ? "animate-spin motion-reduce:animate-none" : ""}`}
+              />
+              <span>Surprise me</span>
             </button>
+          </section>
+
+          {/* STATUS LINE */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 font-medium">
+              {searchQuery ? (
+                <>
+                  <span className="flex items-center gap-1.5 text-gala-accent">
+                    <Icon name="search" className="h-4 w-4" />
+                    Search results
+                  </span>
+                  <span className="text-gala-muted">for</span>
+                  <span className="font-semibold text-gala-text">
+                    "{searchQuery}"
+                  </span>
+                  <span className="rounded-full border border-gala-accent/50 bg-gala-accent/10 px-2.5 py-0.5 text-xs text-gala-accent">
+                    {places.length} {places.length === 1 ? "place" : "places"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1.5 text-gala-accent">
+                    <Icon name="sparkle" className="h-4 w-4" />
+                    Featured & random destinations
+                  </span>
+                  <span className="rounded-full border border-gala-accent/50 bg-gala-accent/10 px-2.5 py-0.5 text-xs text-gala-accent">
+                    {places.length} {places.length === 1 ? "place" : "places"}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <span className="text-xs text-gala-muted">
+              {searchQuery
+                ? "Powered by OpenStreetMap (Nominatim)"
+                : "Curated Unsplash travel photos"}
+            </span>
+          </div>
+
+          {searchError && (
+            <div className={`${PANEL} px-4 py-3 text-sm text-red-200`}>
+              {searchError}
+            </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleShufflePlaces}
-            disabled={isShuffling}
-            className="flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-indigo-100 transition hover:bg-white/10 active:scale-95"
-            title="Show a different set of random destinations"
-          >
-            <Icon
-              name="shuffle"
-              className={`h-4 w-4 ${isShuffling ? "animate-spin" : ""}`}
-            />
-            <span>Surprise me</span>
-          </button>
-        </section>
-
-        {/* STATUS LINE */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-2 text-sm">
-          <div className="flex flex-wrap items-center gap-2 font-medium">
-            {searchQuery ? (
-              <>
-                <span className="flex items-center gap-1.5 text-indigo-300">
-                  <Icon name="search" className="h-4 w-4" />
-                  Search results
-                </span>
-                <span className="text-white/60">for</span>
-                <span className="font-semibold text-white">
-                  "{searchQuery}"
-                </span>
-                <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs text-white/80">
-                  {places.length} {places.length === 1 ? "place" : "places"}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="flex items-center gap-1.5 text-indigo-300">
-                  <Icon name="sparkle" className="h-4 w-4" />
-                  Featured & random destinations
-                </span>
-                <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs text-white/80">
-                  {places.length} {places.length === 1 ? "place" : "places"}
-                </span>
-              </>
-            )}
-          </div>
-
-          <span className="text-xs text-white/50">
-            {searchQuery
-              ? "Powered by OpenStreetMap (Nominatim)"
-              : "Curated Unsplash travel photos"}
-          </span>
-        </div>
-
-        {searchError && (
-          <div className="rounded-2xl border border-red-400/40 bg-red-500/20 px-4 py-3 text-sm text-red-200">
-            {searchError}
-          </div>
-        )}
-
-        {/* PLACES GRID */}
-        <main className="flex-1">
-          {isLoading || isSearching ? (
-            /* Loading skeleton */
-            <div className={GRID}>
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className={`${PANEL} h-[380px] animate-pulse`} />
-              ))}
-            </div>
-          ) : places.length === 0 ? (
-            /* Empty state */
-            <div
-              className={`${PANEL} mx-auto my-12 flex max-w-lg flex-col items-center p-10 text-center`}
-            >
-              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200">
-                <Icon name="search" className="h-8 w-8" />
-              </span>
-              <h3 className="mt-4 text-2xl font-bold">No places found</h3>
-              <p className="mt-2 text-sm text-white/70">
-                No matching destinations for "<strong>{searchQuery}</strong>".
-                Check the spelling or try a popular island or city.
-              </p>
-              <button
-                type="button"
-                onClick={handleClearSearch}
-                className={`mt-6 rounded-full px-6 py-2.5 ${gradientBtn}`}
+          {/* PLACES GRID */}
+          <main className="flex-1">
+            {isLoading || isSearching ? (
+              /* Loading skeleton */
+              <div className={GRID}>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`${PANEL} h-[380px] animate-pulse motion-reduce:animate-none`}
+                  />
+                ))}
+              </div>
+            ) : places.length === 0 ? (
+              /* Empty state */
+              <div
+                className={`${PANEL} mx-auto my-12 flex max-w-lg flex-col items-center p-10 text-center`}
               >
-                View featured places
-              </button>
-            </div>
-          ) : (
-            /* Destination cards */
-            <div className={GRID}>
-              {places.map((place) => {
-                const isSaved = !!savedBucketMap[place.name?.toLowerCase()];
+                <span className="grid h-16 w-16 place-items-center rounded-2xl border border-gala-line bg-gala-raised text-gala-accent">
+                  <Icon name="search" className="h-8 w-8" />
+                </span>
+                <h3 className="mt-4 text-2xl font-bold text-gala-text">No places found</h3>
+                <p className="mt-2 text-sm text-gala-text/75">
+                  No matching destinations for "<strong>{searchQuery}</strong>".
+                  Check the spelling or try a popular island or city.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className={`mt-6 rounded-full px-6 py-2.5 ${primaryBtn}`}
+                >
+                  View featured places
+                </button>
+              </div>
+            ) : (
+              /* Destination cards */
+              <div className={GRID}>
+                {places.map((place) => {
+                  const isSaved = !!savedBucketMap[place.name?.toLowerCase()];
 
-                return (
-                  <article
-                    key={place.id}
-                    onClick={() => setSelectedPlace(place)}
-                    className={`${CARD} cursor-pointer`}
-                  >
-                    {/* Image */}
-                    <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-900">
-                      <img
-                        src={place.image}
-                        alt={place.name}
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            place.fallbackImage || "/destinations/elnido.jpg";
-                        }}
-                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                      />
+                  return (
+                    <article
+                      key={place.id}
+                      onClick={() => setSelectedPlace(place)}
+                      className={`${CARD} cursor-pointer`}
+                    >
+                      {/* Image */}
+                      <div className="relative aspect-[16/11] w-full overflow-hidden bg-gala-surface">
+                        <img
+                          src={place.image}
+                          alt={place.name}
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              place.fallbackImage || "/destinations/elnido.jpg";
+                          }}
+                          className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+                        />
 
-                      <div className="absolute inset-0 bg-linear-to-t from-slate-950/80 via-transparent to-black/30" />
+                        <div className="absolute inset-0 bg-linear-to-t from-gala-bg/90 via-transparent to-gala-bg/30" />
 
-                      <div className="absolute inset-x-3 top-3 flex items-center justify-between">
-                        <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md">
-                          <Icon name="star" filled className="h-3.5 w-3.5" />
-                          <span>{place.rating || "4.8"}</span>
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={(e) => handleSaveToBucketList(place, e)}
-                          aria-label={
-                            isSaved
-                              ? "Remove from bucket list"
-                              : "Save to bucket list"
-                          }
-                          title={
-                            !isLoggedIn
-                              ? "Log in to save this to your Bucket List"
-                              : isSaved
-                                ? "Saved to Bucket List"
-                                : "Save to Bucket List"
-                          }
-                          className={`flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-90 ${
-                            isSaved
-                              ? "border-indigo-300 bg-indigo-500 text-white"
-                              : "border-white/30 bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
-                          }`}
-                        >
-                          <Icon
-                            name="bookmark"
-                            filled={isSaved}
-                            className="h-4 w-4"
-                          />
-                        </button>
-                      </div>
-
-                      {place.category && (
-                        <div className="absolute bottom-3 left-3">
-                          <span className="rounded-full border border-indigo-300/30 bg-indigo-950/70 px-3 py-1 text-[11px] font-medium text-indigo-200 backdrop-blur-md">
-                            {place.category}
+                        <div className="absolute inset-x-3 top-3 flex items-center justify-between">
+                          <span className="flex items-center gap-1 rounded-full bg-gala-bg/70 px-2.5 py-1 text-xs font-semibold text-gala-gold backdrop-blur-md">
+                            <Icon name="star" filled className="h-3.5 w-3.5" />
+                            <span>{place.rating || "4.8"}</span>
                           </span>
+
+                          <button
+                            type="button"
+                            onClick={(e) => handleSaveToBucketList(place, e)}
+                            aria-label={
+                              isSaved
+                                ? "Remove from bucket list"
+                                : "Save to bucket list"
+                            }
+                            title={
+                              !isLoggedIn
+                                ? "Log in to save this to your Bucket List"
+                                : isSaved
+                                  ? "Saved to Bucket List"
+                                  : "Save to Bucket List"
+                            }
+                            className={`flex h-9 w-9 items-center justify-center rounded-full border transition active:scale-90 ${
+                              isSaved
+                                ? "border-gala-accent bg-gala-accent text-gala-bg"
+                                : "border-gala-line bg-gala-bg/70 text-gala-text/80 hover:bg-gala-raised hover:text-gala-text"
+                            }`}
+                          >
+                            <Icon
+                              name="bookmark"
+                              filled={isSaved}
+                              className="h-4 w-4"
+                            />
+                          </button>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Content */}
-                    <div className="flex flex-1 flex-col p-5">
-                      <h3 className="text-xl font-bold tracking-tight text-white transition group-hover:text-indigo-300">
-                        {place.name}
-                      </h3>
-
-                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
-                        <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{place.location}</span>
-                      </p>
-
-                      <p className="mt-2.5 line-clamp-3 text-xs leading-relaxed text-white/75">
-                        {place.description}
-                      </p>
-
-                      {Array.isArray(place.tags) && place.tags.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          {place.tags.slice(0, 3).map((tag, tIdx) => (
-                            <span
-                              key={tIdx}
-                              className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] text-white/70"
-                            >
-                              #{tag}
+                        {place.category && (
+                          <div className="absolute bottom-3 left-3">
+                            <span className="rounded-full border border-gala-aqua/40 bg-gala-bg/70 px-3 py-1 text-xs font-medium text-gala-aqua backdrop-blur-md">
+                              {place.category}
                             </span>
-                          ))}
-                        </div>
-                      )}
+                          </div>
+                        )}
+                      </div>
 
-                      {/* Actions */}
-                      <div className="mt-auto pt-4">
-                        <div className="flex items-center gap-2 border-t border-white/10 pt-3">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPlace(place);
-                            }}
-                            className="flex-1 rounded-full border border-white/20 bg-white/5 py-2 text-center text-xs font-medium text-white transition hover:bg-white/15"
-                          >
-                            Details
-                          </button>
+                      {/* Content */}
+                      <div className="flex flex-1 flex-col p-5">
+                        <h3 className="text-xl font-semibold leading-tight tracking-tight text-gala-text transition group-hover:text-gala-accent">
+                          {place.name}
+                        </h3>
 
-                          <button
-                            type="button"
-                            onClick={(e) => handlePlanTrip(place, e)}
-                            className={`flex-1 rounded-full py-2 text-center text-xs ${gradientBtn}`}
-                          >
-                            Plan trip
-                          </button>
+                        <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-gala-aqua">
+                          <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{place.location}</span>
+                        </p>
+
+                        <p className="mt-2.5 line-clamp-3 text-xs leading-relaxed text-gala-text/75">
+                          {place.description}
+                        </p>
+
+                        {Array.isArray(place.tags) && place.tags.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {place.tags.slice(0, 3).map((tag, tIdx) => (
+                              <span
+                                key={tIdx}
+                                className="rounded-full border border-gala-line bg-gala-raised px-2.5 py-0.5 text-xs text-gala-text/75"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="mt-auto pt-4">
+                          <div className="flex items-center gap-2 border-t border-gala-line pt-3">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPlace(place);
+                              }}
+                              className={`flex-1 rounded-full py-2 text-center text-xs ${subtleBtn}`}
+                            >
+                              Details
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => handlePlanTrip(place, e)}
+                              className={`flex-1 rounded-full py-2 text-center text-xs ${primaryBtn}`}
+                            >
+                              Plan trip
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </main>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </main>
+        </div>
 
         {/* PLACE DETAIL MODAL */}
         {selectedPlace && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
             role="presentation"
-            onClick={(e) => {
+            onMouseDown={(e) => {
               if (e.target === e.currentTarget) setSelectedPlace(null);
             }}
           >
@@ -746,7 +772,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
               className={`${MODAL} max-h-[90vh] w-full max-w-2xl overflow-y-auto p-0`}
             >
               {/* Hero image */}
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-900">
+              <div className="relative aspect-[16/9] w-full overflow-hidden bg-gala-surface">
                 <img
                   src={selectedPlace.image}
                   alt={selectedPlace.name}
@@ -756,34 +782,34 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                   }}
                   className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
 
                 <button
                   type="button"
                   onClick={() => setSelectedPlace(null)}
                   aria-label="Close"
-                  className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white/90 backdrop-blur-md transition hover:bg-black/90 hover:text-white"
+                  className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-gala-text transition hover:bg-black/70"
                 >
-                  <Icon name="close" className="h-5 w-5" />
+                  <Icon name="close" className="h-4 w-4" />
                 </button>
 
-                <div className="absolute bottom-4 left-6 right-6">
+                <div className="absolute bottom-5 left-6 right-6">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-indigo-500/80 px-3 py-1 text-xs font-semibold text-white">
+                    <span className="rounded-full border border-gala-accent/50 bg-gala-accent/15 px-3 py-1 text-xs font-semibold text-gala-accent">
                       {selectedPlace.category || "Destination"}
                     </span>
-                    <span className="flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 text-xs font-medium text-amber-300">
+                    <span className="flex items-center gap-1 rounded-full bg-gala-bg/70 px-2.5 py-1 text-xs font-medium text-gala-gold">
                       <Icon name="star" filled className="h-3.5 w-3.5" />
                       {selectedPlace.rating || "4.8"}
                     </span>
                   </div>
                   <h2
                     id="modal-place-title"
-                    className="mt-2 text-2xl font-bold sm:text-3xl"
+                    className="mt-2 text-3xl font-bold text-gala-text"
                   >
                     {selectedPlace.name}
                   </h2>
-                  <p className="flex items-center gap-1.5 text-sm text-sky-300">
+                  <p className="flex items-center gap-1.5 text-sm text-gala-aqua">
                     <Icon name="pin" className="h-4 w-4 shrink-0" />
                     <span>{selectedPlace.location}</span>
                   </p>
@@ -793,10 +819,10 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
               {/* Body */}
               <div className="space-y-5 p-6 text-sm">
                 <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-gala-aqua">
                     About
                   </h4>
-                  <p className="mt-1.5 leading-relaxed text-white/85">
+                  <p className="mt-1.5 leading-relaxed text-gala-text/80">
                     {selectedPlace.description}
                   </p>
                 </div>
@@ -804,18 +830,18 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                 {selectedPlace.highlights &&
                   selectedPlace.highlights.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-gala-aqua">
                         Highlights
                       </h4>
                       <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {selectedPlace.highlights.map((h, hIdx) => (
                           <li
                             key={hIdx}
-                            className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-white/90"
+                            className="flex items-center gap-2 rounded-xl border border-gala-line bg-gala-raised px-3 py-2 text-gala-text/90"
                           >
                             <Icon
                               name="check"
-                              className="h-4 w-4 shrink-0 text-indigo-300"
+                              className="h-4 w-4 shrink-0 text-gala-accent"
                             />
                             <span>{h}</span>
                           </li>
@@ -825,12 +851,12 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                   )}
 
                 {selectedPlace.bestTimeToVisit && (
-                  <div className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                    <span className="flex items-center gap-2 font-semibold text-indigo-200">
+                  <div className="rounded-2xl border border-gala-line bg-gala-raised/60 p-4">
+                    <span className="flex items-center gap-2 font-semibold text-gala-accent">
                       <Icon name="calendar" className="h-4 w-4" />
                       Best time to visit
                     </span>
-                    <p className="mt-1 text-white/80">
+                    <p className="mt-1 text-gala-text/80">
                       {selectedPlace.bestTimeToVisit}
                     </p>
                   </div>
@@ -841,7 +867,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                   <button
                     type="button"
                     onClick={() => setSelectedPlace(null)}
-                    className="rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-white/80 transition hover:bg-white/15 hover:text-white"
+                    className={`rounded-full px-5 py-2.5 ${subtleBtn}`}
                   >
                     Close
                   </button>
@@ -849,17 +875,15 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                   <button
                     type="button"
                     onClick={(e) => handleSaveToBucketList(selectedPlace, e)}
-                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 font-medium transition ${
+                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm ${
                       savedBucketMap[selectedPlace.name?.toLowerCase()]
-                        ? "border border-indigo-300 bg-indigo-500/40 text-white"
-                        : "border border-white/25 bg-white/10 text-white hover:bg-white/20"
+                        ? "border border-gala-accent bg-gala-accent/15 font-semibold text-gala-accent transition"
+                        : outlineBtn
                     }`}
                   >
                     <Icon
                       name="bookmark"
-                      filled={
-                        !!savedBucketMap[selectedPlace.name?.toLowerCase()]
-                      }
+                      filled={!!savedBucketMap[selectedPlace.name?.toLowerCase()]}
                       className="h-4 w-4"
                     />
                     {savedBucketMap[selectedPlace.name?.toLowerCase()]
@@ -870,7 +894,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                   <button
                     type="button"
                     onClick={() => handlePlanTrip(selectedPlace)}
-                    className={`flex items-center gap-2 rounded-full px-6 py-2.5 ${gradientBtn}`}
+                    className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm ${primaryBtn}`}
                   >
                     Plan your trip
                     <Icon name="plane" className="h-4 w-4" />
@@ -884,9 +908,9 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
         {/* AUTH MODAL (guest search limit / save place) */}
         {showAuthModal && (
           <div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md"
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
             role="presentation"
-            onClick={(e) => {
+            onMouseDown={(e) => {
               if (e.target === e.currentTarget) closeAuthModal();
             }}
           >
@@ -900,12 +924,12 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
                 type="button"
                 onClick={closeAuthModal}
                 aria-label="Close"
-                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/25 hover:text-white"
+                className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gala-raised text-gala-text/70 transition hover:text-gala-text"
               >
                 <Icon name="close" className="h-4 w-4" />
               </button>
 
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/30 text-indigo-200">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-gala-line bg-gala-raised text-gala-accent">
                 <Icon
                   name={isSearchLimit ? "search" : "bookmark"}
                   className="h-8 w-8"
@@ -914,24 +938,24 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
 
               <h2
                 id="auth-modal-title"
-                className="mt-5 text-2xl font-bold tracking-tight"
+                className="mt-5 text-2xl font-bold tracking-tight text-gala-text"
               >
                 {isSearchLimit ? (
                   <>
                     You've used your{" "}
-                    <span className="text-indigo-300">
+                    <span className="text-gala-accent">
                       {GUEST_SEARCH_LIMIT} free searches
                     </span>
                   </>
                 ) : (
                   <>
                     Log in to{" "}
-                    <span className="text-indigo-300">save places</span>
+                    <span className="text-gala-accent">save places</span>
                   </>
                 )}
               </h2>
 
-              <p className="mt-2 text-sm leading-relaxed text-white/75">
+              <p className="mt-2 text-sm leading-relaxed text-gala-text/75">
                 {isSearchLimit
                   ? "Create a free account or log in to keep searching destinations around the world."
                   : attemptedPlace?.name
@@ -942,13 +966,13 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
                   href="/signup"
-                  className={`rounded-full px-6 py-2.5 text-center ${gradientBtn}`}
+                  className={`rounded-full px-6 py-2.5 text-center ${primaryBtn}`}
                 >
                   Sign up
                 </Link>
                 <Link
                   href="/login"
-                  className="rounded-full border border-white/25 bg-white/10 px-6 py-2.5 text-center font-semibold transition hover:bg-white/20"
+                  className={`rounded-full px-6 py-2.5 text-center ${outlineBtn}`}
                 >
                   Log in
                 </Link>
@@ -957,7 +981,7 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
               <button
                 type="button"
                 onClick={closeAuthModal}
-                className="mt-4 text-sm text-white/55 transition hover:text-white"
+                className="mt-4 text-sm text-gala-muted transition hover:text-gala-text"
               >
                 {isSearchLimit ? "Maybe later" : "Keep browsing"}
               </button>
@@ -967,9 +991,12 @@ export default function ExploreClient({ initialIsLoggedIn = false }) {
 
         {/* TOAST */}
         {toastMessage && (
-          <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-            <div className="glass-dark flex items-center gap-3 rounded-full border border-indigo-300/40 bg-slate-950/90 px-6 py-3 text-sm font-medium text-white shadow-none! backdrop-blur-xl">
-              <Icon name="check" className="h-4 w-4 text-teal-300" />
+          <div
+            role="status"
+            className="fixed bottom-6 left-1/2 z-[120] -translate-x-1/2"
+          >
+            <div className="flex items-center gap-3 rounded-full border border-gala-aqua/40 bg-gala-surface px-6 py-3 text-sm font-medium text-gala-text shadow-card backdrop-blur-md">
+              <Icon name="check" className="h-4 w-4 text-gala-accent" />
               <span>{toastMessage}</span>
             </div>
           </div>

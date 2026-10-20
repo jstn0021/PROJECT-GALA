@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-const bullet = "list-disc space-y-2 pl-6 marker:text-white";
+const bullet = "list-disc space-y-2 pl-6 marker:text-gala-accent";
 
 const SECTIONS = [
   {
@@ -137,7 +137,7 @@ const SECTIONS = [
         Questions about these Terms or your data:{" "}
         <a
           href="mailto:project.gala.101126@gmail.com"
-          className="font-medium text-white underline underline-offset-4 hover:text-white/70"
+          className="font-medium text-gala-accent underline underline-offset-4 transition hover:text-gala-text"
         >
           project.gala.101126@gmail.com
         </a>
@@ -170,7 +170,7 @@ export default function TermsModal({ open, onClose, onAgree }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -178,15 +178,18 @@ export default function TermsModal({ open, onClose, onAgree }) {
         aria-modal="true"
         aria-labelledby="terms-title"
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-slate-900 text-white shadow-none! ring-0!"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gala-line bg-gala-surface text-gala-text shadow-lift"
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-white/15 px-6 py-5">
+        <div className="flex items-start justify-between gap-4 border-b border-gala-line px-6 py-5">
           <div>
-            <h2 id="terms-title" className="text-lg font-bold sm:text-xl">
+            <h2
+              id="terms-title"
+              className="text-lg font-bold text-gala-text sm:text-xl"
+            >
               Terms and Agreement
             </h2>
-            <p className="mt-1 text-xs text-white">
+            <p className="mt-1 text-xs text-gala-muted">
               Effective Date: October 11, 2026
             </p>
           </div>
@@ -195,21 +198,21 @@ export default function TermsModal({ open, onClose, onAgree }) {
             ref={closeRef}
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full bg-white/10 px-3 py-1 text-lg leading-none text-white outline-none transition hover:bg-white/20 focus:outline-none focus:ring-0"
+            className="rounded-full border border-gala-line bg-gala-raised/60 px-3 py-1 text-lg leading-none text-gala-text transition hover:bg-gala-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gala-accent"
           >
             &times;
           </button>
         </div>
 
         {/* Scrollable content */}
-        <div className="space-y-6 overflow-y-auto px-6 py-5 text-[13px] leading-6 text-white">
+        <div className="space-y-6 overflow-y-auto px-6 py-5 text-[13px] leading-6 text-gala-text/85">
           <p>
             By creating an account or using GALA, you agree to these Terms and
             Agreement. If you do not agree, please do not use the app.
           </p>
           {SECTIONS.map((s) => (
             <section key={s.title}>
-              <h3 className="mb-2 text-sm font-bold text-white">
+              <h3 className="mb-2 text-sm font-bold text-gala-text">
                 {s.title}
               </h3>
               {s.body}
@@ -218,11 +221,11 @@ export default function TermsModal({ open, onClose, onAgree }) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 border-t border-white/15 px-6 py-4">
+        <div className="flex justify-end gap-3 border-t border-gala-line px-6 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="rounded-full border border-gala-line bg-gala-raised/60 px-5 py-2 text-sm font-semibold text-gala-text transition hover:bg-gala-raised active:scale-95"
           >
             Close
           </button>
@@ -230,7 +233,7 @@ export default function TermsModal({ open, onClose, onAgree }) {
             <button
               type="button"
               onClick={onAgree}
-              className="rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-black transition hover:bg-amber-300"
+              className="rounded-full bg-gala-accent px-5 py-2 text-sm font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95"
             >
               I agree
             </button>
