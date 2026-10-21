@@ -84,37 +84,6 @@ svg {
   transition: background-color 9999s ease-in-out 0s;
 }
 
-/* Floating background blobs */
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(30px, -40px) scale(1.08);
-  }
-}
-.animate-float {
-  animation: float 9s ease-in-out infinite;
-}
-.animate-float-slow {
-  animation: float 14s ease-in-out infinite reverse;
-}
-
-/* Map drift animation */
-@keyframes map-drift {
-  0%,
-  100% {
-    transform: scale(1.15) translate(0, 0);
-  }
-  50% {
-    transform: scale(1.15) translate(-2%, 1.5%);
-  }
-}
-.animate-map-drift {
-  animation: map-drift 40s ease-in-out infinite;
-}
-
 /* Phones and small tablets: lighter blur and shadows keep scrolling smooth
    and stop heavy effects from dominating small panels */
 @media (max-width: 640px) {
@@ -133,15 +102,6 @@ svg {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
-  @keyframes float {
-    0%,
-    100% {
-      transform: translate(0, 0) scale(1);
-    }
-    50% {
-      transform: translate(12px, -16px) scale(1.04);
-    }
-  }
 }
 
 /* Touch devices have no hover, so skip sticky hover transforms */
@@ -151,33 +111,24 @@ svg {
   }
 }
 
-/* Disable animations for users who prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .animate-map-drift,
-  .animate-float,
-  .animate-float-slow {
-    animation: none;
-  }
-}
-
 @theme {
   --color-gala-bg: #0C1220;
   --color-gala-surface: #131C2B;
   --color-gala-raised: #1D2A3A;
   --color-gala-line: #2E4150;
-  --color-gala-muted: #6F8089;
-  --color-gala-text: #E6E4D8;
-  --color-gala-aqua: #7C98A3;
-  --color-gala-accent: #A5AE5C;
-  --color-gala-teal: #2B6F7C;
-  --color-gala-gold: #C9AE72;
+  --color-gala-muted: #93A8AB;   /* misty silver-teal (was #6F8089) */
+  --color-gala-text: #EEF2EC;    /* silver-white, like the hair highlights */
+  --color-gala-aqua: #92C4C4;    /* light water-glow teal */
+  --color-gala-accent: #BCC66B;  /* lighter olive-yellow, like the scarf */
+  --color-gala-teal: #3B929C;    /* brighter water teal */
+  --color-gala-gold: #E6D9A6;    /* cream, like the chevron trail */
 
   --shadow-card:
     0 1px 2px rgb(0 0 0 / 0.5),
     0 10px 24px -6px rgb(0 0 0 / 0.55),
     0 24px 48px -12px rgb(0 0 0 / 0.6),
     inset 0 1px 0 rgb(230 228 216 / 0.10);
-    
+
   --shadow-lift:
     0 2px 4px rgb(0 0 0 / 0.5),
     0 16px 32px -8px rgb(0 0 0 / 0.65),
@@ -196,19 +147,38 @@ svg {
     inset 0 1px 0 rgb(255 255 255 / 0.35),
     inset 0 -2px 0 rgb(0 0 0 / 0.18);
 
-    --shadow-btn:
+  --shadow-btn:
     0 1px 2px rgb(0 0 0 / 0.5),
     0 6px 14px -4px rgb(0 0 0 / 0.6),
     inset 0 1px 0 rgb(230 228 216 / 0.12);
 }
 
+/* Shared page background: used by body and by <Background /> */
+body,
+.app-bg {
+  background-color: #0c1220;
+  background-image:
+    /* light teal glow, top right */
+    radial-gradient(900px 520px at 88% -8%, rgb(110 200 200 / 0.38), transparent 60%),
+    /* pale olive-cream haze, top left */
+    radial-gradient(760px 520px at -5% 8%, rgb(214 220 140 / 0.16), transparent 60%),
+    /* silver mist behind the content */
+    radial-gradient(700px 420px at 55% 45%, rgb(230 240 236 / 0.06), transparent 70%),
+    /* bright water glow rising from the bottom */
+    radial-gradient(1200px 640px at 50% 115%, rgb(94 205 205 / 0.42), transparent 65%),
+    linear-gradient(180deg, #0c1220 0%, #12283a 50%, #17454f 100%);
+}
+
 body {
-  min-height: 100vh;
-  background:
-    radial-gradient(900px 500px at 85% -5%, rgb(47 143 154 / 0.35), transparent 60%),
-    radial-gradient(700px 500px at 0% 100%, rgb(183 194 58 / 0.10), transparent 60%),
-    #12151B;
   background-attachment: fixed;
+}
+
+/* Faint dot grid, fading out toward the bottom */
+.app-bg-grid {
+  background-image: radial-gradient(rgb(238 242 236 / 0.09) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 75%);
 }
 
 /* Hide scrollbars */

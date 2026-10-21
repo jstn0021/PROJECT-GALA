@@ -6,7 +6,6 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
@@ -66,7 +65,7 @@ const TEMPLATES = {
   },
   Family: {
     description: "Something for everyone",
-    image: "/newplan/family.jpg",
+    image: "/new-plan/family.jpg",
     gradient: "from-gala-accent to-gala-teal",
     activities: ["Family attraction", "Kid-friendly activity", "Family meal"],
     notes: "Leave some downtime between activities for the family.",
@@ -134,14 +133,14 @@ function TemplateCard({ name, template, selected, onSelect }) {
     >
       <CardImage src={template.image} alt="" gradient={template.gradient}>
         {selected && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-gala-accent px-2.5 py-1 text-xs font-semibold text-gala-bg">
+          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-gala-accent px-2.5 py-1 text-xs font-semibold text-gala-bg shadow-card">
             <Icon name="check" className="h-3.5 w-3.5" />
             Selected
           </span>
         )}
       </CardImage>
       <div className="flex flex-1 flex-col p-5">
-        <strong className="block text-xl font-bold tracking-tight text-gala-text transition group-hover:text-gala-accent">
+        <strong className="block text-lg font-bold tracking-tight text-gala-text transition group-hover:text-gala-accent">
           {name}
         </strong>
         <span className="mt-1 text-xs text-gala-muted">
@@ -539,21 +538,33 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
           {/* ---------------- STEP 1 ---------------- */}
           {step === 1 && (
             <section className="flex flex-col gap-6">
-              <div className={GRID}>
-                {Object.entries(TEMPLATES).map(([name, t]) => (
-                  <TemplateCard
-                    key={name}
-                    name={name}
-                    template={t}
-                    selected={selectedTemplate === name}
-                    onSelect={selectTemplate}
-                  />
-                ))}
+              {/* The plate that holds all the templates */}
+              <div className={`${PANEL} p-5 md:p-6`}>
+                <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm text-gala-muted">
+                    Pick one to start
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+                  {Object.entries(TEMPLATES).map(([name, t]) => (
+                    <TemplateCard
+                      key={name}
+                      name={name}
+                      template={t}
+                      selected={selectedTemplate === name}
+                      onSelect={selectTemplate}
+                    />
+                  ))}
+                </div>
               </div>
 
-              <p className="text-gala-muted">
-                The selected template pre-fills these. Everything stays
-                editable.
+              <p className="text-gala-text/80">
+                The{" "}
+                <strong className="font-semibold text-gala-accent">
+                  {selectedTemplate}
+                </strong>{" "}
+                template pre-fills these. Everything stays editable.
               </p>
 
               <div className="grid gap-5 md:grid-cols-3">

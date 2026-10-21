@@ -5,49 +5,17 @@ import LandingContent from "app/components/LandingContent";
 
 export function Background({ children }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-b from-[#12324A] via-[#1B5F78] to-[#2F8F9A]">
-      {/* Map layers: same drift animation, recolored to the artwork's palette.
-          Ang blur ay nasa loob ng `filter` dahil ino-override ng inline filter
-          ang Tailwind blur classes. Palitan ang blur(10px) / blur(3px) kung
-          gusto mo pang dagdagan o bawasan. */}
-      <div className="pointer-events-none fixed inset-0 animate-map-drift">
-        {/* Landmasses: deep teal-navy */}
-        <div
-          className="absolute inset-0 scale-110 opacity-55"
-          style={{
-            backgroundImage: "url(/world-map.svg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            filter:
-              "blur(10px) grayscale(1) sepia(1) hue-rotate(150deg) saturate(1.5) brightness(0.95)",
-          }}
-        />
-        {/* Routes: pale cream, like the chevrons in the artwork */}
-        <div
-          className="absolute inset-0 scale-110 opacity-70"
-          style={{
-            backgroundImage: "url(/world-routes.svg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            filter:
-              "blur(3px) grayscale(1) sepia(0.7) saturate(0.9) brightness(0.95)",
-          }}
-        />
-      </div>
-
-      {/* Static color wash: olive haze top-left, teal water rising from the bottom,
-          and a dark fade at the top so the sky reads as night */}
+    <div className="relative min-h-screen overflow-hidden bg-gala-bg">
+      {/* Fixed layers, so the background stays put while the page scrolls
+          (also works on iOS, which ignores background-attachment: fixed).
+          Ang gradients ay nasa .app-bg at .app-bg-grid sa globals.css */}
       <div
-        className="pointer-events-none fixed inset-0"
-        style={{
-          background: [
-            "radial-gradient(800px 480px at 8% -5%, rgb(165 174 92 / 0.18), transparent 60%)",
-            "radial-gradient(1200px 600px at 50% 112%, rgb(94 190 200 / 0.35), transparent 65%)",
-            "linear-gradient(180deg, rgb(8 13 23 / 0.25) 0%, transparent 30%)",
-          ].join(", "),
-        }}
+        aria-hidden="true"
+        className="app-bg pointer-events-none fixed inset-0"
+      />
+      <div
+        aria-hidden="true"
+        className="app-bg-grid pointer-events-none fixed inset-0"
       />
 
       <div className="relative z-10 text-gala-text">{children}</div>
