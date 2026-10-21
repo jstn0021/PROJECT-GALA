@@ -147,7 +147,7 @@ function JournalCard({ entry, onOpen, onAddMedia }) {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gala-bg/40 p-4 text-center">
             <Icon name="camera" className="h-8 w-8 text-gala-aqua" />
             <p className="mt-1 text-xs text-gala-text/75">
-              No photos or videos yet
+              No photos yet
             </p>
           </div>
         )}
