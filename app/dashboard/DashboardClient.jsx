@@ -200,9 +200,7 @@ function Card({
               <h2 className="text-lg font-semibold leading-tight text-gala-text">
                 {title}
               </h2>
-              {subtitle && (
-                <p className="text-sm text-gala-aqua">{subtitle}</p>
-              )}
+              {subtitle && <p className="text-sm text-gala-aqua">{subtitle}</p>}
             </div>
           </div>
           {action && (
@@ -409,8 +407,7 @@ export default function DashboardClient({ name }) {
         <section className="flex flex-wrap items-center justify-between gap-4 px-2">
           <div className="text-left">
             <h1 className="text-4xl font-bold tracking-tight text-gala-text md:text-5xl">
-              Welcome back,{" "}
-              <span className="text-gala-accent">{name}!</span>
+              Welcome back, <span className="text-gala-accent">{name}!</span>
             </h1>
             <p className="mt-2 text-lg text-gala-aqua md:text-xl">
               Ready for your next na adventure gala?
@@ -430,7 +427,9 @@ export default function DashboardClient({ name }) {
             Loading your next na gala...
           </section>
         ) : error ? (
-          <section className={`${PANEL_FLAT} p-8 text-red-200`}>{error}</section>
+          <section className={`${PANEL_FLAT} p-8 text-red-200`}>
+            {error}
+          </section>
         ) : nextTrip ? (
           <section
             className="relative overflow-hidden rounded-3xl border border-gala-line shadow-card"
@@ -484,10 +483,7 @@ export default function DashboardClient({ name }) {
               </div>
 
               <div className="flex max-w-xl items-start gap-3 border-t border-gala-text/15 pt-4">
-                <Icon
-                  name="wallet"
-                  className="mt-0.5 h-6 w-6 text-gala-aqua"
-                />
+                <Icon name="wallet" className="mt-0.5 h-6 w-6 text-gala-aqua" />
                 <div className="flex-1">
                   <div className="text-sm text-gala-text/80">
                     Budget Progress
@@ -600,7 +596,7 @@ export default function DashboardClient({ name }) {
           <Card
             title="Trip Budget Planner"
             subtitle={nextTrip?.title || "No trip selected"}
-            icon={<Icon name="Wallet" className="h-6 w-6" />}
+            icon={<Icon name="wallet" className="h-6 w-6" />}
             boxedIcon
           >
             <div>
