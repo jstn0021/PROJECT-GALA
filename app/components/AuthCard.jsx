@@ -5,34 +5,20 @@ import LandingContent from "app/components/LandingContent";
 
 export function Background({ children }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-linear-to-br from-[#0b1f33] via-[#12476b] to-[#1b6f7a]">
-      {/* Mas blurred na ang map para kapareho ng dashboard.
-          Pwedeng baguhin ang blur-[10px] / blur-[3px] kung gusto mo pang dagdagan o bawasan. */}
-      <div className="pointer-events-none fixed inset-0 animate-map-drift">
-        <div
-          className="absolute inset-0 scale-110 opacity-60 blur-[10px]"
-          style={{
-            backgroundImage: "url(/world-map.svg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
-        <div
-          className="absolute inset-0 scale-110 opacity-90 blur-[3px]"
-          style={{
-            backgroundImage: "url(/world-routes.svg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-gala-bg">
+      {/* Fixed layers, so the background stays put while the page scrolls
+          (also works on iOS, which ignores background-attachment: fixed).
+          Ang gradients ay nasa .app-bg at .app-bg-grid sa globals.css */}
+      <div
+        aria-hidden="true"
+        className="app-bg pointer-events-none fixed inset-0"
+      />
+      <div
+        aria-hidden="true"
+        className="app-bg-grid pointer-events-none fixed inset-0"
+      />
 
-      <div className="pointer-events-none absolute -top-32 -left-24 h-96 w-96 rounded-full bg-orange-400/50 blur-3xl animate-float" />
-      <div className="pointer-events-none absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-pink-500/40 blur-3xl animate-float-slow" />
-      <div className="pointer-events-none absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-cyan-400/40 blur-3xl animate-float" />
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 text-gala-text">{children}</div>
     </div>
   );
 }
@@ -40,7 +26,7 @@ export function Background({ children }) {
 export function Logo({ size = "md" }) {
   return (
     <span
-      className={`font-bold tracking-tight ${
+      className={`font-bold tracking-tight text-gala-text ${
         size === "lg" ? "text-4xl sm:text-5xl" : "text-2xl"
       }`}
     >
@@ -52,7 +38,7 @@ export function Logo({ size = "md" }) {
 export function Field({ label, error, ...props }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-white/80">
+      <span className="mb-1.5 block text-sm font-medium text-gala-text/80">
         {label}
       </span>
       <input
@@ -67,7 +53,7 @@ export function SubmitButton({ children, ...props }) {
   return (
     <button
       {...props}
-      className="h-11 w-full rounded-xl bg-linear-to-r from-orange-400 to-pink-500 font-semibold text-white shadow-lg shadow-pink-500/30 transition hover:scale-[1.02] hover:shadow-pink-500/50 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+      className="h-11 w-full rounded-xl bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-[1.02] hover:brightness-110 hover:shadow-accent-lift active:scale-95 active:shadow-none disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-accent"
     >
       {children}
     </button>
@@ -108,30 +94,37 @@ export default function AuthCard({
         <div className="origin-center scale-105 blur-md">
           <LandingContent images={images} />
         </div>
-        <div className="absolute inset-0 bg-slate-950/55" />
+        <div className="absolute inset-0 bg-gala-bg/40" />
       </div>
 
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <div className="glass w-full max-w-md rounded-3xl p-8">
+        {/* Kapareho na ng Dashboard panels, hindi na umaasa sa .glass ng globals.css */}
+        <div className="w-full max-w-md rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 p-8 text-gala-text shadow-lift backdrop-blur-md">
           {/* Brand, centered at top of the card */}
           <div className="text-center">
             <Logo size="lg" />
           </div>
 
-          <h2 className="mt-6 text-center text-2xl font-semibold tracking-tight">
+          <h2 className="mt-6 text-center text-2xl font-semibold tracking-tight text-gala-text">
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-1 text-center text-white/70">{subtitle}</p>
+            <p className="mt-1 text-center text-gala-aqua">{subtitle}</p>
           )}
 
           {error && (
-            <p className="mt-4 rounded-xl border border-red-300/40 bg-red-500/20 px-4 py-2 text-sm text-red-100">
+            <p
+              role="alert"
+              className="mt-4 rounded-xl border border-red-300/40 bg-red-500/20 px-4 py-2 text-sm text-red-100"
+            >
               {error}
             </p>
           )}
           {success && (
-            <p className="mt-4 rounded-xl border border-green-300/40 bg-green-500/20 px-4 py-2 text-sm text-green-100">
+            <p
+              role="status"
+              className="mt-4 rounded-xl border border-gala-accent/40 bg-gala-accent/15 px-4 py-2 text-sm text-gala-accent"
+            >
               {success}
             </p>
           )}

@@ -5,30 +5,38 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  PANEL,
-  MODAL,
-  CARD,
   GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
-  primaryBtn,
-  ghostBtn,
-  smallBtn,
   cardAction,
   fieldLabel,
   Icon,
 } from "@/app/components/ui";
 
+/* My Plans-only na styles. Kapareho na ng Dashboard ang panels, buttons at shadows.
+   Hindi ginagalaw ang ui.jsx, kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 backdrop-blur-md shadow-card";
+const MODAL = `${PANEL} border-gala-line bg-gala-surface shadow-lift`;
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1 hover:shadow-lift`;
+const gradientBtn =
+  "bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95";
+const primaryBtn = `rounded-full px-6 py-3 ${gradientBtn}`;
+const ghostBtn =
+  "rounded-full border border-gala-line bg-gala-raised/60 px-5 py-2.5 text-gala-text transition hover:bg-gala-raised active:scale-95";
+const smallBtn =
+  "rounded-full border border-gala-line bg-gala-raised/60 px-3 py-1.5 text-sm text-gala-text transition hover:bg-gala-raised active:scale-95";
+
 const FILTERS = ["All", "Upcoming", "Ongoing", "Completed"];
 const STEPS = ["Upcoming", "Ongoing", "Completed"];
 // Cover choices in the edit form (same gradients as the New plan templates)
 const COVERS = {
-  Blank: "from-teal-300 to-indigo-500",
-  Weekend: "from-rose-400 to-orange-300",
-  Solo: "from-teal-300 to-indigo-500",
-  Family: "from-amber-300 to-emerald-400",
-  Adventure: "from-cyan-300 to-emerald-500",
+  Blank: "from-gala-teal to-gala-raised",
+  Weekend: "from-gala-gold to-gala-muted",
+  Solo: "from-gala-aqua to-gala-teal",
+  Family: "from-gala-accent to-gala-teal",
+  Adventure: "from-gala-teal to-gala-accent",
 };
 
 function todayString() {
@@ -111,18 +119,18 @@ function BudgetBar({ spent, budget }) {
   const over = spent > budget;
   return (
     <div>
-      <div className="mb-2 flex justify-between text-xs text-white/65">
+      <div className="mb-2 flex justify-between text-xs text-gala-muted">
         <span>
           {formatMoney(spent)} / {formatMoney(budget)}
         </span>
         <span>{Math.round(percentage)}%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/15">
+      <div className="h-2 overflow-hidden rounded-full bg-gala-text/15">
         <div
           className={`h-full rounded-full transition-all ${
             over
-              ? "bg-linear-to-r from-orange-300 to-red-400"
-              : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
+              ? "bg-linear-to-r from-gala-gold to-red-400"
+              : "bg-linear-to-r from-gala-accent to-gala-teal"
           }`}
           style={{ width: `${percentage}%` }}
         />
@@ -134,9 +142,9 @@ function BudgetBar({ spent, budget }) {
 // Mas solid ang kulay para mabasa kahit nasa ibabaw ng image
 function StatusBadge({ status }) {
   const styles = {
-    Upcoming: "bg-sky-500/70 text-white",
-    Ongoing: "bg-yellow-400/85 text-slate-900",
-    Completed: "bg-emerald-500/70 text-white",
+    Upcoming: "bg-gala-teal/85 text-gala-text",
+    Ongoing: "bg-gala-gold text-gala-bg",
+    Completed: "bg-gala-accent text-gala-bg",
   };
   return (
     <span
@@ -159,8 +167,8 @@ function StatusStepper({ status }) {
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold ${
                   reached
-                    ? "border-indigo-300/70 bg-indigo-500/60 text-white"
-                    : "border-white/25 bg-white/5 text-white/40"
+                    ? "border-gala-accent/70 bg-gala-accent/30 text-gala-text"
+                    : "border-gala-line bg-gala-raised/40 text-gala-muted"
                 }`}
               >
                 {reached ? (
@@ -170,7 +178,7 @@ function StatusStepper({ status }) {
                 )}
               </span>
               <span
-                className={`text-[11px] ${reached ? "text-white/85" : "text-white/40"}`}
+                className={`text-[11px] ${reached ? "text-gala-text/85" : "text-gala-muted"}`}
               >
                 {step}
               </span>
@@ -178,7 +186,7 @@ function StatusStepper({ status }) {
             {index < STEPS.length - 1 && (
               <div
                 className={`mx-2 mb-5 h-0.5 flex-1 rounded-full ${
-                  index < current ? "bg-indigo-400/70" : "bg-white/15"
+                  index < current ? "bg-gala-accent/70" : "bg-gala-line"
                 }`}
               />
             )}
@@ -330,7 +338,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
         aria-labelledby="edit-title"
         onSubmit={handleSubmit}
         noValidate
-        className={`${MODAL} max-h-[92vh] w-full max-w-2xl overflow-y-auto`}
+        className={`${MODAL} max-h-[92vh] w-full max-w-2xl overflow-y-auto text-gala-text`}
       >
         <div
           className={`relative h-32 bg-cover bg-center bg-linear-to-br ${form.color}`}
@@ -343,13 +351,13 @@ function EditPlanModal({ plan, onClose, onSave }) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-xl text-white transition hover:bg-black/50"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-xl text-gala-text transition hover:bg-black/50"
           >
             <Icon name="close" className="h-4 w-4" />
           </button>
           <div className="absolute bottom-4 left-6">
-            <p className="text-sm text-white/75">Editing plan</p>
-            <h2 id="edit-title" className="text-2xl font-bold">
+            <p className="text-sm text-gala-aqua">Editing plan</p>
+            <h2 id="edit-title" className="text-2xl font-bold text-gala-text">
               {form.title || form.destination || "Untitled plan"}
             </h2>
           </div>
@@ -369,12 +377,12 @@ function EditPlanModal({ plan, onClose, onSave }) {
                   }
                   className={`overflow-hidden rounded-xl border text-center text-xs transition hover:-translate-y-0.5 ${
                     form.template === name
-                      ? "border-white/80 outline outline-2 outline-offset-2 outline-white/70"
-                      : "border-white/25"
+                      ? "border-gala-accent outline outline-2 outline-offset-2 outline-gala-accent/70"
+                      : "border-gala-line"
                   }`}
                 >
                   <div className={`h-10 bg-linear-to-br ${gradient}`} />
-                  <span className="block bg-white/10 py-1.5">{name}</span>
+                  <span className="block bg-gala-raised py-1.5">{name}</span>
                 </button>
               ))}
             </div>
@@ -452,7 +460,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-white/80">
+              <span className="text-sm font-medium text-gala-text/80">
                 Activities
               </span>
               <button
@@ -467,7 +475,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
             </div>
             <div className="flex flex-col gap-3">
               {form.activities.length === 0 && (
-                <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                <div className="rounded-xl border border-dashed border-gala-line px-4 py-4 text-sm text-gala-muted">
                   No activities yet. Add one to get started.
                 </div>
               )}
@@ -489,7 +497,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
                       }))
                     }
                     aria-label="Remove activity"
-                    className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                    className="h-12 w-12 shrink-0 rounded-xl border border-gala-line bg-gala-raised/60 text-xl transition hover:bg-gala-raised"
                   >
                     <Icon name="close" className="h-4 w-4" />
                   </button>
@@ -517,7 +525,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
               Total budget
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gala-muted">
                 ₱
               </span>
               <input
@@ -532,7 +540,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
               />
             </div>
             <p
-              className={`mt-2 text-sm ${spent > total ? "text-red-200" : "text-white/60"}`}
+              className={`mt-2 text-sm ${spent > total ? "text-red-200" : "text-gala-muted"}`}
             >
               {spent > total
                 ? `You've already spent ${formatMoney(spent)}, which is over this budget.`
@@ -542,7 +550,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
 
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium text-white/80">
+              <span className="text-sm font-medium text-gala-text/80">
                 Budget allocation
               </span>
               <div className="flex gap-2">
@@ -568,10 +576,10 @@ function EditPlanModal({ plan, onClose, onSave }) {
                 </button>
               </div>
             </div>
-            <div className="rounded-2xl border border-white/20 bg-white/5 p-4">
+            <div className="rounded-2xl border border-gala-line bg-gala-bg/40 p-4">
               <BudgetBar spent={allocated} budget={total} />
               <p
-                className={`mt-2 text-xs ${unallocated < 0 ? "text-red-200" : "text-white/60"}`}
+                className={`mt-2 text-xs ${unallocated < 0 ? "text-red-200" : "text-gala-muted"}`}
               >
                 {unallocated < 0
                   ? `${formatMoney(-unallocated)} over your total budget`
@@ -579,7 +587,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
               </p>
               <div className="mt-4 flex flex-col gap-3">
                 {form.allocations.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                  <div className="rounded-xl border border-dashed border-gala-line px-4 py-4 text-sm text-gala-muted">
                     No categories yet. Add one to start allocating.
                   </div>
                 )}
@@ -593,7 +601,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
                       className="glass-input min-w-0 flex-1 rounded-xl px-4 py-3"
                     />
                     <div className="relative w-36 shrink-0 sm:w-44">
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gala-muted">
                         ₱
                       </span>
                       <input
@@ -619,7 +627,7 @@ function EditPlanModal({ plan, onClose, onSave }) {
                         clearAllocError();
                       }}
                       aria-label={`Remove ${row.name || "category"}`}
-                      className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                      className="h-12 w-12 shrink-0 rounded-xl border border-gala-line bg-gala-raised/60 text-xl transition hover:bg-gala-raised"
                     >
                       <Icon name="close" className="h-4 w-4" />
                     </button>
@@ -667,14 +675,14 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
       </CardImage>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-xl font-bold tracking-tight text-white transition group-hover:text-indigo-300">
+        <h3 className="text-xl font-bold tracking-tight text-gala-text transition group-hover:text-gala-accent">
           {plan.title}
         </h3>
-        <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
+        <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-gala-aqua">
           <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{plan.destination}</span>
         </p>
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-white/50">
+        <p className="mt-1 flex items-center gap-1.5 text-xs text-gala-muted">
           <Icon name="calendar" className="h-3.5 w-3.5 shrink-0" />
           {formatDateRange(plan.startDate, plan.endDate)}
         </p>
@@ -687,7 +695,7 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
             )}
             budget={plan.budget}
           />
-          <p className="mt-3 text-xs text-white/55">{getCountdown(plan)}</p>
+          <p className="mt-3 text-xs text-gala-muted">{getCountdown(plan)}</p>
         </div>
 
         <div className="mt-auto pt-4">
@@ -695,13 +703,13 @@ function PlanCard({ plan, onView, onEdit, onComplete, onDelete }) {
             <button
               type="button"
               onClick={onComplete}
-              className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-teal-200/50 bg-teal-500/40 py-2 text-xs font-medium text-teal-50 transition hover:bg-teal-500/60"
+              className="mb-3 flex w-full items-center justify-center gap-1.5 rounded-full border border-gala-accent/50 bg-gala-accent/15 py-2 text-xs font-medium text-gala-accent transition hover:bg-gala-accent/25"
             >
               <Icon name="check" className="h-3.5 w-3.5" />
               Mark completed
             </button>
           )}
-          <div className="flex items-center gap-2 border-t border-white/10 pt-3">
+          <div className="flex items-center gap-2 border-t border-gala-line pt-3">
             <button
               type="button"
               onClick={onView}
@@ -762,7 +770,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="plan-title"
-        className={`${MODAL} max-h-[90vh] w-full max-w-lg overflow-y-auto`}
+        className={`${MODAL} max-h-[90vh] w-full max-w-lg overflow-y-auto text-gala-text`}
       >
         {/* Header */}
         <div
@@ -776,7 +784,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-xl text-white transition hover:bg-black/50"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-xl text-gala-text transition hover:bg-black/50"
           >
             <Icon name="close" className="h-4 w-4" />
           </button>
@@ -786,34 +794,34 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
         </div>
 
         <div className="p-6">
-          <h2 id="plan-title" className="text-2xl font-bold">
+          <h2 id="plan-title" className="text-2xl font-bold text-gala-text">
             {plan.title}
           </h2>
-          <p className="mt-1 text-white/70">{plan.destination}</p>
+          <p className="mt-1 text-gala-aqua">{plan.destination}</p>
 
           {/* Quick facts */}
           <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-2xl bg-white/10 px-2 py-3">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">
+            <div className="rounded-2xl border border-gala-line bg-gala-raised/60 px-2 py-3">
+              <p className="text-[11px] uppercase tracking-wide text-gala-muted">
                 Dates
               </p>
-              <p className="mt-1 text-sm font-medium">
+              <p className="mt-1 text-sm font-medium text-gala-text">
                 {formatDateRange(plan.startDate, plan.endDate)}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/10 px-2 py-3">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">
+            <div className="rounded-2xl border border-gala-line bg-gala-raised/60 px-2 py-3">
+              <p className="text-[11px] uppercase tracking-wide text-gala-muted">
                 Length
               </p>
-              <p className="mt-1 text-sm font-medium">
+              <p className="mt-1 text-sm font-medium text-gala-text">
                 {duration} day{duration === 1 ? "" : "s"}
               </p>
             </div>
-            <div className="rounded-2xl bg-white/10 px-2 py-3">
-              <p className="text-[11px] uppercase tracking-wide text-white/50">
+            <div className="rounded-2xl border border-gala-line bg-gala-raised/60 px-2 py-3">
+              <p className="text-[11px] uppercase tracking-wide text-gala-muted">
                 Status
               </p>
-              <p className="mt-1 text-sm font-medium">{getCountdown(plan)}</p>
+              <p className="mt-1 text-sm font-medium text-gala-text">{getCountdown(plan)}</p>
             </div>
           </div>
 
@@ -823,11 +831,11 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
           </div>
 
           {/* Budget */}
-          <div className="mt-6 rounded-2xl bg-white/10 p-4">
+          <div className="mt-6 rounded-2xl border border-gala-line bg-gala-raised/60 p-4">
             <div className="mb-3 flex items-baseline justify-between">
-              <h3 className="text-sm font-semibold">Budget</h3>
+              <h3 className="text-sm font-semibold text-gala-text">Budget</h3>
               <span
-                className={`text-xs ${remaining < 0 ? "text-red-200" : "text-white/60"}`}
+                className={`text-xs ${remaining < 0 ? "text-red-200" : "text-gala-muted"}`}
               >
                 {remaining < 0
                   ? `${formatMoney(Math.abs(remaining))} over budget`
@@ -836,7 +844,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
             </div>
             <BudgetBar spent={allocated} budget={plan.budget} />
             {plan.budgetAllocations?.length > 0 && (
-              <ul className="mt-4 flex flex-col gap-1.5 border-t border-white/15 pt-3 text-xs text-white/70">
+              <ul className="mt-4 flex flex-col gap-1.5 border-t border-gala-line pt-3 text-xs text-gala-text/75">
                 {plan.budgetAllocations.map((a) => (
                   <li key={a.category} className="flex justify-between">
                     <span>{a.category}</span>
@@ -850,7 +858,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
           {/* Actions */}
           <div className="mt-6">
             {status === "Completed" ? (
-              <p className="rounded-xl bg-emerald-400/15 px-4 py-3 text-center text-sm text-emerald-100">
+              <p className="rounded-xl bg-gala-accent/15 px-4 py-3 text-center text-sm text-gala-accent">
                 This trip is completed and is now in your Journal.
               </p>
             ) : (
@@ -861,15 +869,15 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                   onClick={onComplete}
                   className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl font-semibold transition ${
                     ready
-                      ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-[0_0_24px_rgba(99,102,241,0.6)] hover:scale-105 active:scale-95"
-                      : "cursor-not-allowed border border-white/15 bg-white/5 text-white/40"
+                      ? "bg-gala-accent text-gala-bg shadow-accent hover:scale-105 hover:brightness-110 active:scale-95"
+                      : "cursor-not-allowed border border-gala-line bg-gala-raised/30 text-gala-muted"
                   }`}
                 >
                   <Icon name="check" className="h-4 w-4" />
                   Mark as completed
                 </button>
                 {!ready && (
-                  <p className="mt-2 text-center text-xs text-white/50">
+                  <p className="mt-2 text-center text-xs text-gala-muted">
                     Available once the trip ends (after{" "}
                     {formatLongDate(plan.endDate)}).
                   </p>
@@ -881,7 +889,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="text-sm text-white/70 transition hover:text-white"
+                className="text-sm text-gala-muted transition hover:text-gala-text"
               >
                 Close
               </button>
@@ -889,7 +897,7 @@ function PlanDetails({ plan, onClose, onEdit, onComplete, onDelete }) {
                 <button
                   type="button"
                   onClick={onEdit}
-                  className="text-sm text-white/80 transition hover:text-white"
+                  className="text-sm text-gala-text/80 transition hover:text-gala-accent"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     <Icon name="edit" className="h-4 w-4" />
@@ -1098,7 +1106,7 @@ export default function MyPlansPage() {
 
   return (
     <Background>
-      <div className={PAGE_WRAP}>
+      <div className={`${PAGE_WRAP} text-gala-text`}>
         <Navbar />
 
         <main className="flex flex-1 flex-col gap-6">
@@ -1124,8 +1132,8 @@ export default function MyPlansPage() {
                 onClick={() => setFilter(tab)}
                 className={`rounded-full border px-4 py-2 text-sm transition ${
                   filter === tab
-                    ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                    : "border-white/20 bg-white/5 text-white/65 hover:bg-white/10"
+                    ? "border-gala-accent bg-gala-accent font-semibold text-gala-bg shadow-accent"
+                    : "border-gala-line bg-gala-raised/40 text-gala-aqua hover:bg-gala-raised hover:text-gala-text"
                 }`}
               >
                 {tab}
@@ -1158,8 +1166,8 @@ export default function MyPlansPage() {
             <section
               className={`${PANEL} mx-auto my-8 w-full max-w-lg px-8 py-16 text-center`}
             >
-              <p className="text-sm text-white/55">No plans here yet.</p>
-              <h2 className="mt-2 text-2xl font-semibold">
+              <p className="text-sm text-gala-muted">No plans here yet.</p>
+              <h2 className="mt-2 text-2xl font-semibold text-gala-text">
                 {filter === "All"
                   ? "Create your first plan"
                   : `No ${filter.toLowerCase()} plans`}
@@ -1214,18 +1222,18 @@ export default function MyPlansPage() {
 
               <h2
                 id="delete-plan-title"
-                className="text-xl font-bold text-white"
+                className="text-xl font-bold text-gala-text"
               >
                 Delete this plan?
               </h2>
 
               <p
                 id="delete-plan-description"
-                className="mt-3 text-sm leading-relaxed text-white/65"
+                className="mt-3 text-sm leading-relaxed text-gala-muted"
               >
                 Are you sure you want to delete{" "}
-                <strong className="text-white">{planToDelete.title}</strong>?
-                This action cannot be undone.
+                <strong className="text-gala-text">{planToDelete.title}</strong>
+                ? This action cannot be undone.
               </p>
 
               <div className="mt-6 flex gap-3">
@@ -1233,7 +1241,7 @@ export default function MyPlansPage() {
                   type="button"
                   onClick={() => setPlanToDelete(null)}
                   disabled={deleting}
-                  className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/20 disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-gala-line bg-gala-raised/60 px-4 py-3 text-sm font-medium text-gala-text transition hover:bg-gala-raised disabled:opacity-50"
                 >
                   Cancel
                 </button>

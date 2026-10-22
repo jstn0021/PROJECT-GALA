@@ -6,27 +6,35 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  PANEL,
-  CARD,
-  GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
-  primaryBtn,
-  ghostBtn,
-  smallBtn,
   fieldLabel as label,
   Icon,
 } from "@/app/components/ui";
 
+/* New Plan-only na styles. Kapareho na ng Dashboard at My Plans ang panels,
+   buttons at shadows. Hindi ginagalaw ang ui.jsx, kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 backdrop-blur-md shadow-card";
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1 hover:shadow-lift`;
+const gradientBtn =
+  "bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95";
+const primaryBtn = `rounded-full px-6 py-3 ${gradientBtn}`;
+const ghostBtn =
+  "rounded-full border border-gala-line bg-gala-raised/60 px-5 py-2.5 text-gala-text transition hover:bg-gala-raised active:scale-95";
+const smallBtn =
+  "rounded-full border border-gala-line bg-gala-raised/60 px-3 py-1.5 text-sm text-gala-text transition hover:bg-gala-raised active:scale-95";
+
 /* ------------------------------------------------------------------ */
 /* Templates                                                          */
 /* ------------------------------------------------------------------ */
+// Ang `gradient` ay kapareho ng COVERS sa My Plans page
 const TEMPLATES = {
   Blank: {
     description: "Start empty",
     image: "/new-plan/blank.jpg",
-    gradient: "from-teal-300 to-indigo-500",
+    gradient: "from-gala-teal to-gala-raised",
     activities: [],
     notes: "",
     budgetCategories: [],
@@ -34,7 +42,7 @@ const TEMPLATES = {
   Weekend: {
     description: "A quick weekend escape",
     image: "/new-plan/weekend.jpg",
-    gradient: "from-rose-400 to-orange-300",
+    gradient: "from-gala-gold to-gala-muted",
     activities: [
       "Explore the city",
       "Local food experience",
@@ -46,7 +54,7 @@ const TEMPLATES = {
   Solo: {
     description: "A trip built around you",
     image: "/new-plan/solo.jpg",
-    gradient: "from-teal-300 to-indigo-500",
+    gradient: "from-gala-aqua to-gala-teal",
     activities: [
       "Explore independently",
       "Local food experience",
@@ -57,8 +65,8 @@ const TEMPLATES = {
   },
   Family: {
     description: "Something for everyone",
-    image: "/newplan/family.jpg",
-    gradient: "from-amber-300 to-emerald-400",
+    image: "/new-plan/family.jpg",
+    gradient: "from-gala-accent to-gala-teal",
     activities: ["Family attraction", "Kid-friendly activity", "Family meal"],
     notes: "Leave some downtime between activities for the family.",
     budgetCategories: ["Accommodation", "Food", "Family activities"],
@@ -66,7 +74,7 @@ const TEMPLATES = {
   Adventure: {
     description: "Make the most of the outdoors",
     image: "/new-plan/adventure.jpg",
-    gradient: "from-cyan-300 to-emerald-500",
+    gradient: "from-gala-teal to-gala-accent",
     activities: [
       "Outdoor adventure",
       "Local exploration",
@@ -96,8 +104,8 @@ function StepIndicator({ step }) {
     <span
       className={`rounded-full border px-4 py-1 text-sm ${
         step === n
-          ? "border-indigo-300/60 bg-indigo-500/40 text-white shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-          : "border-white/20 bg-white/5 text-white/60"
+          ? "border-gala-accent bg-gala-accent font-semibold text-gala-bg"
+          : "border-gala-line bg-gala-raised/40 text-gala-muted"
       }`}
     >
       Step {n}
@@ -106,7 +114,7 @@ function StepIndicator({ step }) {
   return (
     <div className="flex items-center gap-3" aria-label={`Step ${step} of 2`}>
       {item(1)}
-      <div className="h-px w-10 bg-white/30" />
+      <div className="h-px w-10 bg-gala-line" />
       {item(2)}
     </div>
   );
@@ -120,22 +128,22 @@ function TemplateCard({ name, template, selected, onSelect }) {
       aria-pressed={selected}
       onClick={() => onSelect(name)}
       className={`${CARD} text-left ${
-        selected ? "outline outline-2 outline-offset-2 outline-white/80" : ""
+        selected ? "outline outline-2 outline-offset-2 outline-gala-accent" : ""
       }`}
     >
       <CardImage src={template.image} alt="" gradient={template.gradient}>
         {selected && (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-indigo-500 px-2.5 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/50">
+          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-gala-accent px-2.5 py-1 text-xs font-semibold text-gala-bg shadow-card">
             <Icon name="check" className="h-3.5 w-3.5" />
             Selected
           </span>
         )}
       </CardImage>
       <div className="flex flex-1 flex-col p-5">
-        <strong className="block text-xl font-bold tracking-tight transition group-hover:text-indigo-300">
+        <strong className="block text-lg font-bold tracking-tight text-gala-text transition group-hover:text-gala-accent">
           {name}
         </strong>
-        <span className="mt-1 text-xs text-white/70">
+        <span className="mt-1 text-xs text-gala-muted">
           {template.description}
         </span>
       </div>
@@ -146,22 +154,22 @@ function TemplateCard({ name, template, selected, onSelect }) {
 function PreviewSection({ title, items }) {
   return (
     <div className={`${PANEL} p-5`}>
-      <h3 className="mb-3 font-semibold">{title}</h3>
+      <h3 className="mb-3 font-semibold text-gala-text">{title}</h3>
       <div className="flex flex-col gap-2">
         {items.length > 0 ? (
           items.map((text, i) => (
             <div
               key={i}
-              className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white/80"
+              className="rounded-xl border border-gala-line bg-gala-raised/60 px-3 py-2 text-sm text-gala-text/80"
             >
               {text}
             </div>
           ))
         ) : (
           <>
-            <div className="h-8 rounded-xl bg-white/10" />
-            <div className="h-8 w-2/3 rounded-xl bg-white/10" />
-            <div className="h-8 w-1/3 rounded-xl bg-white/10" />
+            <div className="h-8 rounded-xl bg-gala-raised/60" />
+            <div className="h-8 w-2/3 rounded-xl bg-gala-raised/60" />
+            <div className="h-8 w-1/3 rounded-xl bg-gala-raised/60" />
           </>
         )}
       </div>
@@ -196,7 +204,7 @@ function BudgetAllocation({
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium text-white/80">
+        <span className="text-sm font-medium text-gala-text/80">
           Budget allocation
         </span>
         <div className="flex gap-2">
@@ -214,31 +222,31 @@ function BudgetAllocation({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/20 bg-white/5 p-4">
+      <div className="rounded-2xl border border-gala-line bg-gala-bg/40 p-4">
         {total <= 0 && (
-          <p className="mb-3 text-sm text-white/60">
+          <p className="mb-3 text-sm text-gala-muted">
             Enter a total budget above to start allocating it.
           </p>
         )}
 
-        <div className="mb-1 flex justify-between text-xs text-white/65">
+        <div className="mb-1 flex justify-between text-xs text-gala-muted">
           <span>
             {peso(allocated)} of {peso(total)} allocated
           </span>
           <span>{Math.round(pct)}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-white/15">
+        <div className="h-2 overflow-hidden rounded-full bg-gala-text/15">
           <div
             className={`h-full rounded-full transition-all ${
               over
-                ? "bg-linear-to-r from-orange-300 to-red-400"
-                : "bg-linear-to-r from-violet-400 via-blue-400 to-cyan-300"
+                ? "bg-linear-to-r from-gala-gold to-red-400"
+                : "bg-linear-to-r from-gala-accent to-gala-teal"
             }`}
             style={{ width: `${pct}%` }}
           />
         </div>
         <p
-          className={`mt-2 text-xs ${over ? "text-red-200" : "text-white/60"}`}
+          className={`mt-2 text-xs ${over ? "text-red-200" : "text-gala-muted"}`}
         >
           {over
             ? `${peso(-remaining)} over your total budget`
@@ -247,7 +255,7 @@ function BudgetAllocation({
 
         <div className="mt-4 flex flex-col gap-3">
           {rows.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+            <div className="rounded-xl border border-dashed border-gala-line px-4 py-4 text-sm text-gala-muted">
               No categories yet. Add one to start allocating.
             </div>
           )}
@@ -267,7 +275,7 @@ function BudgetAllocation({
                   className="glass-input min-w-0 flex-1 rounded-xl px-4 py-3"
                 />
                 <div className="relative w-36 shrink-0 sm:w-44">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gala-muted">
                     ₱
                   </span>
                   <input
@@ -281,14 +289,14 @@ function BudgetAllocation({
                     className="glass-input w-full rounded-xl py-3 pl-7 pr-3"
                   />
                 </div>
-                <span className="hidden w-10 shrink-0 text-right text-xs text-white/60 sm:block">
+                <span className="hidden w-10 shrink-0 text-right text-xs text-gala-muted sm:block">
                   {share}%
                 </span>
                 <button
                   type="button"
                   onClick={() => onRemove(i)}
                   aria-label={`Remove ${row.name || "category"}`}
-                  className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                  className="h-12 w-12 shrink-0 rounded-xl border border-gala-line bg-gala-raised/60 text-xl transition hover:bg-gala-raised"
                 >
                   <Icon name="close" className="h-4 w-4" />
                 </button>
@@ -507,7 +515,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
   return (
     <Background>
-      <div className={PAGE_WRAP}>
+      <div className={`${PAGE_WRAP} text-gala-text`}>
         <Navbar />
 
         <main className="flex flex-1 flex-col gap-6">
@@ -530,21 +538,33 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
           {/* ---------------- STEP 1 ---------------- */}
           {step === 1 && (
             <section className="flex flex-col gap-6">
-              <div className={GRID}>
-                {Object.entries(TEMPLATES).map(([name, t]) => (
-                  <TemplateCard
-                    key={name}
-                    name={name}
-                    template={t}
-                    selected={selectedTemplate === name}
-                    onSelect={selectTemplate}
-                  />
-                ))}
+              {/* The plate that holds all the templates */}
+              <div className={`${PANEL} p-5 md:p-6`}>
+                <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm text-gala-muted">
+                    Pick one to start
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+                  {Object.entries(TEMPLATES).map(([name, t]) => (
+                    <TemplateCard
+                      key={name}
+                      name={name}
+                      template={t}
+                      selected={selectedTemplate === name}
+                      onSelect={selectTemplate}
+                    />
+                  ))}
+                </div>
               </div>
 
-              <p className="text-white/70">
-                The selected template pre-fills these. Everything stays
-                editable.
+              <p className="text-gala-text/80">
+                The{" "}
+                <strong className="font-semibold text-gala-accent">
+                  {selectedTemplate}
+                </strong>{" "}
+                template pre-fills these. Everything stays editable.
               </p>
 
               <div className="grid gap-5 md:grid-cols-3">
@@ -582,14 +602,14 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
               className={`${PANEL} flex w-full flex-col gap-6 p-6 md:p-8`}
             >
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <span className="text-white/70">Template</span>
-                <strong className="rounded-full border border-white/30 bg-white/10 px-3 py-1">
+                <span className="text-gala-muted">Template</span>
+                <strong className="rounded-full border border-gala-line bg-gala-raised/60 px-3 py-1 text-gala-text">
                   {selectedTemplate}
                 </strong>
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="text-white/80 underline underline-offset-4 hover:text-white"
+                  className="text-gala-aqua underline underline-offset-4 transition hover:text-gala-accent"
                 >
                   Change
                 </button>
@@ -672,7 +692,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm font-medium text-white/80">
+                  <span className="text-sm font-medium text-gala-text/80">
                     Activities
                   </span>
                   <button
@@ -686,7 +706,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
 
                 <div className="flex flex-col gap-3">
                   {form.activities.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm text-white/60">
+                    <div className="rounded-xl border border-dashed border-gala-line px-4 py-4 text-sm text-gala-muted">
                       No activities yet. Add one to get started.
                     </div>
                   )}
@@ -703,7 +723,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                         type="button"
                         onClick={() => removeActivity(index)}
                         aria-label="Remove activity"
-                        className="h-12 w-12 shrink-0 rounded-xl border border-white/30 bg-white/10 text-xl transition hover:bg-white/20"
+                        className="h-12 w-12 shrink-0 rounded-xl border border-gala-line bg-gala-raised/60 text-xl transition hover:bg-gala-raised"
                       >
                         <Icon name="close" className="h-4 w-4" />
                       </button>
@@ -731,7 +751,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                   Total budget
                 </label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60">
+                  <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gala-muted">
                     ₱
                   </span>
                   <input
@@ -745,7 +765,7 @@ export default function NewPlan({ onCancel, onSave, initialDestination = "" }) {
                     className="glass-input w-full rounded-xl py-3 pl-8 pr-4"
                   />
                 </div>
-                <p className="mt-2 text-sm text-white/60">
+                <p className="mt-2 text-sm text-gala-muted">
                   This is the total amount the Budget tab compares your spending
                   against.
                 </p>

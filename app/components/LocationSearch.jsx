@@ -155,7 +155,7 @@ export default function LocationSearch({
       <div className="relative">
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/60"
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gala-aqua"
         >
           <Icon name="pin" className="h-4 w-4" />
         </span>
@@ -178,7 +178,7 @@ export default function LocationSearch({
           }`}
         />
         {loading && (
-          <span className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          <span className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin motion-reduce:animate-none rounded-full border-2 border-gala-text/30 border-t-gala-accent" />
         )}
       </div>
 
@@ -186,14 +186,14 @@ export default function LocationSearch({
       {open && (
         <ul
           role="listbox"
-          className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-white/20 bg-indigo-950 shadow-2xl shadow-black/50"
+          className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-gala-line bg-gala-surface text-gala-text shadow-lift"
         >
           {/* Error state */}
           {error && <li className="px-4 py-3 text-sm text-red-200">{error}</li>}
 
           {/* Empty state */}
           {!error && results.length === 0 && !loading && (
-            <li className="px-4 py-3 text-sm text-white/60">
+            <li className="px-4 py-3 text-sm text-gala-muted">
               No Philippine destinations found.
             </li>
           )}
@@ -211,7 +211,7 @@ export default function LocationSearch({
                 onClick={() => choose(place)}
                 onMouseEnter={() => setActive(index)}
                 className={`flex w-full items-center gap-3 px-3 py-2 text-left transition ${
-                  index === active ? "bg-white/15" : "hover:bg-white/10"
+                  index === active ? "bg-gala-raised" : "hover:bg-gala-raised/60"
                 }`}
               >
                 {/* Thumbnail */}
@@ -219,7 +219,7 @@ export default function LocationSearch({
                   src={place.image || "/destinations/elnido.jpg"}
                   alt=""
                   aria-hidden="true"
-                  className="h-10 w-14 shrink-0 rounded-lg object-cover"
+                  className="h-10 w-14 shrink-0 rounded-lg border border-gala-line object-cover"
                   onError={(e) => {
                     e.currentTarget.src = "/destinations/elnido.jpg";
                   }}
@@ -227,17 +227,17 @@ export default function LocationSearch({
 
                 {/* Text */}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-white">
+                  <span className="block truncate text-sm font-medium text-gala-text">
                     {place.name}
                   </span>
-                  <span className="block truncate text-xs text-white/55">
+                  <span className="block truncate text-xs text-gala-aqua">
                     {buildLabel(place)}
                   </span>
                 </span>
 
                 {/* Type badge */}
                 {place.type && place.type !== "place" && (
-                  <span className="shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-[10px] text-white/40 capitalize">
+                  <span className="shrink-0 rounded-full border border-gala-line px-2 py-0.5 text-[10px] capitalize text-gala-muted">
                     {place.type}
                   </span>
                 )}
@@ -246,7 +246,7 @@ export default function LocationSearch({
           ))}
 
           {/* Attribution */}
-          <li className="border-t border-white/10 px-4 py-1.5 text-[10px] text-white/40">
+          <li className="border-t border-gala-line px-4 py-1.5 text-[10px] text-gala-muted">
             © OpenStreetMap contributors · Wikimedia Commons
           </li>
         </ul>

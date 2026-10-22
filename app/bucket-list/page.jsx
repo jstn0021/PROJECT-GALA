@@ -6,24 +6,30 @@ import { Background } from "@/app/components/AuthCard";
 import Navbar from "@/app/components/Navbar";
 import LocationSearch from "@/app/components/LocationSearch";
 import {
-  PANEL,
-  CARD,
   GRID,
   PAGE_WRAP,
   PageHeader,
   CardImage,
-  primaryBtn,
-  gradientBtn,
   cardAction,
   Icon,
 } from "@/app/components/ui";
 
+/* Bucket List-only na styles. Kapareho na ng Dashboard, My Plans, New Plan,
+   Profile, Journal at Landing ang panels, buttons at shadows.
+   Hindi ginagalaw ang ui.jsx, kaya hindi apektado ang ibang pages. */
+const PANEL =
+  "rounded-3xl border border-gala-aqua/30 bg-linear-to-br from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 backdrop-blur-md shadow-card";
+const CARD = `group relative flex flex-col overflow-hidden ${PANEL} transition duration-300 hover:-translate-y-1 hover:shadow-lift`;
+const gradientBtn =
+  "bg-gala-accent font-bold text-gala-bg shadow-accent transition hover:scale-105 hover:brightness-110 hover:shadow-lift active:scale-95";
+const primaryBtn = `rounded-full px-6 py-3 ${gradientBtn}`;
+
 // Color names from the API -> card gradients (full class names so Tailwind keeps them)
 const GRADIENTS = {
-  coral: "from-rose-400 to-orange-300",
-  lime: "from-yellow-300 to-emerald-300",
-  blue: "from-cyan-300 to-indigo-400",
-  green: "from-emerald-300 to-teal-500",
+  coral: "from-gala-gold to-gala-muted",
+  lime: "from-gala-accent to-gala-teal",
+  blue: "from-gala-aqua to-gala-teal",
+  green: "from-gala-teal to-gala-raised",
 };
 
 export default function BucketListPage() {
@@ -131,7 +137,7 @@ export default function BucketListPage() {
 
   return (
     <Background>
-      <div className={PAGE_WRAP}>
+      <div className={`${PAGE_WRAP} text-gala-text`}>
         <Navbar />
 
         <main className="flex flex-1 flex-col gap-6">
@@ -146,7 +152,7 @@ export default function BucketListPage() {
 
           <form
             onSubmit={addPlace}
-            className="glass-input relative z-50 flex w-full max-w-2xl items-center gap-2 rounded-full p-1.5"
+            className="flex w-full max-w-2xl items-center gap-2 rounded-full p-1.5"
           >
             <div className="relative min-w-0 flex-1">
               <LocationSearch
@@ -166,7 +172,7 @@ export default function BucketListPage() {
             <button
               type="submit"
               disabled={adding || !selectedPlace || !name.trim()}
-              className={`${primaryBtn} disabled:opacity-60`}
+              className={`${primaryBtn} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {adding ? "Adding..." : "Add"}
             </button>
@@ -188,11 +194,11 @@ export default function BucketListPage() {
             <div
               className={`${PANEL} mx-auto my-8 flex max-w-lg flex-col items-center p-10 text-center`}
             >
-              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/30 text-indigo-200 shadow-[0_0_24px_rgba(99,102,241,0.5)]">
+              <span className="grid h-16 w-16 place-items-center rounded-2xl border border-gala-line bg-gala-raised text-gala-accent shadow-card">
                 <Icon name="bookmark" className="h-8 w-8" />
               </span>
-              <h2 className="mt-4 text-2xl font-bold">No places yet</h2>
-              <p className="mt-2 text-sm text-white/70">
+              <h2 className="mt-4 text-2xl font-bold text-gala-text">No places yet</h2>
+              <p className="mt-2 text-sm text-gala-muted">
                 Add one above, or save places you like from Explore.
               </p>
               <Link href="/explore" className={`mt-6 ${primaryBtn}`}>
@@ -210,7 +216,7 @@ export default function BucketListPage() {
                     dim={place.completed}
                   >
                     {place.completed && (
-                      <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md">
+                      <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-gala-bg/70 px-2.5 py-1 text-xs font-semibold text-gala-accent backdrop-blur-md">
                         <Icon name="check" className="h-3.5 w-3.5" />
                         Done
                       </span>
@@ -219,27 +225,29 @@ export default function BucketListPage() {
 
                   <div className="flex flex-1 flex-col p-5">
                     <h3
-                      className={`text-xl font-bold tracking-tight transition group-hover:text-indigo-300 ${
-                        place.completed ? "text-white/50 line-through" : ""
+                      className={`text-xl font-bold tracking-tight transition group-hover:text-gala-accent ${
+                        place.completed
+                          ? "text-gala-muted line-through"
+                          : "text-gala-text"
                       }`}
                     >
                       {place.name}
                     </h3>
                     {place.location && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-sky-300">
+                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-gala-aqua">
                         <Icon name="pin" className="h-3.5 w-3.5 shrink-0" />
                         <span className="truncate">{place.location}</span>
                       </p>
                     )}
 
                     <div className="mt-auto pt-4">
-                      <div className="flex items-center gap-2 border-t border-white/10 pt-3">
+                      <div className="flex items-center gap-2 border-t border-gala-line pt-3">
                         <button
                           type="button"
                           onClick={() => toggleDone(place)}
                           className={`flex-1 ${cardAction} ${
                             place.completed
-                              ? "border-indigo-300 bg-indigo-500/40"
+                              ? "border-gala-accent bg-gala-accent/20 text-gala-accent"
                               : ""
                           }`}
                         >
@@ -262,7 +270,7 @@ export default function BucketListPage() {
                           type="button"
                           onClick={() => removePlace(place)}
                           aria-label={`Remove ${place.name}`}
-                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/20 bg-white/5 transition hover:bg-red-500/30"
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-gala-line bg-gala-raised/60 text-gala-text transition hover:bg-red-500/30"
                         >
                           <Icon name="trash" className="h-3.5 w-3.5" />
                         </button>

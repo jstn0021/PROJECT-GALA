@@ -72,14 +72,15 @@ export default function Navbar() {
   const links = isAdmin ? [...baseLinks, adminLink] : baseLinks;
 
   return (
-    <header className="glass-dark relative z-40 flex w-full items-center gap-4 rounded-full px-6 py-3">
+    // Hindi na gumagamit ng .glass-dark; kapareho na ng dashboard panels ang style.
+    <header className="relative z-40 flex w-full items-center gap-4 rounded-full border border-gala-aqua/30 bg-linear-to-r from-gala-surface/90 via-gala-surface/85 to-[#172B3A]/90 px-6 py-3 text-gala-text shadow-card backdrop-blur-md">
       {showBack && (
         <button
           type="button"
           onClick={goBack}
           aria-label="Go back"
           title="Back"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/25 bg-white/10 transition hover:bg-white/20 active:scale-95"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-gala-line bg-gala-raised/60 text-gala-text transition hover:bg-gala-raised active:scale-95"
         >
           <Icon name="arrowLeft" className="h-4 w-4" />
         </button>
@@ -98,10 +99,10 @@ export default function Navbar() {
               href={l.href}
               aria-current={active ? "page" : undefined}
               aria-label={l.label}
-              className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-sm transition hover:bg-white/10 lg:px-4 ${
+              className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-sm transition lg:px-4 ${
                 active
-                  ? "bg-indigo-500/40 font-semibold shadow-[0_0_18px_rgba(99,102,241,0.5)]"
-                  : "text-white/80"
+                  ? "bg-gala-accent font-semibold text-gala-bg"
+                  : "text-gala-aqua hover:bg-gala-raised hover:text-gala-text"
               }`}
             >
               <Icon name={l.icon} className="h-4 w-4 shrink-0" />
