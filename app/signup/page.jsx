@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthCard, { Field, SubmitButton } from "../components/AuthCard";
+import TermsModal from "../components/TermsModal";
 
 export default function Signup() {
   const router = useRouter();
@@ -12,6 +13,8 @@ export default function Signup() {
     password: "",
     confirm: "",
   });
+  const [agreed, setAgreed] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -28,13 +31,15 @@ export default function Signup() {
       return setError("Password must be at least 8 characters");
     if (form.password !== form.confirm)
       return setError("Passwords do not match");
+    if (!agreed)
+      return setError("You must agree to the Terms and Agreement to sign up");
 
     setLoading(true);
     try {
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, acceptedTerms: agreed }),
       });
       const result = await res.json();
       if (res.ok) router.push("/login");
@@ -77,7 +82,31 @@ export default function Signup() {
         type="password"
         onChange={handleChange}
       />
-      <SubmitButton onClick={handleSubmit} disabled={loading}>
+
+      <label className="flex cursor-pointer items-start gap-3 text-sm text-white/90">
+        <input
+          type="checkbox"
+          checked={agreed}
+          onChange={(e) => {
+            setAgreed(e.target.checked);
+            setError("");
+          }}
+          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-amber-400"
+        />
+        <span>
+          I have read and agree to the{" "}
+          <button
+            type="button"
+            onClick={() => setShowTerms(true)}
+            className="font-medium text-amber-200 underline underline-offset-4 hover:text-amber-100"
+          >
+            Terms and Agreement
+          </button>
+          .
+        </span>
+      </label>
+
+      <SubmitButton onClick={handleSubmit} disabled={loading || !agreed}>
         {loading ? "Creating..." : "Sign up"}
       </SubmitButton>
       <p className="text-sm">
@@ -86,6 +115,16 @@ export default function Signup() {
           Log in
         </Link>
       </p>
+
+      <TermsModal
+        open={showTerms}
+        onClose={() => setShowTerms(false)}
+        onAgree={() => {
+          setAgreed(true);
+          setError("");
+          setShowTerms(false);
+        }}
+      />
     </AuthCard>
   );
 }
